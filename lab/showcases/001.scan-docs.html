@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello World</title>
+    <script src="https://unpkg.com/dwt@latest/dist/dynamsoft.webtwain.min.js"></script>
+    <script defer>
+      let dwtObject;
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const scanButton = document.getElementById("scanButton");
+
+        scanButton.addEventListener("click", async () => {
+          if (dwtObject) {
+            try {
+              await dwtObject.SelectSourceAsync();
+              await dwtObject.AcquireImageAsync({
+                IfCloseSourceAfterAcquire: true,
+              });
+            } catch (err) {
+              alert(err.message);
+            }
+          }
+        });
+
+        Dynamsoft.DWT.RegisterEvent("OnWebTwainReady", () => {
+          dwtObject = Dynamsoft.DWT.GetWebTwain("dwtcontrolContainer");
+        });
+
+        Dynamsoft.DWT.Containers = [
+          {
+            WebTwainId: "",
+            ContainerId: "dwtcontrolContainer",
+          },
+        ];
+        Dynamsoft.DWT.ProductKey =
+          "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=";
+
+        Dynamsoft.DWT.ResourcesPath = "https://unpkg.com/dwt@latest/dist/";
+        Dynamsoft.DWT.Load();
+      });
+    </script>
+  </head>
+  <body>
+    <button id="scanButton">Scan</button>
+    <div id="dwtcontrolContainer" style="width: 350px; height: 380px"></div>
+  </body>
+</html>

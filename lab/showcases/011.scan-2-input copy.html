@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CSS Scan Button</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      #container {
+        display: flex;
+        align-items: center;
+      }
+
+      #barcode-input {
+        width: 240px;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+
+      #scan-btn {
+        margin-left: 10px;
+        width: 48px;
+        height: 48px;
+        background-color: #ff5000;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      #scan-btn:hover {
+        background-color: #e04500;
+      }
+
+      /* Simulated scan icon */
+      .scan-icon {
+        position: relative;
+        width: 24px;
+        height: 24px;
+      }
+
+      .scan-icon::before,
+      .scan-icon::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: white;
+      }
+
+      .scan-icon::before {
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      /* Four corner brackets */
+      .corner {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border: 2px solid white;
+      }
+
+      .tl {
+        top: 0;
+        left: 0;
+        border-right: none;
+        border-bottom: none;
+      }
+      .tr {
+        top: 0;
+        right: 0;
+        border-left: none;
+        border-bottom: none;
+      }
+      .bl {
+        bottom: 0;
+        left: 0;
+        border-right: none;
+        border-top: none;
+      }
+      .br {
+        bottom: 0;
+        right: 0;
+        border-left: none;
+        border-top: none;
+      }
+
+      #scanner-container {
+        margin-top: 25px;
+        display: none;
+        justify-content: center;
+      }
+
+      #floatingDiv {
+        position: fixed;
+        top: 400px;
+        left: 100px;
+        width: 400px;
+        height: 300px;
+        background: #f9f9f9;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        cursor: move;
+        z-index: 9999;
+        padding: 3px;
+        box-sizing: border-box;
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@10.5.3000/dist/dbr.bundle.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <input
+        type="text"
+        id="barcode-input"
+        placeholder="Enter or scan the barcode"
+      />
+      <button id="scan-btn">
+        <div class="scan-icon">
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
+        </div>
+      </button>
+    </div>
+
+    <div id="scanner-container">
+      <!-- Floating Scanner Container -->
+      <div id="floatingDiv" hidden></div>
+    </div>
+
+    <script>
+      const scanBtn = document.getElementById("scan-btn");
+      const inputBox = document.getElementById("barcode-input");
+      const scannerContainer = document.getElementById("scanner-container");
+
+      // Function to initialize and launch the barcode scanner
+      async function startScanner() {
+        // Create a new instance of Dynamsoft BarcodeScanner with configuration options
+        const barcodeScanner = new Dynamsoft.BarcodeScanner({
+          // License key for Dynamsoft Barcode Reader (replace with a valid key)
+          license:
+            "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+
+          // Specify the path to the engine resources (loaded from CDN in this case)
+          engineResourcePaths: {
+            rootDirectory:
+              "https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@10.5.3000/dist/",
+          },
+
+          // Set scanning mode to detect multiple unique barcodes in one session
+          scanMode: Dynamsoft.EnumScanMode.SM_SINGLE,
+
+          // Configure the barcodeScanner view (UI settings)
+          scannerViewConfig: {
+            //    container: document.querySelector("#floatingDiv"), // Attach barcodeScanner UI to floating div
+            showCloseButton: true, // Display a close button in the barcodeScanner UI
+          },
+        });
+
+        // Show the floating barcodeScanner container
+        document.querySelector("#floatingDiv").hidden = false;
+
+        // Launch the barcodeScanner (opens camera and starts scanning)
+        scanBtn.disabled = true;
+        const result = await barcodeScanner.launch();
+
+        if (result.barcodeResults[0])
+          inputBox.value = result.barcodeResults[0].text;
+        scannerContainer.style.display = "none";
+        scanBtn.disabled = false;
+        // Hide the barcodeScanner container after scanning is complete or closed
+        document.querySelector("#floatingDiv").hidden = true;
+      }
+
+      // Initialize Scan Button
+      window.onload = () => {
+        scanBtn.addEventListener("click", () => {
+          scannerContainer.style.display = "flex";
+          startScanner();
+        });
+
+        // Make the Floating Div Draggable
+        const dragDiv = document.getElementById("floatingDiv");
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        // Desktop mouse events
+        dragDiv.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          offsetX = e.clientX - dragDiv.offsetLeft;
+          offsetY = e.clientY - dragDiv.offsetTop;
+        });
+
+        document.addEventListener("mousemove", (e) => {
+          if (isDragging) {
+            dragDiv.style.left = `${e.clientX - offsetX}px`;
+            dragDiv.style.top = `${e.clientY - offsetY}px`;
+          }
+        });
+
+        document.addEventListener("mouseup", () => {
+          isDragging = false;
+        });
+
+        // Mobile touch events
+        dragDiv.addEventListener("touchstart", (e) => {
+          isDragging = true;
+          const touch = e.touches[0];
+          offsetX = touch.clientX - dragDiv.offsetLeft;
+          offsetY = touch.clientY - dragDiv.offsetTop;
+        });
+
+        document.addEventListener(
+          "touchmove",
+          (e) => {
+            if (isDragging) {
+              const touch = e.touches[0];
+              dragDiv.style.left = `${touch.clientX - offsetX}px`;
+              dragDiv.style.top = `${touch.clientY - offsetY}px`;
+              e.preventDefault(); // Prevent scrolling while dragging
+            }
+          },
+          { passive: false }
+        );
+
+        document.addEventListener("touchend", () => {
+          isDragging = false;
+        });
+      };
+    </script>
+  </body>
+</html>
