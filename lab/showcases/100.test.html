@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Catchy Note Box Example</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        height: 100vh;
+      }
+
+      .note-box {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #fe8e14;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        font-weight: bold;
+        font-size: 1.05em;
+        z-index: 1000;
+        animation: bounce 1.5s infinite alternate;
+        max-width: 260px;
+        line-height: 1.4;
+      }
+
+      @keyframes bounce {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(-8px);
+        }
+      }
+
+      .content {
+        padding: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="note-box">
+      📝 <strong>Note:</strong> <br />
+      FREE template customization help is available.
+      <a href="#" style="color: #fff; text-decoration: underline"
+        >Contact Us!</a
+      >
+    </div>
+
+    <div class="content">
+      <h1>Welcome!</h1>
+      <p>
+        Explore our templates and take advantage of our free customization
+        support.
+      </p>
+    </div>
+  </body>
+</html>
