@@ -52,10 +52,28 @@
     </div>
 
     <div class="content">
-      <h1>Welcome!</h1>
+      <h2>Design of the CaptureVisionTemplate Object</h2>
       <p>
-        Explore our templates and take advantage of our free customization
-        support.
+        A CaptureVisionTemplate object is the entry object of a parameter
+        template in Dynamsoft Capture Vision (DCV) SDK.
+      </p>
+      <h3>Input Source Configuration</h3>
+      <p>
+        In the parameter template, the ImageSourceName parameter refers to the
+        ImageSource object, which defines the image input source of DCV. When
+        DCV starts capturing, it will parse the ImageSource parameter, convert
+        it into an Image Source Adapter (ISA) object, and then continuously
+        obtain images from it.
+      </p>
+      <h3>Captured Output Configuration</h3>
+      <p>
+        OuputOriginalImage, ImageROIProcessingNameArray and
+        SemanticProcessingNameArray are three different parameters that control
+        the captured output, organized as a CapturedResult interface in DCV.
+        CapturedResult represents a set of all captured result items on an
+        image. Each type of result Item represents the output of different task
+        types. The following figure lists the rough relationship between DCV
+        output parameters and output results.
       </p>
     </div>
   </body>
