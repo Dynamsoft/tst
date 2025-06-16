@@ -47,6 +47,28 @@
           cvRouter = cvRouter || (await (pCvRouter = pCvRouter || Dynamsoft.CVR.CaptureVisionRouter.createInstance()));
           await cvRouter.initSettings("./mrz-scanner.template.json");
 
+          const newSettings = await cvRouter.getSimplifiedSettings("ReadPassportAndId");
+          newSettings.roiMeasuredInPercentage = true;
+          newSettings.roi.points = [
+            {
+              x: 0,
+              y: 0,
+            },
+            {
+              x: 100,
+              y: 0,
+            },
+            {
+              x: 100,
+              y: 100,
+            },
+            {
+              x: 0,
+              y: 100,
+            },
+          ];
+          await cvRouter.updateSettings("ReadPassportAndId", newSettings);
+
           for (let file of files) {
             console.log("Loading..");
             // Decode selected image with 'ReadPassportAndId' template.
