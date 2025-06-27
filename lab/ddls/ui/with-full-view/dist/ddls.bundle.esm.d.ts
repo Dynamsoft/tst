@@ -20,28 +20,126 @@ declare enum EnumDriverLicenseData {
     InvalidFields = "invalidFields",
     LicenseType = "licenseType",
     LicenseNumber = "licenseNumber",
+    AAMVAVersionNumber = "aamvaVersionNumber",
+    IssuerIdentificationNumber = "issuerIdentificationNumber",
+    JurisdictionVersionNumber = "jurisdictionVersionNumber",
+    DocumentDiscriminator = "documentDiscriminator",
+    IssuingCountry = "issuingCountry",
+    ComplianceType = "complianceType",
     FullName = "fullName",
     FirstName = "firstName",
     LastName = "lastName",
     MiddleName = "middleName",
+    NamePrefix = "namePrefix",
+    NameSuffix = "nameSuffix",
     DateOfBirth = "dateOfBirth",
-    ExpiryDate = "expiryDate",
-    IssueDate = "issueDate",
     Age = "age",
     Sex = "sex",
+    NameAlias = "nameAlias",
+    FirstNameAlias = "firstNameAlias",
+    LastNameAlias = "lastNameAlias",
+    MiddleNameAlias = "middleNameAlias",
+    PrefixAlias = "prefixAlias",
+    SuffixAlias = "suffixAlias",
+    AlternativeBirthDate = "alternativeBirthDate",
+    AlternativeSocialSecurityNumber = "alternativeSocialSecurityNumber",
     Height = "height",
+    HeightInCentimeters = "heightInCentimeters",
     Weight = "weight",
+    WeightInKilograms = "weightInKilograms",
+    WeightInPounds = "weightInPounds",
+    WeightRange = "weightRange",
     EyeColor = "eyeColor",
     HairColor = "hairColor",
+    Race = "race",
     Address = "address",
+    Street1 = "street1",
+    Street2 = "street2",
     City = "city",
     State = "state",
     PostalCode = "postalCode",
+    ResidenceStreet1 = "residenceStreet1",
+    ResidenceStreet2 = "residenceStreet2",
+    ResidenceCity = "residenceCity",
+    ResidenceState = "residenceState",
+    ResidencePostalCode = "residencePostalCode",
+    ExpiryDate = "expiryDate",
+    IssueDate = "issueDate",
+    IssueTimestamp = "issueTimestamp",
+    CardRevisionDate = "cardRevisionDate",
+    HazmatEndorsementExpiryDate = "hazmatEndorsementExpiryDate",
+    Under18Until = "under18Until",
+    Under19Until = "under19Until",
+    Under21Until = "under21Until",
     VehicleClass = "vehicleClass",
+    StandardVehicleClassification = "standardVehicleClassification",
+    VehicleCodeDescription = "vehicleCodeDescription",
     Restrictions = "restrictions",
+    RestrictionsCode = "restrictionsCode",
+    StandardRestrictionCode = "standardRestrictionCode",
+    RestrictionCodeDescription = "restrictionCodeDescription",
     Endorsements = "endorsements",
-    IssuingCountry = "issuingCountry",
-    DocumentDiscriminator = "documentDiscriminator"
+    EndorsementsCode = "endorsementsCode",
+    StandardEndorsementsCode = "standardEndorsementsCode",
+    EndorsementsCodeDescription = "endorsementsCodeDescription",
+    PermitClassificationCode = "permitClassificationCode",
+    PermitIdentifier = "permitIdentifier",
+    PermitExpirationDate = "permitExpirationDate",
+    PermitIssuedDate = "permitIssuedDate",
+    PermitRestrictionCode = "permitRestrictionCode",
+    PermitEndorsementCode = "permitEndorsementCode",
+    CustomerIdentifier = "customerIdentifier",
+    SocialSecurityNumber = "socialSecurityNumber",
+    InventoryControlNumber = "inventoryControlNumber",
+    NumberOfDuplicates = "numberOfDuplicates",
+    MedicalIndicator = "medicalIndicator",
+    OrganDonorIndicator = "organDonorIndicator",
+    NonResidentIndicator = "nonResidentIndicator",
+    VeteranIndicator = "veteranIndicator",
+    LimitedDurationDocumentIndicator = "limitedDurationDocumentIndicator",
+    FederalCommercialVehicleCodes = "federalCommercialVehicleCodes",
+    FamilyNameTruncation = "familyNameTruncation",
+    FirstNameTruncation = "firstNameTruncation",
+    MiddleNameTruncation = "middleNameTruncation",
+    BirthPlace = "birthPlace",
+    AuditInformation = "auditInformation",
+    JurisdictionSubfiles = "jurisdictionSubfiles",
+    Track1 = "track1",
+    Track2 = "track2",
+    Track3 = "track3",
+    LRCforTrack1 = "LRCforTrack1",
+    LRCforTrack2 = "LRCforTrack2",
+    LRCforTrack3 = "LRCforTrack3",
+    ISOIIN = "ISOIIN",
+    DLorID_NumberOverflow = "DLorID_NumberOverflow",
+    MagStripeVersion = "magStripeVersion",
+    DiscretionaryData1 = "discretionaryData1",
+    DiscretionaryData2 = "discretionaryData2",
+    SecurityFunction = "securityFunction",
+    IdNumber = "idNumber",
+    IdNumberType = "idNumberType",
+    IdIssuedCountry = "idIssuedCountry",
+    Surname = "surname",
+    Initials = "initials",
+    LicenseIssuedCountry = "licenseIssuedCountry",
+    LicenseIssueNumber = "licenseIssueNumber",
+    LicenseValidityFrom = "licenseValidityFrom",
+    LicenseValidityTo = "licenseValidityTo",
+    ProfessionalDrivingPermitExpiryDate = "professionalDrivingPermitExpiryDate",
+    ProfessionalDrivingPermitCodes = "professionalDrivingPermitCodes",
+    VehicleLicense = "vehicleLicense",
+    VehicleCode1 = "vehicleCode1",
+    VehicleCode2 = "vehicleCode2",
+    VehicleCode3 = "vehicleCode3",
+    VehicleCode4 = "vehicleCode4",
+    VehicleRestriction1 = "vehicleRestriction1",
+    VehicleRestriction2 = "vehicleRestriction2",
+    VehicleRestriction3 = "vehicleRestriction3",
+    VehicleRestriction4 = "vehicleRestriction4",
+    LicenseCodeIssuedDate1 = "licenseCodeIssuedDate1",
+    LicenseCodeIssuedDate2 = "licenseCodeIssuedDate2",
+    LicenseCodeIssuedDate3 = "licenseCodeIssuedDate3",
+    LicenseCodeIssuedDate4 = "licenseCodeIssuedDate4"
 }
 declare enum EnumDriverLicenseType {
     AAMVA_DL_ID = "AAMVA_DL_ID",
@@ -49,9 +147,9 @@ declare enum EnumDriverLicenseType {
     SOUTH_AFRICA_DL = "SOUTH_AFRICA_DL"
 }
 interface DriverLicenseDate {
-    year: number;
-    month: number;
-    day: number;
+    year?: number;
+    month?: number;
+    day?: number;
 }
 interface DriverLicenseData {
     _flowType?: EnumFlowType;
@@ -59,28 +157,126 @@ interface DriverLicenseData {
     [EnumDriverLicenseData.InvalidFields]?: EnumDriverLicenseData[];
     [EnumDriverLicenseData.LicenseType]?: EnumDriverLicenseType;
     [EnumDriverLicenseData.LicenseNumber]?: string;
+    [EnumDriverLicenseData.AAMVAVersionNumber]?: string;
+    [EnumDriverLicenseData.IssuerIdentificationNumber]?: string;
+    [EnumDriverLicenseData.JurisdictionVersionNumber]?: string;
+    [EnumDriverLicenseData.DocumentDiscriminator]?: string;
+    [EnumDriverLicenseData.IssuingCountry]?: string;
+    [EnumDriverLicenseData.ComplianceType]?: string;
     [EnumDriverLicenseData.FullName]?: string;
     [EnumDriverLicenseData.FirstName]?: string;
     [EnumDriverLicenseData.LastName]?: string;
     [EnumDriverLicenseData.MiddleName]?: string;
+    [EnumDriverLicenseData.NamePrefix]?: string;
+    [EnumDriverLicenseData.NameSuffix]?: string;
     [EnumDriverLicenseData.DateOfBirth]?: DriverLicenseDate;
-    [EnumDriverLicenseData.ExpiryDate]?: DriverLicenseDate;
-    [EnumDriverLicenseData.IssueDate]?: DriverLicenseDate;
     [EnumDriverLicenseData.Age]?: number;
     [EnumDriverLicenseData.Sex]?: string;
+    [EnumDriverLicenseData.NameAlias]?: string;
+    [EnumDriverLicenseData.FirstNameAlias]?: string;
+    [EnumDriverLicenseData.LastNameAlias]?: string;
+    [EnumDriverLicenseData.MiddleNameAlias]?: string;
+    [EnumDriverLicenseData.PrefixAlias]?: string;
+    [EnumDriverLicenseData.SuffixAlias]?: string;
+    [EnumDriverLicenseData.AlternativeBirthDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.AlternativeSocialSecurityNumber]?: string;
     [EnumDriverLicenseData.Height]?: string;
+    [EnumDriverLicenseData.HeightInCentimeters]?: string;
     [EnumDriverLicenseData.Weight]?: string;
+    [EnumDriverLicenseData.WeightInKilograms]?: string;
+    [EnumDriverLicenseData.WeightInPounds]?: string;
+    [EnumDriverLicenseData.WeightRange]?: string;
     [EnumDriverLicenseData.EyeColor]?: string;
     [EnumDriverLicenseData.HairColor]?: string;
+    [EnumDriverLicenseData.Race]?: string;
     [EnumDriverLicenseData.Address]?: string;
+    [EnumDriverLicenseData.Street1]?: string;
+    [EnumDriverLicenseData.Street2]?: string;
     [EnumDriverLicenseData.City]?: string;
     [EnumDriverLicenseData.State]?: string;
     [EnumDriverLicenseData.PostalCode]?: string;
+    [EnumDriverLicenseData.ResidenceStreet1]?: string;
+    [EnumDriverLicenseData.ResidenceStreet2]?: string;
+    [EnumDriverLicenseData.ResidenceCity]?: string;
+    [EnumDriverLicenseData.ResidenceState]?: string;
+    [EnumDriverLicenseData.ResidencePostalCode]?: string;
+    [EnumDriverLicenseData.ExpiryDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.IssueDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.IssueTimestamp]?: string;
+    [EnumDriverLicenseData.CardRevisionDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.HazmatEndorsementExpiryDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.Under18Until]?: DriverLicenseDate;
+    [EnumDriverLicenseData.Under19Until]?: DriverLicenseDate;
+    [EnumDriverLicenseData.Under21Until]?: DriverLicenseDate;
     [EnumDriverLicenseData.VehicleClass]?: string;
+    [EnumDriverLicenseData.StandardVehicleClassification]?: string;
+    [EnumDriverLicenseData.VehicleCodeDescription]?: string;
     [EnumDriverLicenseData.Restrictions]?: string;
+    [EnumDriverLicenseData.RestrictionsCode]?: string;
+    [EnumDriverLicenseData.StandardRestrictionCode]?: string;
+    [EnumDriverLicenseData.RestrictionCodeDescription]?: string;
     [EnumDriverLicenseData.Endorsements]?: string;
-    [EnumDriverLicenseData.IssuingCountry]?: string;
-    [EnumDriverLicenseData.DocumentDiscriminator]?: string;
+    [EnumDriverLicenseData.EndorsementsCode]?: string;
+    [EnumDriverLicenseData.StandardEndorsementsCode]?: string;
+    [EnumDriverLicenseData.EndorsementsCodeDescription]?: string;
+    [EnumDriverLicenseData.PermitClassificationCode]?: string;
+    [EnumDriverLicenseData.PermitIdentifier]?: string;
+    [EnumDriverLicenseData.PermitExpirationDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.PermitIssuedDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.PermitRestrictionCode]?: string;
+    [EnumDriverLicenseData.PermitEndorsementCode]?: string;
+    [EnumDriverLicenseData.CustomerIdentifier]?: string;
+    [EnumDriverLicenseData.SocialSecurityNumber]?: string;
+    [EnumDriverLicenseData.InventoryControlNumber]?: string;
+    [EnumDriverLicenseData.NumberOfDuplicates]?: string;
+    [EnumDriverLicenseData.MedicalIndicator]?: string;
+    [EnumDriverLicenseData.OrganDonorIndicator]?: string;
+    [EnumDriverLicenseData.NonResidentIndicator]?: string;
+    [EnumDriverLicenseData.VeteranIndicator]?: string;
+    [EnumDriverLicenseData.LimitedDurationDocumentIndicator]?: string;
+    [EnumDriverLicenseData.FederalCommercialVehicleCodes]?: string;
+    [EnumDriverLicenseData.FamilyNameTruncation]?: string;
+    [EnumDriverLicenseData.FirstNameTruncation]?: string;
+    [EnumDriverLicenseData.MiddleNameTruncation]?: string;
+    [EnumDriverLicenseData.BirthPlace]?: string;
+    [EnumDriverLicenseData.AuditInformation]?: string;
+    [EnumDriverLicenseData.JurisdictionSubfiles]?: string;
+    [EnumDriverLicenseData.Track1]?: string;
+    [EnumDriverLicenseData.Track2]?: string;
+    [EnumDriverLicenseData.Track3]?: string;
+    [EnumDriverLicenseData.LRCforTrack1]?: string;
+    [EnumDriverLicenseData.LRCforTrack2]?: string;
+    [EnumDriverLicenseData.LRCforTrack3]?: string;
+    [EnumDriverLicenseData.ISOIIN]?: string;
+    [EnumDriverLicenseData.DLorID_NumberOverflow]?: string;
+    [EnumDriverLicenseData.MagStripeVersion]?: string;
+    [EnumDriverLicenseData.DiscretionaryData1]?: string;
+    [EnumDriverLicenseData.DiscretionaryData2]?: string;
+    [EnumDriverLicenseData.SecurityFunction]?: string;
+    [EnumDriverLicenseData.IdNumber]?: string;
+    [EnumDriverLicenseData.IdNumberType]?: string;
+    [EnumDriverLicenseData.IdIssuedCountry]?: string;
+    [EnumDriverLicenseData.Surname]?: string;
+    [EnumDriverLicenseData.Initials]?: string;
+    [EnumDriverLicenseData.LicenseIssuedCountry]?: string;
+    [EnumDriverLicenseData.LicenseIssueNumber]?: string;
+    [EnumDriverLicenseData.LicenseValidityFrom]?: DriverLicenseDate;
+    [EnumDriverLicenseData.LicenseValidityTo]?: DriverLicenseDate;
+    [EnumDriverLicenseData.ProfessionalDrivingPermitExpiryDate]?: DriverLicenseDate;
+    [EnumDriverLicenseData.ProfessionalDrivingPermitCodes]?: string;
+    [EnumDriverLicenseData.VehicleLicense]?: string;
+    [EnumDriverLicenseData.VehicleCode1]?: string;
+    [EnumDriverLicenseData.VehicleCode2]?: string;
+    [EnumDriverLicenseData.VehicleCode3]?: string;
+    [EnumDriverLicenseData.VehicleCode4]?: string;
+    [EnumDriverLicenseData.VehicleRestriction1]?: string;
+    [EnumDriverLicenseData.VehicleRestriction2]?: string;
+    [EnumDriverLicenseData.VehicleRestriction3]?: string;
+    [EnumDriverLicenseData.VehicleRestriction4]?: string;
+    [EnumDriverLicenseData.LicenseCodeIssuedDate1]?: DriverLicenseDate;
+    [EnumDriverLicenseData.LicenseCodeIssuedDate2]?: DriverLicenseDate;
+    [EnumDriverLicenseData.LicenseCodeIssuedDate3]?: DriverLicenseDate;
+    [EnumDriverLicenseData.LicenseCodeIssuedDate4]?: DriverLicenseDate;
 }
 interface DriverLicenseImageResult {
     status: ResultStatus;
@@ -189,6 +385,7 @@ interface ScannerViewText {
     hintStart?: string;
     hintInProgress?: string;
     hintMoveCloser?: string;
+    hintRotateHorizontal?: string;
 }
 interface VerifyViewText {
     title?: string;
@@ -226,6 +423,8 @@ declare class DriverLicenseScannerView {
     private initializedDCE;
     private resizeTimer;
     private DCE_ELEMENTS;
+    private currentGuideType;
+    private DCE_SCANGUIDE_ELEMENTS;
     private currentScanResolver?;
     private loadingScreen;
     private showScannerLoadingOverlay;
@@ -250,7 +449,7 @@ declare class DriverLicenseScannerView {
     private toggleScanHintMessage;
     private calculateScanRegion;
     openCamera(): Promise<void>;
-    closeCamera(hideContainer?: boolean): Promise<void>;
+    closeCamera(hideContainer?: boolean): void;
     pauseCamera(): void;
     stopCapturing(): void;
     private getFlowType;
@@ -262,6 +461,12 @@ declare class DriverLicenseScannerView {
      * @returns normalized image by DDN
      */
     private handleAutoCaptureMode;
+    private showStartingState;
+    private handleInvalidLicenseRatio;
+    private handleTooSmallQuad;
+    private handleProgressState;
+    private calculateVisibleRegionArea;
+    private readonly MIN_QUAD_TO_REGION_RATIO;
     launch(side?: EnumDriverLicenseScanSide, mode?: EnumDriverLicenseScanMode): Promise<DriverLicenseImageResult>;
     normalizeImage(points: Quadrilateral["points"], originalImageData: OriginalImageResultItem["imageData"]): Promise<DeskewedImageResultItem>;
 }
