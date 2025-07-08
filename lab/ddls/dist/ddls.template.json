@@ -2,7 +2,8 @@
   "CaptureVisionTemplates": [
     {
       "Name": "DL_detect",
-      "ImageROIProcessingNameArray": ["roi-detect-document-boundaries"],
+      "ImageROIProcessingNameArray": ["roi-detect-document-boundaries", "roi_dl_all"],
+      "SemanticProcessingNameArray": ["sp_dl_all"],
       "OutputOriginalImage": 1
     },
     {
@@ -68,8 +69,7 @@
               "Stage": "SST_DETECT_QUADS",
               "QuadrilateralDetectionModes": [
                 {
-                  "Mode": "QDM_GENERAL",
-                  "MinQuadrilateralAreaRatio": 30
+                  "Mode": "QDM_GENERAL"
                 }
               ]
             }
