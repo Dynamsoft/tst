@@ -397,6 +397,8 @@ interface ScannerViewText {
     hintInProgress?: string;
     hintMoveCloser?: string;
     hintRotateHorizontal?: string;
+    hintBlurry?: string;
+    hintScanningBarcode?: string;
 }
 interface VerifyViewText {
     title?: string;
@@ -484,6 +486,7 @@ declare class DriverLicenseScannerView {
      */
     private handleAutoCaptureMode;
     private showStartingState;
+    private handleBlurryLicense;
     private handleInvalidLicenseRatio;
     private handleTooSmallQuad;
     private handleProgressState;
