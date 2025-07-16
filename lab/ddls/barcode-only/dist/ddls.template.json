@@ -153,8 +153,9 @@
                   "Mode": "LM_CONNECTED_BLOCKS"
                 },
                 {
-                  "Mode": "LM_LINES"
-                }
+                  "Mode": "LM_STATISTICS_MARKS"
+                },
+                { "Mode": "LM_LINES" }
               ],
               "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES"
             },

@@ -36,7 +36,7 @@
         resultContainer.innerHTML = ""; // Clear placeholder content
 
         // Clear the result container and display the scanned result
-        if (result?.licenseData?.status === 0) {
+        if (result?.licenseData?.status.code === 0) {
           Object.entries(result?.licenseData).map(([key, val]) => {
             const div = document.createElement("div");
             div.innerHTML = `<p>${key}: ${JSON.stringify(val)}</p>`;
