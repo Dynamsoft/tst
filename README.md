@@ -1,6 +1,19 @@
 # Test Samples Repository
 This repository contains samples and codes for customers to try out and evaluate. These samples are intended to help you get started with our product, providing a quick and easy way to experience its features and functionalities.
 
+## Running Samples
+
+Once a new sample page is added to this repository, you can access it via GitHub Pages at:
+
+```
+https://dynamsoft.github.io/tst/[path-to-sample]
+```
+
+For example, to run the List Builder sample:
+```
+https://dynamsoft.github.io/tst/samples/list-builder.html
+```
+
 # Test License
 
 The following license can be used in all the samples (JS/web only), the license is bound to the domain `dynamsoft.github.io`:
