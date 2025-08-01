@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>List-Builder - Scan Barcodes to List</title>
+
+  <!-- Include Dynamsoft Barcode Reader Bundle via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11.0.3000/dist/dbr.bundle.js"></script>
+  <!-- If the network is unstable or you prefer to self-host the SDK, uncomment the line below to load it locally -->
+  <!-- <script src="../../../dist/dbr.bundle.js"></script> -->
+
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .scan-button {
+      padding: 10px 20px;
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    #floatingDiv {
+      position: fixed;
+      top: 40%;
+      left: 10%;
+      width: 50%;
+      height: 25%;
+      max-width: 400px;
+      max-height: 200px;
+      min-width: 150px;
+      min-height: 150px;
+      background: white;
+      border: 2px solid #ccc;
+      cursor: move;
+      z-index: 999;
+      padding: 3px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Barcode Scanner</h1>
+
+  <button class="scan-button" id="barcodeBtn">Scan Barcode</button>
+
+  <div id="floatingDiv" hidden></div>
+
+  <div id="list-content">
+    <p>No barcodes scanned yet. Start scanning!</p>
+  </div>
+
+  <script>
+    const dragDiv = document.getElementById("floatingDiv");
+    
+    // Function to initialize and launch the barcode scanner
+    async function startScanner() {
+      // Create a new instance of Dynamsoft BarcodeScanner with configuration options
+      const scanner = new Dynamsoft.BarcodeScanner({
+        // License key for Dynamsoft Barcode Reader (replace with a valid key)
+        license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+
+        // Set scanning mode to detect multiple unique barcodes in one session
+        scanMode: Dynamsoft.EnumScanMode.SM_MULTI_UNIQUE,
+
+        // Time in milliseconds to forget duplicate barcodes (prevents rapid duplicate scans)
+        duplicateForgetTime: 5000,
+
+        showResultView: false,
+
+        // Configure the scanner view (UI settings)
+        scannerViewConfig: {
+          container: document.querySelector("#floatingDiv"), // Attach scanner UI to floating div
+          showCloseButton: true, // Display a close button in the scanner UI
+        },
+
+        // Callback triggered when a unique barcode is detected
+        onUniqueBarcodeScanned: (result) => {
+          // Add the scanned barcode to the list
+          addBarcodeToList(result);
+        },
+      });
+
+      // Show the floating scanner container
+      document.querySelector("#floatingDiv").hidden = false;
+
+      // Launch the scanner (opens camera and starts scanning)
+      await scanner.launch();
+
+      // Hide the scanner container after scanning is complete or closed
+      document.querySelector("#floatingDiv").hidden = true;
+    }
+
+    let barcodeList = [];
+
+    // Add barcode to list
+    function addBarcodeToList(result) {
+      const barcodeEntry = {
+        index: barcodeList.length + 1,
+        text: result.text,
+        format: result.formatString
+      };
+      barcodeList.push(barcodeEntry);
+      updateListDisplay();
+    }
+
+    // Update List UI
+    function updateListDisplay() {
+      const listDiv = document.getElementById("list-content");
+      
+      if (barcodeList.length === 0) {
+        listDiv.innerHTML = "<p>No barcodes scanned yet. Start scanning!</p>";
+        return;
+      }
+
+      let tableHTML = `
+        <table>
+          <tr>
+            <th>Index</th>
+            <th>Barcode Text</th>
+            <th>Format</th>
+          </tr>
+      `;
+
+      barcodeList.forEach((barcode) => {
+        tableHTML += `
+          <tr>
+            <td>${barcode.index}</td>
+            <td>${barcode.text}</td>
+            <td>${barcode.format}</td>
+          </tr>
+        `;
+      });
+
+      tableHTML += `</table>`;
+
+      listDiv.innerHTML = tableHTML;
+    }
+
+    // Initialize Scan Button
+    window.onload = () => {
+      document
+        .getElementById("barcodeBtn")
+        .addEventListener("click", startScanner);
+
+      // Make the Floating Div Draggable
+      let offsetX = 0,
+        offsetY = 0,
+        isDragging = false;
+
+      dragDiv.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        offsetX = e.clientX - dragDiv.offsetLeft;
+        offsetY = e.clientY - dragDiv.offsetTop;
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+          dragDiv.style.left = `${e.clientX - offsetX}px`;
+          dragDiv.style.top = `${e.clientY - offsetY}px`;
+        }
+      });
+
+      document.addEventListener("mouseup", () => (isDragging = false));
+
+      dragDiv.addEventListener("touchstart", (e) => {
+        isDragging = true;
+        offsetX = e.touches[0].clientX - dragDiv.offsetLeft;
+        offsetY = e.touches[0].clientY - dragDiv.offsetTop;
+      });
+
+      document.addEventListener("touchmove", (e) => {
+        if (isDragging) {
+          e.preventDefault();
+          dragDiv.style.left = `${e.touches[0].clientX - offsetX}px`;
+          dragDiv.style.top = `${e.touches[0].clientY - offsetY}px`;
+        }
+      }, { passive: false });
+
+      document.addEventListener("touchend", () => (isDragging = false));
+    };
+
+    window.addEventListener("orientationchange", () => {
+      dragDiv.style.left = "10%"
+      dragDiv.style.top = "40%"
+    })
+  </script>
+</body>
+
+</html>
