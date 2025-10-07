@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="data:," />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamsoft Document Scanner</title>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-scanner@1.3.1/dist/dds.bundle.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      button {
+        padding: 12px 24px;
+        margin: 10px 5px;
+        font-size: 16px;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        background: #007bff;
+        color: white;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      #results {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+      #results canvas {
+        width: 100%;
+        height: auto;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+      }
+      .count {
+        font-size: 18px;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Continuous Document Scanning</h1>
+
+    <div>
+      <button id="scanBtn">Scan Document</button>
+      <button id="clearBtn">Clear Results</button>
+    </div>
+
+    <div class="count">Scans completed: <strong id="count">0</strong></div>
+
+    <div id="results"></div>
+
+    <script>
+      const scanBtn = document.getElementById("scanBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const resultsDiv = document.getElementById("results");
+      const countSpan = document.getElementById("count");
+
+      let scanCount = 0;
+
+      // Initialize scanner
+      const documentScanner = new Dynamsoft.DocumentScanner({
+        license: "YOUR_LICENSE_KEY_HERE",
+        scannerViewConfig: {
+          enableAutoCropMode: true,
+          enableSmartCaptureMode: true,
+        },
+      });
+
+      async function scan() {
+        scanBtn.disabled = true;
+
+        try {
+          const result = await documentScanner.launch();
+
+          if (result?.correctedImageResult) {
+            scanCount++;
+            countSpan.textContent = scanCount;
+
+            // Display the result
+            const canvas = result.correctedImageResult.toCanvas();
+            resultsDiv.insertBefore(canvas, resultsDiv.firstChild);
+          }
+        } catch (error) {
+          alert("Error: " + error.message);
+        } finally {
+          scanBtn.disabled = false;
+        }
+      }
+
+      function clearResults() {
+        resultsDiv.innerHTML = "";
+        scanCount = 0;
+        countSpan.textContent = scanCount;
+      }
+
+      scanBtn.addEventListener("click", scan);
+      clearBtn.addEventListener("click", clearResults);
+    </script>
+  </body>
+</html>
