@@ -104,30 +104,30 @@
       async function handleCapturedResult(result) {
         /* Do something with the result */
         if (result.items.length > 0) {
-          console.log("handleCapturedResult called with items:", result);
+          // console.log("handleCapturedResult called with items:", result);
         }
         /* Saves the image data of the current frame for subsequent image editing. */
         // In v3.0.6, try to get image data from different sources
         originalImageData = null;
-        
+
         // Try from camera enhancer
         try {
           originalImageData = cameraEnhancer.getImageData();
-          console.log("Got originalImageData from cameraEnhancer:", !!originalImageData);
+          // console.log("Got originalImageData from cameraEnhancer:", !!originalImageData);
         } catch (e) {
           console.log("Failed to get from cameraEnhancer:", e);
         }
-        
+
         // If that failed, try from the result object structure
         if (!originalImageData && result.originalImageTag) {
-          console.log("Trying originalImageTag:", result.originalImageTag);
+          // console.log("Trying originalImageTag:", result.originalImageTag);
           originalImageData = result.originalImageTag;
         }
         if (!autoNormalize.checked) {
           /* In v3.0.6, detected boundaries are in processedDocumentResult.detectedQuadResultItems */
           if (result.processedDocumentResult && result.processedDocumentResult.detectedQuadResultItems.length > 0) {
             items = [...result.items, ...result.processedDocumentResult.detectedQuadResultItems];
-            console.log("items set to:", items);
+            // console.log("items set to:", items);
           }
         } else if (originalImageData) {
           /** If "Normalize Automatically" is checked, the library uses the document boundaries found in consecutive
@@ -217,8 +217,8 @@
       });
 
       btnEdit.addEventListener("click", async () => {
-        console.log("Confirm boundary clicked. items:", items, "length:", items?.length);
-        console.log("originalImageData:", originalImageData);
+        // console.log("Confirm boundary clicked. items:", items, "length:", items?.length);
+        // console.log("originalImageData:", originalImageData);
         if (!cameraEnhancer.isOpen() || items.length <= 1) return;
         /* Stops the detection task since we assume we have found a good boundary. */
         router.stopCapturing();
@@ -229,8 +229,8 @@
         try {
           // In v3.0.6, use fetchImage to get current frame
           capturedImageForNormalize = await cameraEnhancer.fetchImage();
-          console.log("Fetched image:", capturedImageForNormalize);
-          console.log("Image type:", typeof capturedImageForNormalize, capturedImageForNormalize.constructor.name);
+          // console.log("Fetched image:", capturedImageForNormalize);
+          // console.log("Image type:", typeof capturedImageForNormalize, capturedImageForNormalize.constructor.name);
           imageEditorView.setOriginalImage(capturedImageForNormalize);
         } catch (e) {
           console.log("Error setting image:", e);
@@ -260,11 +260,18 @@
           quad = seletedItems[0].getQuad();
         } else {
           // Find the first detected quad (skip original image items)
-          const detectedQuad = items.find(item => item.type !== Dynamsoft.Core.EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE);
+          const detectedQuad = items.find(
+            (item) => item.type !== Dynamsoft.Core.EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE
+          );
           quad = detectedQuad ? detectedQuad.location : items[1].location;
         }
         const isPointOverBoundary = (point) => {
-          if (point.x < 0 || point.x > capturedImageForNormalize.width || point.y < 0 || point.y > capturedImageForNormalize.height) {
+          if (
+            point.x < 0 ||
+            point.x > capturedImageForNormalize.width ||
+            point.y < 0 ||
+            point.y > capturedImageForNormalize.height
+          ) {
             return true;
           } else {
             return false;
