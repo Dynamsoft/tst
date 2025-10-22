@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11.0.6000/dist/dbr.bundle.js"></script>
+    <script>
+      // Initialize the Dynamsoft Barcode Scanner
+      const barcodeScanner = new Dynamsoft.BarcodeScanner({
+        // Please don't forget to replace YOUR_LICENSE_KEY_HERE
+        license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+        scanMode: Dynamsoft.EnumScanMode.SM_MULTI_UNIQUE,
+        duplicateForgetTime: 3000,
+        onInitReady: (components) => {
+          components.cameraView.setScanLaserVisible(true);
+        }
+      });
+      (async () => {
+        // Launch the scanner and wait for the result
+        const result = await barcodeScanner.launch();
+        // Display the first detected barcode's text in an alert
+        if (result.barcodeResults.length) {
+            alert(result.barcodeResults[0].text);
+        }
+      })();
+    </script>
+  </body>
+</html>
