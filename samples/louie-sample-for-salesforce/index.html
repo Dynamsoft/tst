@@ -6,9 +6,11 @@
       // Initialize the Dynamsoft Barcode Scanner
       const barcodeScanner = new Dynamsoft.BarcodeScanner({
         // Please don't forget to replace YOUR_LICENSE_KEY_HERE
-        license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+        license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA0MjM0MDA0LU1UQTBNak0wTURBMExYZGxZaTFVY21saGJGQnliMm8iLCJtYWluU2VydmVyVVJMIjoiaHR0cHM6Ly9tZGxzLmR5bmFtc29mdG9ubGluZS5jb20iLCJvcmdhbml6YXRpb25JRCI6IjEwNDIzNDAwNCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbSIsImNoZWNrQ29kZSI6ODY3NzQ4MjR9",
         scanMode: Dynamsoft.EnumScanMode.SM_MULTI_UNIQUE,
-        duplicateForgetTime: 3000,
+        duplicateForgetTime: 5000,
+        templateFilePath: "SerialNumbers.json",
+        utilizedTemplateNames: {"single": "ReadBarcodes_Default", "multi_unique": "ReadBarcodes_Default", "image": "ReadBarcodes_Default"},
         onInitReady: (components) => {
           components.cameraView.setScanLaserVisible(true);
         }
