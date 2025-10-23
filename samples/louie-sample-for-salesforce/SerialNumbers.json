@@ -71,7 +71,7 @@
             ],
             "BarcodeHeightRangeArray": null,
             "BarcodeTextLengthRangeArray": null,
-            "BarcodeTextRegExPattern": "^[A-Za-z0-9]{10}$",
+            "BarcodeTextRegExPattern": "^[sS][A-Za-z0-9]{10}$",
             "BarcodeWidthRangeArray": null,
             "BarcodeZoneBarCountRangeArray": null,
             "BarcodeZoneMinDistanceToImageBorders": 0,
