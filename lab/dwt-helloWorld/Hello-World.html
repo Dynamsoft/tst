@@ -21,6 +21,15 @@
 
 
     <script type="text/javascript">
+
+		            Dynamsoft.DWT.AutoLoad = false;
+            Dynamsoft.DWT.IfCheckCssFiles = false;
+            Dynamsoft.DWT.Containers = [{ ContainerId: 'dwtcontrolContainer', Width: '380px', Height: '400px' }];
+            Dynamsoft.DWT.ProductKey = 'DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=';
+            Dynamsoft.DWT.ResourcesPath = "https://cdn.jsdelivr.net/npm/dwt/dist";
+            Dynamsoft.DWT.ServiceInstallerLocation = "https://demo.dynamsoft.com/DWT/Resources/dist/";
+            Dynamsoft.DWT.UseLocalService = false;
+        
 		var DWTObject;
 		Dynamsoft.DWT.RegisterEvent("OnWebTwainReady", function () {
 			DWTObject = Dynamsoft.DWT.GetWebTwain('dwtcontrolContainer'); // Get the Dynamic Web TWAIN object that is embeded in the div with id 'dwtcontrolContainer'
@@ -42,3 +51,4 @@
 
 
 </html>
+
