@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="data:," />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamsoft Document Scanner - Hello World</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-scanner@1.4.0/dist/dds.bundle.js"></script> -->
+    <!-- To use locally: -->
+    <script src="../../dist/dds.bundle.js"></script>
+  </head>
+
+  <body>
+    <h1 style="font-size: large">Dynamsoft Document Scanner</h1>
+    <div id="results"></div>
+
+    <script>
+      const resultContainer = document.querySelector("#results");
+
+      // Initialize the Dynamsoft Document Scanner
+      const documentScanner = new Dynamsoft.DocumentScanner({
+        license: "YOUR_LICENSE_KEY_HERE",
+        scannerViewConfig: {
+          cameraEnhancerUIPath: "../../dist/document-scanner.ui.xml",
+          enableAutoCropMode: true,
+          enableSmartCaptureMode: true,
+        },
+        showCorrectionView: false, // Skip correction view after each scan
+        showResultView: false, // Skip result view after each scan
+        enableContinuousScanning: true,
+        onDocumentScanned: (result) => {
+          // Process each scanned document
+          const canvas = result.correctedImageResult.toCanvas();
+          resultContainer.appendChild(canvas);
+        },
+        onThumbnailClicked: (result) => {
+          // Handle thumbnail click event
+          console.log("Thumbnail clicked", result);
+        },
+      });
+
+      // Launch the scanner
+      documentScanner.launch();
+    </script>
+  </body>
+  <style>
+    #results canvas {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</html>
