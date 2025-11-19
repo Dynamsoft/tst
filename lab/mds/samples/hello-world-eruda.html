@@ -91,7 +91,7 @@
           resultContainer.appendChild(canvas);
 
           // Close the scanner
-          await documentScanner.close();
+          await documentScanner.dispose();
 
           fetchBtn.style.display = "none";
           launchBtn.disabled = false;
