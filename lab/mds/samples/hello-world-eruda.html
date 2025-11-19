@@ -17,21 +17,48 @@
 
   <body>
     <h1 style="font-size: large">Dynamsoft Document Scanner</h1>
+
+    <div style="margin-bottom: 10px">
+      <label>
+        <input type="checkbox" id="useWebGL" checked />
+        Use WebGL for image data getter
+      </label>
+    </div>
+
+    <button id="launchBtn">Launch Scanner</button>
+    <button id="fetchBtn" style="display: none">Fetch Image & Close Scanner</button>
+
     <div id="results"></div>
 
     <script>
       const resultContainer = document.querySelector("#results");
+      const launchBtn = document.querySelector("#launchBtn");
+      const fetchBtn = document.querySelector("#fetchBtn");
+      const useWebGLCheckbox = document.querySelector("#useWebGL");
+
+      let documentScanner;
+      let dce;
 
       // Initialize the Dynamsoft Document Scanner
-      const documentScanner = new Dynamsoft.DocumentScanner({
-        license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+      documentScanner = new Dynamsoft.DocumentScanner({
+        license:
+          "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
         scannerViewConfig: {
           cameraEnhancerUIPath: "../dist/document-scanner.ui.xml", // Use local UI file
           enableAutoCropMode: true,
           enableSmartCaptureMode: true,
         },
       });
-      (async () => {
+
+      launchBtn.addEventListener("click", async () => {
+        launchBtn.disabled = true;
+
+        // Get the DCE instance and set WebGL option before launching
+        dce = documentScanner.resources.cameraEnhancer;
+        dce._imageDataGetter.useWebGLByDefault = useWebGLCheckbox.checked;
+
+        console.log("WebGL setting:", dce._imageDataGetter.useWebGLByDefault);
+
         // Launch the scanner and wait for the result
         const result = await documentScanner.launch();
 
@@ -43,7 +70,40 @@
         } else {
           resultContainer.innerHTML = "<p>No image scanned. Please try again.</p>";
         }
-      })();
+
+        launchBtn.disabled = false;
+        fetchBtn.style.display = "inline-block";
+      });
+
+      fetchBtn.addEventListener("click", async () => {
+        if (!dce) {
+          alert("Please launch the scanner first!");
+          return;
+        }
+
+        try {
+          // Fetch the current image from the camera
+          const image = dce.fetchImage();
+
+          // Create a canvas from the image
+          const canvas = image.toCanvas();
+
+          // Clear results and display the fetched image
+          resultContainer.innerHTML = "";
+          resultContainer.appendChild(canvas);
+
+          // Close the scanner
+          await documentScanner.close();
+
+          fetchBtn.style.display = "none";
+          launchBtn.disabled = false;
+
+          console.log("Image fetched and scanner closed");
+        } catch (error) {
+          console.error("Error fetching image:", error);
+          alert("Error fetching image: " + error.message);
+        }
+      });
     </script>
   </body>
   <style>
