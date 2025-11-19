@@ -53,15 +53,11 @@
       launchBtn.addEventListener("click", async () => {
         launchBtn.disabled = true;
 
+        // Show fetch button as soon as scanner is about to launch
+        fetchBtn.style.display = "block";
 
         // Launch the scanner and wait for the result
         const result = await documentScanner.launch();
-
-        // Get the DCE instance and set WebGL option before launching
-        dce = documentScanner.resources.cameraEnhancer;
-        
-        console.log("WebGL setting:", dce._imageDataGetter.useWebGLByDefault);
-        dce._imageDataGetter.useWebGLByDefault = useWebGLCheckbox.checked;
 
         // Clear the result container and display the scanned result as a canvas
         if (result?.correctedImageResult) {
@@ -73,11 +69,12 @@
         }
 
         launchBtn.disabled = false;
-        fetchBtn.style.display = "block";
       });
 
       fetchBtn.addEventListener("click", async () => {
-        if (!dce) {
+        // Get the DCE instance and set WebGL option before launching
+        dce = documentScanner.resources.cameraEnhancer;
+        if (!documentScanner || !dce) {
           alert("Please launch the scanner first!");
           return;
         }
