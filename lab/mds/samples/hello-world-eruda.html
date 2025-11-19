@@ -53,14 +53,15 @@
       launchBtn.addEventListener("click", async () => {
         launchBtn.disabled = true;
 
-        // Get the DCE instance and set WebGL option before launching
-        dce = documentScanner.resources.cameraEnhancer;
-        dce._imageDataGetter.useWebGLByDefault = useWebGLCheckbox.checked;
-
-        console.log("WebGL setting:", dce._imageDataGetter.useWebGLByDefault);
 
         // Launch the scanner and wait for the result
         const result = await documentScanner.launch();
+
+        // Get the DCE instance and set WebGL option before launching
+        dce = documentScanner.resources.cameraEnhancer;
+        
+        console.log("WebGL setting:", dce._imageDataGetter.useWebGLByDefault);
+        dce._imageDataGetter.useWebGLByDefault = useWebGLCheckbox.checked;
 
         // Clear the result container and display the scanned result as a canvas
         if (result?.correctedImageResult) {
