@@ -1,0 +1,71 @@
+{
+  "name": "dynamsoft-document-scanner",
+  "version": "1.3.0-beta-202508210001",
+  "description": "Dynamsoft Document Scanner (DDS) is a ready-to-use SDK for capturing and enhancing document images with automatic border detection, correction, and customizable workflows.",
+  "files": [
+    "/dist",
+    "/LICENSE"
+  ],
+  "sideEffects": true,
+  "main": "./dist/dds.bundle.js",
+  "module": "./dist/dds.bundle.esm.js",
+  "types": "./dist/dds.bundle.d.ts",
+  "exports": {
+    "import": {
+      "types": "./dist/dds.bundle.d.ts",
+      "default": "./dist/dds.bundle.esm.js"
+    },
+    "require": {
+      "types": "./dist/dds.bundle.d.ts",
+      "default": "./dist/dds.bundle.js"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "serve": "node dev-server/index.js",
+    "build": "rollup -c",
+    "build:production": "rollup -c --environment BUILD:production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dynamsoft/document-scanner-javascript"
+  },
+  "keywords": [
+    "document scanning",
+    "js",
+    "javascript"
+  ],
+  "author": {
+    "name": "Dynamsoft",
+    "url": "https://www.dynamsoft.com"
+  },
+  "maintainers": [
+    {
+      "name": "Dynamsoft",
+      "email": "support@dynamsoft.com"
+    }
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://www.dynamsoft.com",
+  "dependencies": {
+    "image-filter-js": "^1.0.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^20.11.6",
+    "cors": "^2.8.5",
+    "dynamsoft-capture-vision-bundle": "3.0.6001",
+    "express": "^4.21.2",
+    "formidable": "^3.5.2",
+    "rollup": "^4.9.5",
+    "rollup-plugin-dts": "^6.1.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.scannerproxy.com:802/",
+    "tag": "latest"
+  }
+}
