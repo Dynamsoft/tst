@@ -40,10 +40,29 @@
     const parsedResultList = document.querySelector(".parsed-result-list");
     const backToScan = document.querySelector(".back-to-scan");
 
-    const licenseString = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjM0ODEwLU1qTTBPREV3TFVOMWMzUnZiV2w2WldRdFZISnBZV3hRY205cSIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIzNDgxMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJjaGVja0NvZGUiOi0zNzk4NjU4M30=";
+    const licenseString = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=";
 
     Dynamsoft.License.LicenseManager.initLicense(licenseString);
     Dynamsoft.DCP.CodeParserModule.loadSpec(["AAMVA_DL_ID", "AAMVA_DL_ID_WITH_MAG_STRIPE", "SOUTH_AFRICA_DL"]);
+
+    function downloadImageFromBytes(bytes, filename, mimeType = "image/png") {
+      // 1. Wrap the bytes in a Blob
+      const blob = new Blob([bytes], { type: mimeType });
+
+      // 2. Create a temporary object URL
+      const url = URL.createObjectURL(blob);
+
+      // 3. Create a hidden <a> and click it
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      // 4. Cleanup
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
 
     (async () => {
       let pParser;
@@ -70,6 +89,8 @@
 
         const result = await scanner.launch();
         console.log(result);
+        downloadImageFromBytes(result.originalImageResult.bytes, "photo.png", "image/png");
+
         if (result.barcodeResults.length > 0) {
           let processedResult;
           try {
