@@ -69,6 +69,7 @@
         });
 
         const result = await scanner.launch();
+        console.log(result);
         if (result.barcodeResults.length > 0) {
           let processedResult;
           try {
