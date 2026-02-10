@@ -89,7 +89,7 @@
 
         const result = await scanner.launch();
         console.log(result);
-        downloadImageFromBytes(result.originalImageResult.bytes, "photo.png", "image/png");
+        downloadImageFromBytes(result.originalImageResult.toBlob("image/png"), "photo.png", "image/png");
 
         if (result.barcodeResults.length > 0) {
           let processedResult;
