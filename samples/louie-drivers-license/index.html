@@ -89,7 +89,16 @@
 
         const result = await scanner.launch();
         console.log(result);
-        downloadImageFromBytes(result.originalImageResult.toBlob("image/png"), "photo.png", "image/png");
+        result.originalImageResult.toCanvas().then(canvas => {
+          // Optional: style or size the canvas
+          canvas.style.maxWidth = "100%";
+          canvas.style.display = "block";
+          canvas.style.margin = "16px auto";
+
+          // Decide *where* it should live
+          const container = document.querySelector(".parsed-result-view");
+          container.prepend(canvas); // or appendChild
+        });
 
         if (result.barcodeResults.length > 0) {
           let processedResult;
