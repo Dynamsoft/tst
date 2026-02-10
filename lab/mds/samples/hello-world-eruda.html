@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="data:," />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamsoft Document Scanner - Hello World</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/dynamsoft-document-scanner@1.4.0/dist/dds.bundle.js"></script> -->
+    <!-- To use locally: -->
+    <script src="../dist-test/dds.bundle.js"></script>
+    <!-- Eruda Console for Mobile Debugging -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+      eruda.init();
+    </script>
+  </head>
+
+  <body>
+    <h1 style="font-size: large">Dynamsoft Document Scanner</h1>
+
+    <div style="margin-bottom: 10px">
+      <label>
+        <input type="checkbox" id="useWebGL" checked />
+        Use WebGL for image data getter
+      </label>
+    </div>
+
+    <button id="launchBtn">Launch Scanner</button>
+    <button id="fetchBtn">Fetch Image & Close Scanner</button>
+
+    <div id="results"></div>
+
+    <script>
+      const resultContainer = document.querySelector("#results");
+      const launchBtn = document.querySelector("#launchBtn");
+      const fetchBtn = document.querySelector("#fetchBtn");
+      const useWebGLCheckbox = document.querySelector("#useWebGL");
+
+      let documentScanner;
+      let dce;
+
+      // Initialize the Dynamsoft Document Scanner
+      documentScanner = new Dynamsoft.DocumentScanner({
+        license:
+          "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+        scannerViewConfig: {
+          cameraEnhancerUIPath: "../dist/document-scanner.ui.xml", // Use local UI file
+          enableAutoCropMode: true,
+          enableSmartCaptureMode: true,
+        },
+      });
+
+      launchBtn.addEventListener("click", async () => {
+        launchBtn.disabled = true;
+
+        // Show fetch button as soon as scanner is about to launch
+        fetchBtn.style.display = "block";
+
+        // Launch the scanner and wait for the result
+        const result = await documentScanner.launch();
+
+        // Clear the result container and display the scanned result as a canvas
+        if (result?.correctedImageResult) {
+          resultContainer.innerHTML = ""; // Clear placeholder content
+          const canvas = result.correctedImageResult.toCanvas();
+          resultContainer.appendChild(canvas);
+        } else {
+          resultContainer.innerHTML = "<p>No image scanned. Please try again.</p>";
+        }
+
+        launchBtn.disabled = false;
+      });
+
+      fetchBtn.addEventListener("click", async () => {
+        // Get the DCE instance and set WebGL option before launching
+        dce = documentScanner.resources.cameraEnhancer;
+        if (!documentScanner || !dce) {
+          alert("Please launch the scanner first!");
+          return;
+        }
+
+        try {
+          // Fetch the current image from the camera
+          const image = dce.fetchImage();
+
+          // Create a canvas from the image
+          const canvas = image.toCanvas();
+
+          // Clear results and display the fetched image
+          resultContainer.innerHTML = "";
+          resultContainer.appendChild(canvas);
+
+          // Close the scanner
+          await documentScanner.dispose();
+
+          fetchBtn.style.display = "none";
+          launchBtn.disabled = false;
+
+          console.log("Image fetched and scanner closed");
+        } catch (error) {
+          console.error("Error fetching image:", error);
+          alert("Error fetching image: " + error.message);
+        }
+      });
+    </script>
+  </body>
+  <style>
+    #results canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    #fetchBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      padding: 12px 20px;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    #fetchBtn:hover {
+      background-color: #ff5252;
+    }
+
+    #fetchBtn:active {
+      transform: scale(0.98);
+    }
+  </style>
+</html>
