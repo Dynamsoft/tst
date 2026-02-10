@@ -89,16 +89,16 @@
 
         const result = await scanner.launch();
         console.log(result);
-        result.originalImageResult.toCanvas().then(canvas => {
-          // Optional: style or size the canvas
-          canvas.style.maxWidth = "100%";
-          canvas.style.display = "block";
-          canvas.style.margin = "16px auto";
+        const canvas = result.originalImageResult.toCanvas();
 
-          // Decide *where* it should live
-          const container = document.querySelector(".parsed-result-view");
-          container.prepend(canvas); // or appendChild
-        });
+        // Optional styling
+        canvas.style.maxWidth = "100%";
+        canvas.style.display = "block";
+        canvas.style.margin = "16px auto";
+
+        // Put it somewhere sensible
+        const container = document.querySelector(".parsed-result-view");
+        container.prepend(canvas);
 
         if (result.barcodeResults.length > 0) {
           let processedResult;
