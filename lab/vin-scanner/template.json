@@ -185,7 +185,7 @@
     {
       "Name": "ReadVIN",
       "ImageROIProcessingNameArray": ["roi_vin_barcode", "roi_vin_text"],
-      "ImageSource": "",
+
       "MaxParallelTasks": 4,
       "MinImageCaptureInterval": 0,
       "OutputOriginalImage": 1,
@@ -195,7 +195,7 @@
     {
       "Name": "ReadVINBarcode",
       "ImageROIProcessingNameArray": ["roi_vin_barcode"],
-      "ImageSource": "",
+
       "MaxParallelTasks": 4,
       "MinImageCaptureInterval": 0,
       "OutputOriginalImage": 1,
@@ -205,7 +205,7 @@
     {
       "Name": "ReadVINText",
       "ImageROIProcessingNameArray": ["roi_vin_text"],
-      "ImageSource": "",
+
       "MaxParallelTasks": 4,
       "MinImageCaptureInterval": 0,
       "OutputOriginalImage": 1,
@@ -213,10 +213,8 @@
       "Timeout": 10000
     }
   ],
-  "CharacterModelOptions": [
+  "CaptureVisionModelOptions": [
     {
-      "CharSet": { "ExcludeChars": ["O", "Q", "I"] },
-      "DirectoryPath": "",
       "Name": "VINCharRecognition"
     }
   ],
