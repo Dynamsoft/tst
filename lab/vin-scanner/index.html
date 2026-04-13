@@ -355,6 +355,14 @@
       loadingText.textContent = "Loading VIN template...";
       await cvRouter.initSettings("./template.json");
 
+      // DEBUG: dump effective settings to verify GTM_INVERTED is applied
+      try {
+        const effectiveSettings = await cvRouter.outputSettings("ReadVIN");
+        console.log("=== Effective ReadVIN settings ===", JSON.parse(effectiveSettings));
+      } catch (e) {
+        console.warn("Could not dump settings:", e);
+      }
+
       // Cross-frame filtering
       const filter = new Dynamsoft.Utility.MultiFrameResultCrossFilter();
       filter.enableResultCrossVerification("barcode", true);

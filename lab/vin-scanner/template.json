@@ -232,7 +232,7 @@
       "BaseImageParameterName": "",
       "ApplicableStages": [
         { "Stage": "SST_CONVERT_TO_GRAYSCALE", "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }] },
-        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_INVERTED" }, { "Mode": "GTM_ORIGINAL" }] },
+        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_AUTO" }] },
         { "Stage": "SST_ENHANCE_GRAYSCALE", "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL" }] },
         { "Stage": "SST_BINARIZE_IMAGE", "BinarizationModes": [{ "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Erode", "ThresholdCompensation": 10 }] },
         { "Stage": "SST_DETECT_TEXTURE", "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }] },
@@ -245,7 +245,7 @@
       "BaseImageParameterName": "",
       "ApplicableStages": [
         { "Stage": "SST_CONVERT_TO_GRAYSCALE", "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }] },
-        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_INVERTED" }, { "Mode": "GTM_ORIGINAL" }] },
+        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_AUTO" }] },
         { "Stage": "SST_ENHANCE_GRAYSCALE", "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL" }] },
         { "Stage": "SST_BINARIZE_IMAGE", "BinarizationModes": [{ "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Close", "ThresholdCompensation": 10 }] },
         { "Stage": "SST_DETECT_TEXTURE", "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }] },
@@ -258,7 +258,7 @@
       "BaseImageParameterName": "",
       "ApplicableStages": [
         { "Stage": "SST_CONVERT_TO_GRAYSCALE", "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }] },
-        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_INVERTED" }, { "Mode": "GTM_ORIGINAL" }] },
+        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_AUTO" }] },
         { "Stage": "SST_ENHANCE_GRAYSCALE", "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL" }, { "Mode": "GEM_GRAY_EQUALIZE", "Sensitivity": 9 }] },
         { "Stage": "SST_BINARIZE_IMAGE", "BinarizationModes": [{ "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Close", "ThresholdCompensation": 10 }] },
         { "Stage": "SST_DETECT_TEXTURE", "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }] },
