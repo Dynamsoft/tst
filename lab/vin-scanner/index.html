@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIN Scanner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 16px 20px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header svg { width: 28px; height: 28px; flex-shrink: 0; }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .mode-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #1e293b;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+    .mode-btn.active {
+      background: #1d4ed8;
+      border-color: #3b82f6;
+      color: #fff;
+    }
+
+    #camera-view-container {
+      height: 50vh;
+      position: relative;
+      background: #000;
+    }
+
+    /* Hide Dynamsoft default UI elements we don't need */
+    #camera-view-container .dce-mn-resolution-and-close,
+    #camera-view-container .dce-mn-torch-and-camera { display: flex !important; }
+
+    .status-bar {
+      padding: 10px 20px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #475569;
+      flex-shrink: 0;
+    }
+    .status-dot.scanning {
+      background: #22c55e;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .status-dot.loading { background: #f59e0b; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-text { color: #94a3b8; }
+
+    /* Results panel */
+    .results-panel {
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .results-panel.open { max-height: 600px; }
+
+    .result-card {
+      margin: 12px 16px;
+      padding: 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+    }
+
+    .result-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .result-vin {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+      color: #38bdf8;
+      letter-spacing: 0.08em;
+      word-break: break-all;
+      margin-bottom: 8px;
+    }
+
+    .result-method {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .result-method.text { background: #164e63; color: #22d3ee; }
+    .result-method.barcode { background: #4c1d95; color: #a78bfa; }
+
+    .result-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .detail-item {
+      padding: 8px 10px;
+      background: #1e293b;
+      border-radius: 6px;
+    }
+
+    .detail-key {
+      font-size: 0.7rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .detail-value {
+      font-size: 0.9rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .result-image-wrap {
+      margin-top: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .result-image-wrap canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover { border-color: #60a5fa; color: #e2e8f0; }
+    .action-btn.primary {
+      background: #1d4ed8;
+      border-color: #3b82f6;
+      color: #fff;
+    }
+    .action-btn.primary:hover { background: #2563eb; }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 1000;
+      transition: opacity 0.3s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #334155;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Initializing VIN Scanner...</div>
+  </div>
+
+  <header>
+    <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="M7 8h2v8H7zM11 8h1v8h-1zM14 8h2v8h-2zM18 8h1v8h-1z"/>
+    </svg>
+    <h1>VIN Scanner</h1>
+  </header>
+
+  <!-- Scan mode selector -->
+  <div class="mode-bar">
+    <button class="mode-btn active" id="scan-both-btn" data-mode="both">Auto</button>
+    <button class="mode-btn" id="scan-text-btn" data-mode="text">Text (OCR)</button>
+    <button class="mode-btn" id="scan-barcode-btn" data-mode="barcode">Barcode</button>
+  </div>
+
+  <!-- Camera view -->
+  <div id="camera-view-container"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-dot loading" id="status-dot"></div>
+    <span class="status-text" id="status-text">Loading...</span>
+  </div>
+
+  <!-- Results -->
+  <div class="results-panel" id="results-panel">
+    <div class="result-card" id="result-card">
+      <div class="result-label">Detected VIN</div>
+      <div class="result-vin" id="result-vin"></div>
+      <span class="result-method" id="result-method"></span>
+      <div class="result-details" id="result-details"></div>
+      <div class="result-image-wrap" id="result-image-container"></div>
+      <div class="result-actions">
+        <button class="action-btn" id="copy-btn">Copy VIN</button>
+        <button class="action-btn primary" id="scan-again-btn">Scan Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-bundle@3.2.5000/dist/dcv.bundle.min.js"></script>
+  <script>
+    // License
+    Dynamsoft.License.LicenseManager.initLicense(
+      "DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA1Mzc5MDg5LU1UQTFNemM1TURnNUxYZGxZaTFVY21saGJGQnliMm8iLCJtYWluU2VydmVyVVJMIjoiaHR0cHM6Ly9tbHRzLmR5bmFtc29mdC5jb20vIiwib3JnYW5pemF0aW9uSUQiOiIxMDUzNzkwODkiLCJzdGFuZGJ5U2VydmVyVVJMIjoiaHR0cHM6Ly9zbHRzLmR5bmFtc29mdC5jb20vIiwiY2hlY2tDb2RlIjoxNDExMDAxOTU5fQ=="
+    );
+
+    // Preload WASM
+    Dynamsoft.Core.CoreModule.loadWasm(["DBR", "DLR", "DCP"]);
+
+    // DOM refs
+    const loadingOverlay = document.getElementById("loading-overlay");
+    const loadingText = document.getElementById("loading-text");
+    const statusDot = document.getElementById("status-dot");
+    const statusText = document.getElementById("status-text");
+    const resultsPanel = document.getElementById("results-panel");
+    const resultVin = document.getElementById("result-vin");
+    const resultMethod = document.getElementById("result-method");
+    const resultDetails = document.getElementById("result-details");
+    const resultImageContainer = document.getElementById("result-image-container");
+    const copyBtn = document.getElementById("copy-btn");
+    const scanAgainBtn = document.getElementById("scan-again-btn");
+
+    let cameraView, cameraEnhancer, cvRouter;
+    let currentMode = "both";
+    let lastVin = "";
+
+    const SCAN_TEMPLATES = {
+      barcode: "ReadVINBarcode",
+      text: "ReadVINText",
+      both: "ReadVIN",
+    };
+
+    // Initialize
+    async function init() {
+      loadingText.textContent = "Setting up camera...";
+
+      cameraView = await Dynamsoft.DCE.CameraView.createInstance();
+      cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
+      document.getElementById("camera-view-container").append(cameraView.getUIElement());
+
+      loadingText.textContent = "Loading recognition engine...";
+
+      cvRouter = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+      cameraView.setVideoFit("cover");
+      cameraView.setScanLaserVisible(true);
+
+      await cameraEnhancer.setScanRegion({
+        x: 5,
+        y: 35,
+        width: 90,
+        height: 25,
+        isMeasuredInPercentage: true,
+      });
+
+      cvRouter.setInput(cameraEnhancer);
+
+      loadingText.textContent = "Loading VIN template...";
+      await cvRouter.initSettings("./template.json");
+
+      // Cross-frame filtering
+      const filter = new Dynamsoft.Utility.MultiFrameResultCrossFilter();
+      filter.enableResultCrossVerification("barcode", true);
+      filter.enableResultDeduplication("barcode", true);
+      filter.enableResultCrossVerification("text_line", true);
+      filter.enableResultDeduplication("text_line", true);
+      await cvRouter.addResultFilter(filter);
+
+      // Result handler
+      const resultReceiver = new Dynamsoft.CVR.CapturedResultReceiver();
+      resultReceiver.onCapturedResultReceived = handleResult;
+      await cvRouter.addResultReceiver(resultReceiver);
+
+      return { cameraEnhancer, cameraView, cvRouter };
+    }
+
+    function handleResult(result) {
+      const textLineResult = result.recognizedTextLinesResult?.textLineResultItems;
+      const barcodeResult = result.decodedBarcodesResult?.barcodeResultItems;
+      const parsedResults = result.parsedResult?.parsedResultItems;
+
+      if (!textLineResult?.length && !barcodeResult?.length) return;
+
+      const isText = !!textLineResult?.length;
+      const vinString = isText ? textLineResult[0]?.text : barcodeResult[0]?.text;
+
+      // Skip if same VIN detected again
+      if (vinString === lastVin) return;
+      lastVin = vinString;
+
+      // Display VIN
+      resultVin.textContent = vinString;
+
+      // Method badge
+      resultMethod.textContent = isText ? "TEXT (OCR)" : "BARCODE";
+      resultMethod.className = "result-method " + (isText ? "text" : "barcode");
+
+      // Parsed details
+      resultDetails.innerHTML = "";
+      if (parsedResults?.length) {
+        const details = extractVinDetails(parsedResults[0]);
+        for (const [key, value] of Object.entries(details)) {
+          if (!value) continue;
+          const item = document.createElement("div");
+          item.className = "detail-item";
+          item.innerHTML = `<div class="detail-key">${key}</div><div class="detail-value">${value}</div>`;
+          resultDetails.appendChild(item);
+        }
+      }
+
+      // Captured image
+      resultImageContainer.innerHTML = "";
+      const imageData = result.items?.find(
+        (item) => item.type === Dynamsoft.Core.EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE
+      )?.imageData;
+      if (imageData) {
+        const canvas = imageData.toCanvas();
+        resultImageContainer.appendChild(canvas);
+      }
+
+      // Show results panel
+      resultsPanel.classList.add("open");
+    }
+
+    function extractVinDetails(result) {
+      if (result.exception) return {};
+      const details = {};
+      details["Region"] = result.getFieldValue("region");
+      details["Check Digit"] = result.getFieldValue("checkDigit");
+      const modelYear = result.getFieldValue("modelYear");
+      details["Model Year"] = modelYear ? modelYear.split(",").join(" | ") : "";
+      details["Plant Code"] = result.getFieldValue("plantCode");
+      details["VIS"] = result.getFieldValue("VIS");
+      return details;
+    }
+
+    // Start scanning with a given mode
+    async function startScanning(mode) {
+      currentMode = mode;
+      lastVin = "";
+      resultsPanel.classList.remove("open");
+
+      statusDot.className = "status-dot loading";
+      statusText.textContent = "Starting camera...";
+
+      if (cameraEnhancer.isOpen()) {
+        await cvRouter.stopCapturing();
+        await cameraEnhancer.close();
+        await cameraView.clearAllInnerDrawingItems();
+      }
+
+      await cameraEnhancer.open();
+      await cvRouter.startCapturing(SCAN_TEMPLATES[mode]);
+      cameraEnhancer.setPixelFormat(Dynamsoft.Core.EnumImagePixelFormat.IPF_ABGR_8888);
+
+      statusDot.className = "status-dot scanning";
+      const modeLabels = { both: "Auto (Text + Barcode)", text: "Text (OCR)", barcode: "Barcode" };
+      statusText.textContent = `Scanning: ${modeLabels[mode]} — Point camera at VIN`;
+    }
+
+    // Mode buttons
+    document.querySelectorAll(".mode-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const mode = btn.dataset.mode;
+        try {
+          await startScanning(mode);
+        } catch (ex) {
+          console.error(ex);
+          statusDot.className = "status-dot";
+          statusText.textContent = `Error: ${ex.message || ex}`;
+        }
+      });
+    });
+
+    // Copy button
+    copyBtn.addEventListener("click", () => {
+      const vin = resultVin.textContent;
+      if (vin) {
+        navigator.clipboard.writeText(vin).then(() => {
+          copyBtn.textContent = "Copied!";
+          setTimeout(() => { copyBtn.textContent = "Copy VIN"; }, 2000);
+        });
+      }
+    });
+
+    // Scan again button
+    scanAgainBtn.addEventListener("click", async () => {
+      lastVin = "";
+      resultsPanel.classList.remove("open");
+      try {
+        await startScanning(currentMode);
+      } catch (ex) {
+        console.error(ex);
+      }
+    });
+
+    // Auto-start
+    (async () => {
+      try {
+        await init();
+        loadingOverlay.classList.add("hidden");
+        await startScanning("both");
+      } catch (ex) {
+        console.error(ex);
+        loadingText.textContent = `Error: ${ex.message || ex}`;
+      }
+    })();
+  </script>
+</body>
+</html>
