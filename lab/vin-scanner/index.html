@@ -517,79 +517,64 @@
           await cameraEnhancer.close();
         }
 
-        // Read file as data URL and create an image element
+        // Read file as data URL
         const dataUrl = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result);
           reader.readAsDataURL(file);
         });
 
-        // Use cvRouter.capture() for single-image processing
-        // Always use "ReadVIN" (auto) for file capture — most comprehensive
-        const result = await cvRouter.capture(dataUrl, "ReadVIN");
-
-        // === DEBUG: Log intermediate results ===
-        console.group("=== VIN Capture Debug ===");
-        console.log("Template used:", "ReadVIN");
-        console.log("Result object:", result);
-        console.log("Total items:", result.items?.length ?? 0);
-
-        // Log every captured result item with its type
-        if (result.items?.length) {
-          const typeNames = {
-            1: "CRIT_ORIGINAL_IMAGE",
-            2: "CRIT_BARCODE",
-            4: "CRIT_TEXT_LINE",
-            8: "CRIT_DETECTED_QUAD",
-            16: "CRIT_NORMALIZED_IMAGE",
-            32: "CRIT_PARSED_RESULT",
-          };
-          result.items.forEach((item, i) => {
-            const typeName = typeNames[item.type] || `UNKNOWN(${item.type})`;
-            console.log(`  Item[${i}] type=${typeName}`, item);
+        // Helper: invert image colors via canvas (JS SDK ignores GTM_INVERTED in ImageParameterOptions)
+        function invertImage(srcDataUrl) {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const d = imageData.data;
+              for (let i = 0; i < d.length; i += 4) {
+                d[i] = 255 - d[i];       // R
+                d[i + 1] = 255 - d[i + 1]; // G
+                d[i + 2] = 255 - d[i + 2]; // B
+              }
+              ctx.putImageData(imageData, 0, 0);
+              resolve(canvas.toDataURL("image/png"));
+            };
+            img.src = srcDataUrl;
           });
         }
 
-        // Text line results
-        const textLineResult = result.recognizedTextLinesResult?.textLineResultItems;
-        console.log("Text lines found:", textLineResult?.length ?? 0);
-        if (textLineResult?.length) {
-          textLineResult.forEach((tl, i) => {
-            console.log(`  TextLine[${i}]:`, {
-              text: tl.text,
-              confidence: tl.confidence,
-              location: tl.location,
-              charResults: tl.characterResults?.map(c => ({
-                char: c.characterH,
-                confidence: c.confidence,
-              })),
-            });
-          });
+        // Helper: check if capture result has VIN text/barcode
+        function hasVinResult(r) {
+          return r.recognizedTextLinesResult?.textLineResultItems?.length > 0 ||
+                 r.decodedBarcodesResult?.barcodeResultItems?.length > 0;
         }
 
-        // Barcode results
-        const barcodeResult = result.decodedBarcodesResult?.barcodeResultItems;
-        console.log("Barcodes found:", barcodeResult?.length ?? 0);
-        if (barcodeResult?.length) {
-          barcodeResult.forEach((bc, i) => {
-            console.log(`  Barcode[${i}]:`, {
-              text: bc.text,
-              format: bc.formatString,
-              confidence: bc.confidence,
-              location: bc.location,
-            });
-          });
+        // Try original image first, then inverted if no result
+        console.group("=== VIN File Capture ===");
+        let result = await cvRouter.capture(dataUrl, "ReadVIN");
+        console.log("Original image result:", result.items?.length, "items",
+          "| text:", result.recognizedTextLinesResult?.textLineResultItems?.length ?? 0,
+          "| barcode:", result.decodedBarcodesResult?.barcodeResultItems?.length ?? 0);
+
+        if (!hasVinResult(result)) {
+          console.log("No result from original — trying inverted image...");
+          statusText.textContent = "Trying inverted image...";
+          const invertedDataUrl = await invertImage(dataUrl);
+          result = await cvRouter.capture(invertedDataUrl, "ReadVIN");
+          console.log("Inverted image result:", result.items?.length, "items",
+            "| text:", result.recognizedTextLinesResult?.textLineResultItems?.length ?? 0,
+            "| barcode:", result.decodedBarcodesResult?.barcodeResultItems?.length ?? 0);
         }
-
-        // Parsed results
-        const parsedResults = result.parsedResult?.parsedResultItems;
-        console.log("Parsed results:", parsedResults?.length ?? 0);
-
-        // Check for any error info
-        console.log("errorCode:", result.errorCode);
-        console.log("errorString:", result.errorString);
         console.groupEnd();
-        // === END DEBUG ===
+
+        const textLineResult = result.recognizedTextLinesResult?.textLineResultItems;
+        const barcodeResult = result.decodedBarcodesResult?.barcodeResultItems;
+        const parsedResults = result.parsedResult?.parsedResultItems;
 
         if (textLineResult?.length || barcodeResult?.length) {
           const isText = !!textLineResult?.length;
