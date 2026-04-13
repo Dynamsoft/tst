@@ -265,6 +265,10 @@
     <button class="mode-btn active" id="scan-both-btn" data-mode="both">Auto</button>
     <button class="mode-btn" id="scan-text-btn" data-mode="text">Text (OCR)</button>
     <button class="mode-btn" id="scan-barcode-btn" data-mode="barcode">Barcode</button>
+    <label class="mode-btn" id="file-label" style="text-align:center">
+      Open File
+      <input type="file" id="file-input" accept="image/*" style="display:none">
+    </label>
   </div>
 
   <!-- Camera view -->
@@ -295,7 +299,7 @@
   <script>
     // License
     Dynamsoft.License.LicenseManager.initLicense(
-      "DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA1Mzc5MDg5LU1UQTFNemM1TURnNUxYZGxZaTFVY21saGJGQnliMm8iLCJtYWluU2VydmVyVVJMIjoiaHR0cHM6Ly9tbHRzLmR5bmFtc29mdC5jb20vIiwib3JnYW5pemF0aW9uSUQiOiIxMDUzNzkwODkiLCJzdGFuZGJ5U2VydmVyVVJMIjoiaHR0cHM6Ly9zbHRzLmR5bmFtc29mdC5jb20vIiwiY2hlY2tDb2RlIjoxNDExMDAxOTU5fQ=="
+      "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0="
     );
 
     // Preload WASM
@@ -487,6 +491,91 @@
       } catch (ex) {
         console.error(ex);
       }
+    });
+
+    // File input — read image instead of camera
+    document.getElementById("file-input").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      statusDot.className = "status-dot loading";
+      statusText.textContent = "Processing image...";
+      resultsPanel.classList.remove("open");
+      lastVin = "";
+
+      try {
+        // Ensure engine is ready (init if not yet)
+        if (!cvRouter) {
+          loadingOverlay.classList.remove("hidden");
+          await init();
+          loadingOverlay.classList.add("hidden");
+        }
+
+        // Stop camera if open
+        if (cameraEnhancer.isOpen()) {
+          await cvRouter.stopCapturing();
+          await cameraEnhancer.close();
+        }
+
+        // Read file as data URL and create an image element
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+
+        // Use cvRouter.capture() for single-image processing
+        const templateName = SCAN_TEMPLATES[currentMode];
+        const result = await cvRouter.capture(dataUrl, templateName);
+
+        // Process result the same way as camera
+        const textLineResult = result.recognizedTextLinesResult?.textLineResultItems;
+        const barcodeResult = result.decodedBarcodesResult?.barcodeResultItems;
+        const parsedResults = result.parsedResult?.parsedResultItems;
+
+        if (textLineResult?.length || barcodeResult?.length) {
+          const isText = !!textLineResult?.length;
+          const vinString = isText ? textLineResult[0]?.text : barcodeResult[0]?.text;
+
+          resultVin.textContent = vinString;
+          resultMethod.textContent = isText ? "TEXT (OCR)" : "BARCODE";
+          resultMethod.className = "result-method " + (isText ? "text" : "barcode");
+
+          resultDetails.innerHTML = "";
+          if (parsedResults?.length) {
+            const details = extractVinDetails(parsedResults[0]);
+            for (const [key, value] of Object.entries(details)) {
+              if (!value) continue;
+              const item = document.createElement("div");
+              item.className = "detail-item";
+              item.innerHTML = `<div class="detail-key">${key}</div><div class="detail-value">${value}</div>`;
+              resultDetails.appendChild(item);
+            }
+          }
+
+          // Show the input image as preview
+          resultImageContainer.innerHTML = "";
+          const img = new Image();
+          img.src = dataUrl;
+          img.style.width = "100%";
+          img.style.objectFit = "contain";
+          resultImageContainer.appendChild(img);
+
+          resultsPanel.classList.add("open");
+          statusDot.className = "status-dot";
+          statusText.textContent = `Found VIN from file: ${vinString}`;
+        } else {
+          statusDot.className = "status-dot";
+          statusText.textContent = "No VIN detected in image. Try a different file or mode.";
+        }
+      } catch (ex) {
+        console.error(ex);
+        statusDot.className = "status-dot";
+        statusText.textContent = `Error: ${ex.message || ex}`;
+      }
+
+      // Reset file input so same file can be selected again
+      e.target.value = "";
     });
 
     // Auto-start
