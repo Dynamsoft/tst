@@ -455,8 +455,8 @@
       statusText.textContent = `Scanning: ${modeLabels[mode]} — Point camera at VIN`;
     }
 
-    // Mode buttons
-    document.querySelectorAll(".mode-btn").forEach((btn) => {
+    // Mode buttons (exclude file label which has no data-mode)
+    document.querySelectorAll(".mode-btn[data-mode]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
@@ -525,8 +525,8 @@
         });
 
         // Use cvRouter.capture() for single-image processing
-        const templateName = SCAN_TEMPLATES[currentMode];
-        const result = await cvRouter.capture(dataUrl, templateName);
+        // Always use "ReadVIN" (auto) for file capture — most comprehensive
+        const result = await cvRouter.capture(dataUrl, "ReadVIN");
 
         // Process result the same way as camera
         const textLineResult = result.recognizedTextLinesResult?.textLineResultItems;
