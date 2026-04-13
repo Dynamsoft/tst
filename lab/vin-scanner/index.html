@@ -528,10 +528,68 @@
         // Always use "ReadVIN" (auto) for file capture — most comprehensive
         const result = await cvRouter.capture(dataUrl, "ReadVIN");
 
-        // Process result the same way as camera
+        // === DEBUG: Log intermediate results ===
+        console.group("=== VIN Capture Debug ===");
+        console.log("Template used:", "ReadVIN");
+        console.log("Result object:", result);
+        console.log("Total items:", result.items?.length ?? 0);
+
+        // Log every captured result item with its type
+        if (result.items?.length) {
+          const typeNames = {
+            1: "CRIT_ORIGINAL_IMAGE",
+            2: "CRIT_BARCODE",
+            4: "CRIT_TEXT_LINE",
+            8: "CRIT_DETECTED_QUAD",
+            16: "CRIT_NORMALIZED_IMAGE",
+            32: "CRIT_PARSED_RESULT",
+          };
+          result.items.forEach((item, i) => {
+            const typeName = typeNames[item.type] || `UNKNOWN(${item.type})`;
+            console.log(`  Item[${i}] type=${typeName}`, item);
+          });
+        }
+
+        // Text line results
         const textLineResult = result.recognizedTextLinesResult?.textLineResultItems;
+        console.log("Text lines found:", textLineResult?.length ?? 0);
+        if (textLineResult?.length) {
+          textLineResult.forEach((tl, i) => {
+            console.log(`  TextLine[${i}]:`, {
+              text: tl.text,
+              confidence: tl.confidence,
+              location: tl.location,
+              charResults: tl.characterResults?.map(c => ({
+                char: c.characterH,
+                confidence: c.confidence,
+              })),
+            });
+          });
+        }
+
+        // Barcode results
         const barcodeResult = result.decodedBarcodesResult?.barcodeResultItems;
+        console.log("Barcodes found:", barcodeResult?.length ?? 0);
+        if (barcodeResult?.length) {
+          barcodeResult.forEach((bc, i) => {
+            console.log(`  Barcode[${i}]:`, {
+              text: bc.text,
+              format: bc.formatString,
+              confidence: bc.confidence,
+              location: bc.location,
+            });
+          });
+        }
+
+        // Parsed results
         const parsedResults = result.parsedResult?.parsedResultItems;
+        console.log("Parsed results:", parsedResults?.length ?? 0);
+
+        // Check for any error info
+        console.log("errorCode:", result.errorCode);
+        console.log("errorString:", result.errorString);
+        console.groupEnd();
+        // === END DEBUG ===
 
         if (textLineResult?.length || barcodeResult?.length) {
           const isText = !!textLineResult?.length;
