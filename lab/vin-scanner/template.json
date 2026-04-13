@@ -185,7 +185,7 @@
     {
       "Name": "ReadVIN",
       "ImageROIProcessingNameArray": ["roi_vin_barcode", "roi_vin_text"],
-
+      "ImageSource": "",
       "MaxParallelTasks": 4,
       "MinImageCaptureInterval": 0,
       "OutputOriginalImage": 1,
@@ -195,7 +195,7 @@
     {
       "Name": "ReadVINBarcode",
       "ImageROIProcessingNameArray": ["roi_vin_barcode"],
-
+      "ImageSource": "",
       "MaxParallelTasks": 4,
       "MinImageCaptureInterval": 0,
       "OutputOriginalImage": 1,
@@ -205,7 +205,7 @@
     {
       "Name": "ReadVINText",
       "ImageROIProcessingNameArray": ["roi_vin_text"],
-
+      "ImageSource": "",
       "MaxParallelTasks": 4,
       "MinImageCaptureInterval": 0,
       "OutputOriginalImage": 1,
@@ -213,8 +213,10 @@
       "Timeout": 10000
     }
   ],
-  "CaptureVisionModelOptions": [
+  "CharacterModelOptions": [
     {
+      "CharSet": { "ExcludeChars": ["O", "Q", "I"] },
+      "DirectoryPath": "",
       "Name": "VINCharRecognition"
     }
   ],
@@ -228,43 +230,45 @@
   "GlobalParameter": { "MaxTotalImageDimension": 0 },
   "ImageParameterOptions": [
     {
-      "Name": "ip_localize_barcode",
       "BaseImageParameterName": "",
-      "ApplicableStages": [
-        { "Stage": "SST_CONVERT_TO_GRAYSCALE", "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }] },
-        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_ORIGINAL" }, { "Mode": "GTM_INVERTED" }] },
-        { "Stage": "SST_ENHANCE_GRAYSCALE", "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL" }] },
-        { "Stage": "SST_BINARIZE_IMAGE", "BinarizationModes": [{ "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Erode", "ThresholdCompensation": 10 }] },
-        { "Stage": "SST_DETECT_TEXTURE", "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }] },
-        { "Stage": "SST_DETECT_TEXT_ZONES", "TextDetectionMode": { "Mode": "TTDM_SKIP" } },
-        { "Stage": "SST_REMOVE_TEXT_ZONES_FROM_BINARY", "IfEraseTextZone": 0 }
-      ]
+      "BinarizationModes": [{ "BinarizationThreshold": -1, "BlockSizeX": 0, "BlockSizeY": 0, "EnableFillBinaryVacancy": 1, "GrayscaleEnhancementModesIndex": -1, "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Erode", "MorphOperationKernelSizeX": 0, "MorphOperationKernelSizeY": 0, "MorphShape": "Rectangle", "ThresholdCompensation": 10 }],
+      "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }],
+      "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL", "Sensitivity": -1, "SharpenBlockSizeX": -1, "SharpenBlockSizeY": -1, "SmoothBlockSizeX": -1, "SmoothBlockSizeY": -1 }],
+      "GrayscaleTransformationModes": [{ "Mode": "GTM_ORIGINAL" }, { "Mode": "GTM_INVERTED" }],
+      "IfEraseTextZone": 0,
+      "Name": "ip_localize_barcode",
+      "RegionPredetectionModes": [{ "AspectRatioRange": "[]", "FindAccurateBoundary": 0, "ForeAndBackgroundColours": "[]", "HeightRange": "[]", "ImageParameterName": "", "MeasuredByPercentage": 1, "MinImageDimension": 262144, "Mode": "RPM_GENERAL", "RelativeRegions": "[]", "Sensitivity": 1, "SpatialIndexBlockSize": 5, "WidthRange": "[]" }],
+      "ScaleDownThreshold": 2300,
+      "ScaleUpModes": [{ "AcuteAngleWithXThreshold": -1, "LetterHeightThreshold": 0, "Mode": "SUM_AUTO", "ModuleSizeThreshold": 0, "TargetLetterHeight": 0, "TargetModuleSize": 0 }],
+      "TextDetectionMode": { "CharHeightRange": [1, 1000, 1], "Direction": "UNKNOWN", "MaxSpacingInALine": -1, "Mode": "TTDM_SKIP", "Sensitivity": 3, "StringLengthRange": null },
+      "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }]
     },
     {
-      "Name": "ip_decode_barcode",
       "BaseImageParameterName": "",
-      "ApplicableStages": [
-        { "Stage": "SST_CONVERT_TO_GRAYSCALE", "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }] },
-        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_ORIGINAL" }, { "Mode": "GTM_INVERTED" }] },
-        { "Stage": "SST_ENHANCE_GRAYSCALE", "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL" }] },
-        { "Stage": "SST_BINARIZE_IMAGE", "BinarizationModes": [{ "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Close", "ThresholdCompensation": 10 }] },
-        { "Stage": "SST_DETECT_TEXTURE", "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }] },
-        { "Stage": "SST_DETECT_TEXT_ZONES", "TextDetectionMode": { "Mode": "TTDM_SKIP" } },
-        { "Stage": "SST_REMOVE_TEXT_ZONES_FROM_BINARY", "IfEraseTextZone": 0 }
-      ]
+      "BinarizationModes": [{ "BinarizationThreshold": -1, "BlockSizeX": 0, "BlockSizeY": 0, "EnableFillBinaryVacancy": 1, "GrayscaleEnhancementModesIndex": -1, "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Close", "MorphOperationKernelSizeX": 0, "MorphOperationKernelSizeY": 0, "MorphShape": "Rectangle", "ThresholdCompensation": 10 }],
+      "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }],
+      "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL", "Sensitivity": -1, "SharpenBlockSizeX": -1, "SharpenBlockSizeY": -1, "SmoothBlockSizeX": -1, "SmoothBlockSizeY": -1 }],
+      "GrayscaleTransformationModes": [{ "Mode": "GTM_ORIGINAL" }],
+      "IfEraseTextZone": 0,
+      "Name": "ip_decode_barcode",
+      "RegionPredetectionModes": [{ "AspectRatioRange": "[]", "FindAccurateBoundary": 0, "ForeAndBackgroundColours": "[]", "HeightRange": "[]", "ImageParameterName": "", "MeasuredByPercentage": 1, "MinImageDimension": 262144, "Mode": "RPM_GENERAL", "RelativeRegions": "[]", "Sensitivity": 1, "SpatialIndexBlockSize": 5, "WidthRange": "[]" }],
+      "ScaleDownThreshold": 99999,
+      "ScaleUpModes": [{ "AcuteAngleWithXThreshold": -1, "LetterHeightThreshold": 0, "Mode": "SUM_AUTO", "ModuleSizeThreshold": 0, "TargetLetterHeight": 0, "TargetModuleSize": 0 }],
+      "TextDetectionMode": { "CharHeightRange": [1, 1000, 1], "Direction": "UNKNOWN", "MaxSpacingInALine": -1, "Mode": "TTDM_SKIP", "Sensitivity": 3, "StringLengthRange": null },
+      "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }]
     },
     {
       "Name": "ip_recognize_text",
-      "BaseImageParameterName": "",
-      "ApplicableStages": [
-        { "Stage": "SST_CONVERT_TO_GRAYSCALE", "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }] },
-        { "Stage": "SST_TRANSFORM_GRAYSCALE", "GrayscaleTransformationModes": [{ "Mode": "GTM_ORIGINAL" }, { "Mode": "GTM_INVERTED" }] },
-        { "Stage": "SST_ENHANCE_GRAYSCALE", "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL" }, { "Mode": "GEM_GRAY_EQUALIZE", "Sensitivity": 9 }] },
-        { "Stage": "SST_BINARIZE_IMAGE", "BinarizationModes": [{ "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Close", "ThresholdCompensation": 10 }] },
-        { "Stage": "SST_DETECT_TEXTURE", "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }] },
-        { "Stage": "SST_DETECT_TEXT_ZONES", "TextDetectionMode": { "CharHeightRange": [5, 1000, 1], "Direction": "HORIZONTAL", "Mode": "TTDM_LINE", "Sensitivity": 9 } },
-        { "Stage": "SST_REMOVE_TEXT_ZONES_FROM_BINARY", "IfEraseTextZone": 0 }
-      ]
+      "BinarizationModes": [{ "BinarizationThreshold": -1, "BlockSizeX": 0, "BlockSizeY": 0, "EnableFillBinaryVacancy": 1, "GrayscaleEnhancementModesIndex": -1, "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Close", "MorphOperationKernelSizeX": 0, "MorphOperationKernelSizeY": 0, "MorphShape": "Rectangle", "ThresholdCompensation": 10 }],
+      "ColourConversionModes": [{ "BlueChannelWeight": -1, "GreenChannelWeight": -1, "Mode": "CICM_GENERAL", "RedChannelWeight": -1, "ReferChannel": "H_CHANNEL" }],
+      "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL", "Sensitivity": -1, "SharpenBlockSizeX": -1, "SharpenBlockSizeY": -1, "SmoothBlockSizeX": -1, "SmoothBlockSizeY": -1 }],
+      "GrayscaleTransformationModes": [{ "Mode": "GTM_ORIGINAL" }, { "Mode": "GTM_INVERTED" }],
+      "IfEraseTextZone": 0,
+      "RegionPredetectionModes": [{ "AspectRatioRange": "[]", "FindAccurateBoundary": 0, "ForeAndBackgroundColours": "[]", "HeightRange": "[]", "ImageParameterName": "", "MeasuredByPercentage": 1, "MinImageDimension": 262144, "Mode": "RPM_GENERAL", "RelativeRegions": "[]", "Sensitivity": 1, "SpatialIndexBlockSize": 5, "WidthRange": "[]" }],
+      "ScaleDownThreshold": 2300,
+      "ScaleUpModes": [{ "AcuteAngleWithXThreshold": -1, "LetterHeightThreshold": 0, "Mode": "SUM_AUTO", "ModuleSizeThreshold": 0, "TargetLetterHeight": 0, "TargetModuleSize": 0 }],
+      "TextDetectionMode": { "CharHeightRange": [5, 1000, 1], "Direction": "HORIZONTAL", "MaxSpacingInALine": -1, "Mode": "TTDM_LINE", "Sensitivity": 7, "StringLengthRange": null },
+      "TextureDetectionModes": [{ "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION", "Sensitivity": 5 }]
     }
   ],
   "LabelRecognizerTaskSettingOptions": [
@@ -332,7 +336,7 @@
       "TextLinesCount": 1,
       "BinarizationModes": [{ "BinarizationThreshold": -1, "BlockSizeX": 11, "BlockSizeY": 11, "EnableFillBinaryVacancy": 1, "GrayscaleEnhancementModesIndex": -1, "Mode": "BM_LOCAL_BLOCK", "MorphOperation": "Erode", "MorphOperationKernelSizeX": 0, "MorphOperationKernelSizeY": 0, "MorphShape": "Rectangle", "ThresholdCompensation": 10 }],
       "CharacterNormalizationModes": [{ "Mode": "CNM_AUTO", "MorphArgument": "3", "MorphOperation": "Close" }],
-      "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL", "Sensitivity": 5, "SharpenBlockSizeX": 3, "SharpenBlockSizeY": 3, "SmoothBlockSizeX": 3, "SmoothBlockSizeY": 3 }, { "Mode": "GEM_GRAY_EQUALIZE", "Sensitivity": 9 }],
+      "GrayscaleEnhancementModes": [{ "Mode": "GEM_GENERAL", "Sensitivity": 5, "SharpenBlockSizeX": 3, "SharpenBlockSizeY": 3, "SmoothBlockSizeX": 3, "SmoothBlockSizeY": 3 }],
       "ConcatResults": 0,
       "ConcatSeparator": "\n",
       "ConcatStringLengthRange": [3, 200],
