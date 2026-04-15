@@ -302,6 +302,9 @@
       "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0="
     );
 
+    // Pin dcvData to @1.1.0 — v1.2.1 renamed .dcpres to .data, breaking code parser spec loading
+    Dynamsoft.Core.CoreModule.engineResourcePaths.dcvData = "https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-data@1.1.0/";
+
     // Preload WASM
     Dynamsoft.Core.CoreModule.loadWasm();
 
