@@ -1,3 +1,17 @@
 /.vscode
 /node_modules
 *.log
+
+# Build outputs and caches
+**/dist/
+**/build/
+**/coverage/
+**/.cache/
+**/.parcel-cache/
+*.tsbuildinfo
+
+# Large installer/package artifacts
+*.msi
+*.pkg
+*.deb
+*.rpm
