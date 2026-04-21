@@ -4,6 +4,7 @@
 
 # Build outputs and caches
 **/dist/
+!samples/MRZ/**
 **/build/
 **/coverage/
 **/.cache/
