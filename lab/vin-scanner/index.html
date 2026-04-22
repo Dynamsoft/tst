@@ -302,6 +302,9 @@
       "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0="
     );
 
+    // Load VIN models from local ./models/ directory
+    Dynamsoft.Core.CoreModule.engineResourcePaths.dcvData = "./";
+
     // Preload WASM
     Dynamsoft.Core.CoreModule.loadWasm();
 
@@ -353,7 +356,7 @@
       cvRouter.setInput(cameraEnhancer);
 
       loadingText.textContent = "Loading VIN template...";
-      await cvRouter.initSettings("./template.json");
+      await cvRouter.initSettings("./read-vin.json");
 
       // Cross-frame filtering
       const filter = new Dynamsoft.Utility.MultiFrameResultCrossFilter();
