@@ -355,7 +355,7 @@
       loadingText.textContent = "Loading VIN models...";
       await Dynamsoft.CVR.CaptureVisionRouter.appendDLModelBuffer(
         ["VINTextLineRecognition-alpha", "VINCharRecognition"],
-        "./models/"
+        new URL("./models/", document.baseURI).href
       );
 
       loadingText.textContent = "Loading VIN template...";
