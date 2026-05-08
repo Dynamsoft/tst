@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Document Verification</title>
+    <script src="/dist/mrz-scanner.bundle.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100dvh;
+        }
+
+        .app-header {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            text-align: center;
+        }
+        .app-header h1 { font-size: 1.25rem; font-weight: 600; }
+        .app-header p { font-size: 0.85rem; opacity: 0.7; margin-top: 0.25rem; }
+
+        .container {
+            max-width: 720px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Home / Start screen */
+        .start-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .start-card h2 { margin-bottom: 0.5rem; }
+        .start-card p { color: #666; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #e5e7eb; color: #374151; margin-left: 0.5rem; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Result screen */
+        .result-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            display: none;
+        }
+        .result-card.visible { display: block; }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .result-header h2 { font-size: 1.1rem; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-success { background: #dcfce7; color: #166534; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+
+        .image-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .image-box {
+            flex: 1;
+            min-width: 200px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .image-box h3 {
+            background: #f9fafb;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .image-box canvas, .image-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        @media (max-width: 500px) {
+            .fields-grid { grid-template-columns: 1fr; }
+        }
+
+        .field {
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .field-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .field-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .field-value.invalid { color: #dc2626; }
+
+        .mrz-text {
+            grid-column: 1 / -1;
+            font-family: "Courier New", monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .actions { margin-top: 1.5rem; text-align: center; }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        /* Section divider */
+        .section-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 1.25rem 0 0.75rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* Cross-verification */
+        .verification-card {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+        }
+        .verification-card.match { background: #dcfce7; border: 1px solid #86efac; }
+        .verification-card.mismatch { background: #fef9c3; border: 1px solid #fde047; }
+        .verification-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+        .verification-card.match .verification-title { color: #166534; }
+        .verification-card.mismatch .verification-title { color: #854d0e; }
+        .mismatch-list { margin: 0; padding-left: 1.25rem; font-size: 0.85rem; }
+        .mismatch-list li { margin-bottom: 0.25rem; }
+        .mismatch-field { font-weight: 600; }
+        .mismatch-client { color: #6b7280; }
+        .mismatch-server { color: #854d0e; }
+
+        /* Activity log — floating top bar */
+        .activity-log-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            transition: transform 0.25s ease;
+        }
+        .activity-log-wrapper.collapsed { transform: translateY(calc(-100% + 32px)); }
+
+        .activity-log-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a2e;
+            color: #94a3b8;
+            font-family: "Courier New", monospace;
+            font-size: 0.78rem;
+            padding: 0.35rem 1rem;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid #2d2d4a;
+        }
+        .activity-log-toggle:hover { color: #e2e8f0; }
+        .activity-log-toggle .arrow { transition: transform 0.25s; }
+        .activity-log-wrapper.collapsed .activity-log-toggle .arrow { transform: rotate(180deg); }
+
+        .activity-log {
+            background: #1a1a2e;
+            color: #a3e635;
+            font-family: "Courier New", monospace;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            padding: 0.5rem 1rem 0.75rem;
+            max-height: 180px;
+            overflow-y: auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .log-entry { margin: 0; padding: 0; }
+        .log-time { color: #94a3b8; }
+        .log-msg { color: #e2e8f0; }
+        .log-msg.ok { color: #a3e635; }
+        .log-msg.err { color: #f87171; }
+        .log-msg.info { color: #60a5fa; }
+
+        /* Push page content below collapsed log bar */
+        body { padding-top: 34px; }
+    </style>
+</head>
+<body>
+    <!-- Floating Activity Log -->
+    <div id="activity-log-wrapper" class="activity-log-wrapper collapsed">
+        <div id="activity-log" class="activity-log"></div>
+        <div class="activity-log-toggle" onclick="document.getElementById('activity-log-wrapper').classList.toggle('collapsed')">
+            <span>Activity Log</span>
+            <span class="arrow">&#9650;</span>
+        </div>
+    </div>
+
+    <div class="app-header">
+        <h1>Travel Document Verification</h1>
+        <p>Client-side ID Capture + Server-side MRZ Reading</p>
+    </div>
+
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-card">
+            <h2>Scan a Travel Document</h2>
+            <p>Position your passport or visa in front of the camera.<br>The scanner will automatically detect and capture the document.</p>
+            <div>
+                <button id="btn-scan" class="btn btn-primary" onclick="startScan()">Start Camera Scan</button>
+                <button id="btn-upload" class="btn btn-secondary" onclick="startUpload()">Upload Image</button>
+            </div>
+            <div id="error-home"></div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="result-card">
+            <div class="result-header">
+                <h2>Verification Result</h2>
+                <span id="result-status" class="status-badge"></span>
+            </div>
+
+            <div id="image-section" class="image-section"></div>
+
+            <!-- Client-side MRZ (quality indicator) -->
+            <div id="client-result-section" style="display:none">
+                <div class="section-label">Client-side MRZ (Quality Check)</div>
+                <div id="client-fields" class="fields-grid"></div>
+            </div>
+
+            <!-- Server-side MRZ (authoritative) -->
+            <div id="server-result-section" style="display:none">
+                <div class="section-label">Server-side MRZ (Verified Result)</div>
+                <div id="server-status"></div>
+                <div id="server-fields" class="fields-grid"></div>
+            </div>
+
+            <!-- Cross-verification -->
+            <div id="cross-verification-section" style="display:none">
+                <div class="section-label">Cross-Verification</div>
+                <div id="cross-verification"></div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="startScan()">Scan Again</button>
+                <button class="btn btn-secondary" onclick="showStart()">Back</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // ---------------------------------------------------------------
+        // Helpers
+        // ---------------------------------------------------------------
+        function esc(str) {
+            const d = document.createElement("div");
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        // ---------------------------------------------------------------
+        // Activity log
+        // ---------------------------------------------------------------
+        function log(msg, type = "") {
+            const wrapper = document.getElementById("activity-log-wrapper");
+            const el = document.getElementById("activity-log");
+            wrapper.classList.remove("collapsed");
+            const now = new Date();
+            const ts = now.toLocaleTimeString("en-GB", { hour12: false }) + "." + String(now.getMilliseconds()).padStart(3, "0");
+            const entry = document.createElement("div");
+            entry.className = "log-entry";
+            entry.innerHTML = `<span class="log-time">[${ts}]</span> <span class="log-msg ${type}">${esc(msg)}</span>`;
+            el.appendChild(entry);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById("activity-log").innerHTML = "";
+        }
+
+        const CLIENT_MRZ_LABELS = {
+            documentType: "Document Type",
+            documentNumber: "Document Number",
+            firstName: "Given Name(s)",
+            lastName: "Surname",
+            nationality: "Nationality",
+            issuingState: "Issuing State",
+            sex: "Sex",
+            dateOfBirth: "Date of Birth",
+            dateOfExpiry: "Date of Expiry",
+            mrzText: "MRZ Text",
+        };
+
+        // ---------------------------------------------------------------
+        // View helpers
+        // ---------------------------------------------------------------
+        function showStart() {
+            document.getElementById("start-screen").style.display = "";
+            document.getElementById("result-screen").classList.remove("visible");
+        }
+        window.showStart = showStart;
+
+        function showResult() {
+            document.getElementById("start-screen").style.display = "none";
+            document.getElementById("result-screen").classList.add("visible");
+        }
+
+        function setStatus(text, type) {
+            const el = document.getElementById("result-status");
+            el.textContent = text;
+            el.className = "status-badge status-" + type;
+        }
+
+        function formatMRZDate(dateObj) {
+            if (!dateObj) return "";
+            if (typeof dateObj === "string") return dateObj;
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${dateObj.year}-${pad(dateObj.month)}-${pad(dateObj.day)}`;
+        }
+
+        // ---------------------------------------------------------------
+        // Render fields into a grid container
+        // ---------------------------------------------------------------
+        function renderFields(container, data, labels) {
+            container.innerHTML = "";
+            for (const [key, label] of Object.entries(labels)) {
+                let value = data[key];
+                if (value == null || value === "") continue;
+
+                // Format date objects
+                if (key === "dateOfBirth" || key === "dateOfExpiry") {
+                    value = formatMRZDate(value);
+                }
+
+                const div = document.createElement("div");
+                div.className = "field" + (key === "mrzText" ? " mrz-text" : "");
+
+                const lbl = document.createElement("div");
+                lbl.className = "field-label";
+                lbl.textContent = label;
+
+                const val = document.createElement("div");
+                val.className = "field-value";
+                val.textContent = typeof value === "object" ? JSON.stringify(value) : String(value);
+
+                div.appendChild(lbl);
+                div.appendChild(val);
+                container.appendChild(div);
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Cross-verify client vs server MRZ results
+        // ---------------------------------------------------------------
+        const VERIFY_FIELDS = {
+            documentNumber: "Document Number",
+            lastName: "Surname",
+            firstName: "Given Name(s)",
+            nationality: "Nationality",
+            issuingState: "Issuing State",
+            sex: "Sex",
+            dateOfBirth: "Date of Birth",
+            dateOfExpiry: "Date of Expiry",
+        };
+
+        function normalizeDateToYYMMDD(value) {
+            if (!value) return "";
+            // Server returns "YYMMDD" string; client returns {year, month, day} object
+            if (typeof value === "object" && value.year != null) {
+                const yy = String(value.year % 100).padStart(2, "0");
+                const mm = String(value.month).padStart(2, "0");
+                const dd = String(value.day).padStart(2, "0");
+                return yy + mm + dd;
+            }
+            // Already a string — strip any dashes/spaces and take last 6 chars
+            const s = String(value).replace(/[-\s]/g, "");
+            return s.length >= 6 ? s.slice(-6) : s;
+        }
+
+        function normalizeValue(key, value) {
+            if (value == null) return "";
+            if (key === "dateOfBirth" || key === "dateOfExpiry") {
+                return normalizeDateToYYMMDD(value);
+            }
+            return String(value).trim().toUpperCase();
+        }
+
+        function crossVerify(clientData, serverData) {
+            const mismatches = [];
+            for (const [key, label] of Object.entries(VERIFY_FIELDS)) {
+                const clientVal = normalizeValue(key, clientData[key]);
+                const serverVal = normalizeValue(key, serverData[key]);
+                if (clientVal && serverVal && clientVal !== serverVal) {
+                    mismatches.push({ label, clientVal, serverVal });
+                }
+            }
+            return mismatches;
+        }
+
+        function renderCrossVerification(mismatches) {
+            const section = document.getElementById("cross-verification-section");
+            const container = document.getElementById("cross-verification");
+            section.style.display = "block";
+
+            if (mismatches.length === 0) {
+                container.innerHTML =
+                    '<div class="verification-card match">' +
+                    '<div class="verification-title">All fields match between client and server</div>' +
+                    'Client-side and server-side MRZ reads are consistent.' +
+                    '</div>';
+            } else {
+                let html =
+                    '<div class="verification-card mismatch">' +
+                    `<div class="verification-title">${mismatches.length} field(s) differ between client and server</div>` +
+                    '<ul class="mismatch-list">';
+                for (const m of mismatches) {
+                    html += `<li><span class="mismatch-field">${esc(m.label)}:</span> ` +
+                        `<span class="mismatch-client">client "${esc(m.clientVal)}"</span> vs ` +
+                        `<span class="mismatch-server">server "${esc(m.serverVal)}"</span></li>`;
+                }
+                html += '</ul></div>';
+                container.innerHTML = html;
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Convert DSImageData to Blob for upload
+        // ---------------------------------------------------------------
+        async function imageDataToBlob(dsImageData) {
+            // The SDK attaches toCanvas / toBlob helpers
+            if (dsImageData.toBlob) {
+                return await dsImageData.toBlob();
+            }
+            if (dsImageData.toCanvas) {
+                const canvas = dsImageData.toCanvas();
+                return await new Promise((resolve) =>
+                    canvas.toBlob(resolve, "image/png")
+                );
+            }
+            throw new Error("Cannot convert image data to blob");
+        }
+
+        // ---------------------------------------------------------------
+        // Send image to server for MRZ processing
+        // ---------------------------------------------------------------
+        async function sendToServer(blob) {
+            const form = new FormData();
+            form.append("image", blob, "document.png");
+
+            const resp = await fetch("/api/mrz", {
+                method: "POST",
+                body: form,
+            });
+            return await resp.json();
+        }
+
+        // ---------------------------------------------------------------
+        // Main scan flow
+        // ---------------------------------------------------------------
+        async function handleResult(result) {
+            showResult();
+            log("Processing scan result...", "info");
+
+            if (!result || !result.data) {
+                setStatus("No MRZ Detected", "error");
+                log("No MRZ detected in image", "err");
+                document.getElementById("image-section").innerHTML = "";
+                document.getElementById("client-result-section").style.display = "none";
+                document.getElementById("server-result-section").style.display = "none";
+                document.getElementById("cross-verification-section").style.display = "none";
+                return;
+            }
+
+            log("Client-side MRZ read complete", "ok");
+
+            // -- Images --
+            const imageSection = document.getElementById("image-section");
+            imageSection.innerHTML = "";
+
+            const documentImage = result.getDocumentImage(Dynamsoft.EnumDocumentSide.MRZ);
+            if (documentImage && documentImage.toCanvas) {
+                const box = document.createElement("div");
+                box.className = "image-box";
+                const h3 = document.createElement("h3");
+                h3.textContent = "Captured Document";
+                const canvas = documentImage.toCanvas();
+                box.appendChild(h3);
+                box.appendChild(canvas);
+                imageSection.appendChild(box);
+            }
+
+            const portraitImage = result.getPortraitImage();
+            if (portraitImage && portraitImage.toCanvas) {
+                const box = document.createElement("div");
+                box.className = "image-box";
+                box.style.maxWidth = "180px";
+                const h3 = document.createElement("h3");
+                h3.textContent = "Portrait";
+                const canvas = portraitImage.toCanvas();
+                box.appendChild(h3);
+                box.appendChild(canvas);
+                imageSection.appendChild(box);
+            }
+
+            // -- Client-side MRZ result (quality check) --
+            const clientSection = document.getElementById("client-result-section");
+            const clientFields = document.getElementById("client-fields");
+            clientSection.style.display = "block";
+            renderFields(clientFields, result.data, CLIENT_MRZ_LABELS);
+            log(`Client MRZ: ${result.data.documentType || "unknown type"} — ${result.data.firstName || ""} ${result.data.lastName || ""}`, "info");
+
+            // -- Send to server --
+            const serverSection = document.getElementById("server-result-section");
+            const serverStatus = document.getElementById("server-status");
+            const serverFields = document.getElementById("server-fields");
+            serverSection.style.display = "block";
+            serverFields.innerHTML = "";
+            setStatus("Processing on server...", "processing");
+            serverStatus.innerHTML = '<span class="status-badge status-processing"><span class="spinner"></span>Sending to server for verification...</span>';
+
+            try {
+                // Get the best image to send: prefer document image, fall back to original
+                const imageToSend = documentImage
+                    || result.getOriginalImage(Dynamsoft.EnumDocumentSide.MRZ);
+
+                if (!imageToSend) {
+                    throw new Error("No image available to send to server");
+                }
+
+                const blob = await imageDataToBlob(imageToSend);
+                log(`Sending image to server (${(blob.size / 1024).toFixed(1)} KB)...`, "info");
+                const t0 = performance.now();
+                const serverResult = await sendToServer(blob);
+
+                const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+
+                if (serverResult.success) {
+                    log(`Server response received in ${elapsed}s — MRZ read OK`, "ok");
+                    serverStatus.innerHTML = '<span class="status-badge status-success">MRZ successfully read on server</span>';
+                    renderFields(serverFields, serverResult.data, CLIENT_MRZ_LABELS);
+
+                    // Cross-verify client vs server
+                    log("Running cross-verification (client vs server)...", "info");
+                    const mismatches = crossVerify(result.data, serverResult.data);
+                    renderCrossVerification(mismatches);
+                    if (mismatches.length === 0) {
+                        log("Cross-verification passed — all fields match", "ok");
+                        setStatus("Verified", "success");
+                    } else {
+                        log(`Cross-verification: ${mismatches.length} field(s) differ`, "err");
+                        setStatus("Mismatch", "error");
+                    }
+                } else {
+                    log(`Server response in ${elapsed}s — failed: ${serverResult.error}`, "err");
+                    setStatus("Server MRZ Failed", "error");
+                    serverStatus.innerHTML = `<div class="error-msg">${esc(serverResult.error)}</div>`;
+                }
+            } catch (err) {
+                log(`Server error: ${err.message}`, "err");
+                setStatus("Server Error", "error");
+                serverStatus.innerHTML = `<div class="error-msg">Failed to reach server: ${esc(err.message)}</div>`;
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Scan via camera
+        // ---------------------------------------------------------------
+        async function startScan() {
+            const btnScan = document.getElementById("btn-scan");
+            const btnUpload = document.getElementById("btn-upload");
+            const errorHome = document.getElementById("error-home");
+            errorHome.innerHTML = "";
+            btnScan.disabled = true;
+            btnUpload.disabled = true;
+
+            try {
+                clearLog();
+                log("Initializing MRZ Scanner (camera mode)...", "info");
+                const mrzScanner = new Dynamsoft.MRZScanner({
+                    license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjE2OTk4LU1qRTJPVGs0TFhkbFlpMVVjbWxoYkZCeWIybyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIxNjk5OCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJjaGVja0NvZGUiOjE2NzY3MDAxMjh9",
+                    returnOriginalImage: true,
+                    returnDocumentImage: true,
+                    returnPortraitImage: true,
+                });
+                log("Scanner initialized — opening camera...", "ok");
+
+                const result = await mrzScanner.launch();
+                log("Document captured from camera", "ok");
+                console.log("Scan result:", result);
+                await handleResult(result);
+            } catch (err) {
+                log(`Camera scan error: ${err.message}`, "err");
+                console.error("Scan error:", err);
+                errorHome.innerHTML = `<div class="error-msg">${esc(err.message)}</div>`;
+            } finally {
+                btnScan.disabled = false;
+                btnUpload.disabled = false;
+            }
+        }
+        window.startScan = startScan;
+
+        // ---------------------------------------------------------------
+        // Scan via file upload
+        // ---------------------------------------------------------------
+        async function startUpload() {
+            const btnScan = document.getElementById("btn-scan");
+            const btnUpload = document.getElementById("btn-upload");
+            const errorHome = document.getElementById("error-home");
+            errorHome.innerHTML = "";
+
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = "image/*";
+            input.style.display = "none";
+            document.body.appendChild(input);
+
+            const file = await new Promise((resolve) => {
+                input.onchange = (e) => resolve(e.target.files?.[0] ?? null);
+                input.addEventListener("cancel", () => resolve(null));
+                input.click();
+            });
+            document.body.removeChild(input);
+            if (!file) return;
+
+            btnScan.disabled = true;
+            btnUpload.disabled = true;
+
+            try {
+                clearLog();
+                log(`File selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, "info");
+                log("Initializing MRZ Scanner (file mode)...", "info");
+                const mrzScanner = new Dynamsoft.MRZScanner({
+                    license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjE2OTk4LU1qRTJPVGs0TFhkbFlpMVVjbWxoYkZCeWIybyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIxNjk5OCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJjaGVja0NvZGUiOjE2NzY3MDAxMjh9",
+                    returnOriginalImage: true,
+                    returnDocumentImage: true,
+                    returnPortraitImage: true,
+                });
+                log("Scanner initialized — processing file...", "ok");
+
+                const result = await mrzScanner.launch(file);
+                log("File processed — MRZ extraction complete", "ok");
+                console.log("Upload result:", result);
+                await handleResult(result);
+            } catch (err) {
+                log(`File upload error: ${err.message}`, "err");
+                console.error("Upload error:", err);
+                errorHome.innerHTML = `<div class="error-msg">${esc(err.message)}</div>`;
+            } finally {
+                btnScan.disabled = false;
+                btnUpload.disabled = false;
+            }
+        }
+        window.startUpload = startUpload;
+    </script>
+</body>
+</html>
