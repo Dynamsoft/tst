@@ -141,6 +141,12 @@ def process_mrz():
 
         # Process with Dynamsoft Capture Vision
         cvr = CaptureVisionRouter()
+
+        # Increase timeout for slow environments (e.g. Render free tier)
+        _, _, dcv_settings = cvr.get_simplified_settings("ReadPassportAndId")
+        dcv_settings.timeout = 30000  # 30 seconds (default is 2 s)
+        cvr.update_settings("ReadPassportAndId", dcv_settings)
+
         result = cvr.capture(tmp_path, "ReadPassportAndId")
 
         if result.get_error_code() != EnumErrorCode.EC_OK:
