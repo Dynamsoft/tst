@@ -1,0 +1,227 @@
+/* === POC: Medical Form Scanner === */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Header */
+.app-header {
+  background: #323234;
+  color: #fff;
+  padding: 16px 24px;
+}
+.app-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.app-header p {
+  font-size: 13px;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+/* Main layout */
+.app-main {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Scanner panel */
+.scanner-panel {
+  flex: 1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.scanner-panel h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.status-bar {
+  background: #f0f4ff;
+  border: 1px solid #d0d8f0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  color: #335;
+}
+.dwt-viewer {
+  width: 100%;
+  height: 400px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  background: #fafafa;
+}
+.scanner-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+.barcode-input {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 200px;
+}
+.barcode-input label {
+  font-size: 12px;
+  color: #666;
+}
+.barcode-input input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.image-count {
+  font-size: 12px;
+  color: #888;
+  margin-top: 8px;
+}
+
+/* Buttons */
+button {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: #fe8e14;
+  border-color: #fe8e14;
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #e57d0b;
+}
+
+/* Document list panel */
+.doc-list-panel {
+  width: 320px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.doc-list-panel h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.empty-msg {
+  font-size: 13px;
+  color: #999;
+}
+.doc-list {
+  list-style: none;
+}
+.doc-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+.doc-item:last-child {
+  border-bottom: none;
+}
+.doc-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0066cc;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+}
+.doc-link:hover {
+  color: #004499;
+}
+.doc-meta {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* Document viewer overlay */
+.viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.viewer-modal {
+  background: #fff;
+  border-radius: 8px;
+  width: 90vw;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+.viewer-header h3 {
+  font-size: 15px;
+}
+.btn-close {
+  font-size: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.viewer-body {
+  flex: 1;
+  position: relative;
+}
+.ddv-container {
+  width: 100%;
+  height: 100%;
+}
+.viewer-loading,
+.viewer-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: #666;
+}
+.viewer-error {
+  color: #c00;
+}
