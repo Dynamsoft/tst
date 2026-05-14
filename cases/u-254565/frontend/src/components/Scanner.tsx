@@ -18,6 +18,8 @@ export default function Scanner({ onUploadSuccess }: ScannerProps) {
   const [imageCount, setImageCount] = useState(0);
   const [barcodeText, setBarcodeText] = useState("");
   const [statusMsg, setStatusMsg] = useState("Initializing scanner...");
+  const [sources, setSources] = useState<string[]>([]);
+  const [selectedSource, setSelectedSource] = useState(-1);
   const initRef = useRef(false);
 
   // Initialize DWT
@@ -37,17 +39,27 @@ export default function Scanner({ onUploadSuccess }: ScannerProps) {
         dwtObj.Viewer.height = "100%";
         dwtObj.Viewer.show();
         dwtObj.Viewer.setViewMode(1, -1); // 1 column, auto rows (thumbnail strip)
+        // Populate scanner source list
+        const sourceNames: string[] = [];
+        const count = dwtObj.SourceCount;
+        for (let i = 0; i < count; i++) {
+          sourceNames.push(dwtObj.GetSourceNameItems(i));
+        }
+        setSources(sourceNames);
+        if (count > 0) setSelectedSource(0);
+
         setDwt(dwtObj);
-        setStatusMsg("Ready — connect your scanner and click Scan.");
+        setStatusMsg(
+          count > 0
+            ? `Ready — ${count} scanner(s) found. Select one and click Scan.`
+            : "Ready — no scanners found. Connect a scanner and refresh."
+        );
       },
       (err: { code: number; message: string }) => {
         console.error("DWT init error:", err.message);
         setStatusMsg(`Error: ${err.message}`);
       }
     );
-
-    // Initialize Capture Vision for barcode reading
-    initCVEnvironment();
 
     return () => {
       Dynamsoft.DWT.DeleteDWTObject("poc-scanner");
@@ -56,12 +68,12 @@ export default function Scanner({ onUploadSuccess }: ScannerProps) {
 
   // Scan from ADF
   const handleScan = useCallback(() => {
-    if (!dwt) return;
+    if (!dwt || selectedSource < 0) return;
     setScanning(true);
     setStatusMsg("Scanning...");
     setBarcodeText("");
 
-    dwt.SelectSourceByIndex(0);
+    dwt.SelectSourceByIndex(selectedSource);
     dwt.OpenSource();
     dwt.AcquireImage(
       {
@@ -84,7 +96,7 @@ export default function Scanner({ onUploadSuccess }: ScannerProps) {
         setStatusMsg(`Scan error: ${errStr}`);
       }
     );
-  }, [dwt]);
+  }, [dwt, selectedSource]);
 
   // Read barcode from first scanned image
   const handleReadBarcode = useCallback(async () => {
@@ -92,6 +104,10 @@ export default function Scanner({ onUploadSuccess }: ScannerProps) {
     setStatusMsg("Reading barcode...");
 
     try {
+      // Lazy-init CV environment (avoid calling at startup — LicenseManager.initLicense
+      // would override DWT's ProductKey with the DCV DLS license)
+      await initCVEnvironment();
+
       // Get current image as blob
       const blob = await new Promise<Blob>((resolve, reject) => {
         dwt.ConvertToBlob(
@@ -102,8 +118,11 @@ export default function Scanner({ onUploadSuccess }: ScannerProps) {
         );
       });
 
-      // Decode barcode using CaptureVisionRouter
+      // Decode QR code using CaptureVisionRouter
       const router = await CaptureVisionRouter.createInstance();
+      const settings = await router.getSimplifiedSettings("ReadBarcodes_Default");
+      settings.barcodeSettings.barcodeFormatIds = 0x04000000; // BF_QR_CODE
+      await router.updateSettings("ReadBarcodes_Default", settings);
       const result = await router.capture(blob, "ReadBarcodes_Default");
       router.dispose();
 
@@ -180,7 +199,19 @@ export default function Scanner({ onUploadSuccess }: ScannerProps) {
       <div id="dwt-viewer" className="dwt-viewer" />
 
       <div className="scanner-controls">
-        <button onClick={handleScan} disabled={!dwt || scanning}>
+        <select
+          className="scanner-select"
+          value={selectedSource}
+          onChange={(e) => setSelectedSource(Number(e.target.value))}
+          disabled={!dwt || scanning || sources.length === 0}
+        >
+          {sources.length === 0 && <option value={-1}>No scanners found</option>}
+          {sources.map((name, i) => (
+            <option key={i} value={i}>{name}</option>
+          ))}
+        </select>
+
+        <button onClick={handleScan} disabled={!dwt || scanning || selectedSource < 0}>
           {scanning ? "Scanning..." : "Scan (ADF)"}
         </button>
 
