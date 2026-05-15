@@ -4,6 +4,6 @@
   "private": true,
   "description": "Client-side ID Capture + Server-side MRZ Reading demo",
   "dependencies": {
-    "dynamsoft-mrz-scanner": "4.0.0-beta-202605070001"
+    "dynamsoft-mrz-scanner": "^4.0.0-beta-202605070001"
   }
 }
