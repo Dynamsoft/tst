@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta name="description" content="" />
+  <meta name="keywords" content="read vin" />
+  <link rel="stylesheet" href="./style.css" />
+  <title>VIN Image Collector — Template Optimization Tool</title>
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11.4.2001/dist/dbr.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+
+<body>
+  <div class="home-page">
+    <h1 class="home-page-title">VIN Image Collector</h1>
+    <p class="home-page-subtitle">Collect failed-decode frames for template optimization</p>
+    <div class="start-btn">
+      <div class="start-icon"></div>
+      <div class="loading"></div>
+    </div>
+    <img class="logo-dynamsoft" src="./logo-dynamsoft.png" alt="logo-dynamsoft">
+  </div>
+
+  <div class="barcode-scanner-view"></div>
+
+  <!-- Floating status badge during scanning -->
+  <div class="status-badge" style="display:none;">
+    <span class="status-frames">Frames: 0</span>
+    <span class="status-failures">Saved: 0</span>
+    <span class="status-successes">Decoded: 0</span>
+  </div>
+
+  <!-- Targeting toggle — only save images when user is aiming at a VIN -->
+  <div class="target-btn" style="display:none;">
+    <span class="target-icon">&#9678;</span> Aim at VIN
+  </div>
+
+  <!-- Stop & Download button during scanning -->
+  <div class="stop-btn" style="display:none;">Stop & Download</div>
+
+  <!-- Parsed result view (shown briefly on successful decode) -->
+  <div class="parsed-result-view">
+    <div class="barcode-text"></div>
+    <ul class="parsed-result-list"></ul>
+    <div class="back-to-scan" style="cursor: pointer;">Back to Scan</div>
+  </div>
+
+  <!-- Log & download panel (shown after stopping) -->
+  <div class="log-panel" style="display:none;">
+    <h2 class="log-panel-title">Collection Results</h2>
+    <div class="log-stats"></div>
+    <div class="log-entries"></div>
+    <div class="log-actions">
+      <button class="download-zip-btn" disabled>Download ZIP (0 images)</button>
+      <button class="restart-btn">Restart Scanning</button>
+    </div>
+  </div>
+
+  <script>
+    const parsedResultView = document.querySelector(".parsed-result-view");
+    const homePage = document.querySelector(".home-page");
+    const startIcon = document.querySelector(".start-icon");
+    const startBtn = document.querySelector(".start-btn");
+    const loading = document.querySelector(".loading");
+    const barcodeText = document.querySelector(".barcode-text");
+    const parsedResultList = document.querySelector(".parsed-result-list");
+    const barcodeScannerView = document.querySelector(".barcode-scanner-view");
+    const backToScan = document.querySelector(".back-to-scan");
+
+    const targetBtn = document.querySelector(".target-btn");
+    const statusBadge = document.querySelector(".status-badge");
+    const statusFrames = document.querySelector(".status-frames");
+    const statusFailures = document.querySelector(".status-failures");
+    const statusSuccesses = document.querySelector(".status-successes");
+    const stopBtnEl = document.querySelector(".stop-btn");
+    const logPanel = document.querySelector(".log-panel");
+    const logStats = document.querySelector(".log-stats");
+    const logEntries = document.querySelector(".log-entries");
+    const downloadZipBtn = document.querySelector(".download-zip-btn");
+    const restartBtn = document.querySelector(".restart-btn");
+
+    Dynamsoft.License.LicenseManager.initLicense(
+      "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0="
+    );
+    Dynamsoft.DCP.CodeParserModule.loadSpec("VIN");
+
+    // --- Image collection state ---
+    const collectedImages = []; // { blob, timestamp, index }
+    const logData = [];         // { timestamp, type: 'success'|'failure', text?, saved? }
+    let frameCount = 0;
+    let failureCount = 0;
+    let successCount = 0;
+    let savedCount = 0;
+    let lastSaveTime = 0;
+    const SAVE_INTERVAL_MS = 3000; // Only save one failure image every 3 seconds
+    const MAX_SAVED_IMAGES = 10;  // Stop saving after this many
+
+    let cameraView, cameraEnhancer, cvRouter, parser;
+    let isScanning = false;
+    let isTargeting = false; // Only save images when user says they're aiming at a VIN
+
+    let pInit = (async function () {
+      try {
+        cameraView = await Dynamsoft.DCE.CameraView.createInstance();
+        cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
+        cvRouter = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+
+        cvRouter.setInput(cameraEnhancer);
+
+        const resultReceiver = new Dynamsoft.CVR.CapturedResultReceiver();
+
+        resultReceiver.onCapturedResultReceived = async (result) => {
+          if (!isScanning) return;
+
+          frameCount++;
+          const now = Date.now();
+
+          // Check if any barcode was found
+          const barcodeItems = [];
+          let originalImageItem = null;
+          for (const item of result.items) {
+            if (item.type === Dynamsoft.Core.EnumCapturedResultItemType.CRIT_BARCODE) {
+              barcodeItems.push(item);
+            } else if (item.type === Dynamsoft.Core.EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE) {
+              originalImageItem = item;
+            }
+          }
+
+          if (barcodeItems.length > 0) {
+            // --- SUCCESS: barcode found ---
+            successCount++;
+            const text = barcodeItems[0].text;
+            logData.push({
+              timestamp: new Date(now).toISOString(),
+              type: "success",
+              text: text,
+              saved: false
+            });
+
+            // Parse and show result briefly (don't stop scanning)
+            try {
+              if (!parser) parser = await Dynamsoft.DCP.CodeParser.createInstance();
+              const parsedResult = await parser.parse(barcodeItems[0].bytes);
+              const processedResult = handleVINResult(parsedResult);
+              generateResultList(processedResult);
+            } catch (ex) {
+              generateResultList([
+                { description: "Error", value: ex.message || "parse failed." },
+                { description: "Original text", value: text }
+              ]);
+            }
+            barcodeText.innerText = text.replace(/\n/g, "");
+
+            // Show parsed result overlay briefly, then auto-dismiss
+            parsedResultView.style.display = "block";
+            barcodeScannerView.style.display = "none";
+            setTimeout(() => {
+              if (isScanning) {
+                parsedResultView.style.display = "none";
+                barcodeScannerView.style.display = "block";
+              }
+            }, 2000);
+
+          } else {
+            // --- FAILURE: no barcode found ---
+            failureCount++;
+
+            // Throttle: only save if targeting is active and enough time has passed
+            if (isTargeting && originalImageItem && savedCount < MAX_SAVED_IMAGES && (now - lastSaveTime >= SAVE_INTERVAL_MS)) {
+              lastSaveTime = now;
+              try {
+                const canvas = originalImageItem.imageData.toCanvas();
+                const blob = await new Promise((resolve) => {
+                  canvas.toBlob((b) => resolve(b), "image/png");
+                });
+                if (blob) {
+                  savedCount++;
+                  collectedImages.push({
+                    blob: blob,
+                    timestamp: now,
+                    index: savedCount
+                  });
+                  logData.push({
+                    timestamp: new Date(now).toISOString(),
+                    type: "failure",
+                    text: null,
+                    saved: true
+                  });
+                  if (savedCount >= MAX_SAVED_IMAGES) {
+                    updateStatusBadge();
+                    stopScanning();
+                    return;
+                  }
+                }
+              } catch (ex) {
+                console.warn("Failed to save frame:", ex);
+                logData.push({
+                  timestamp: new Date(now).toISOString(),
+                  type: "failure",
+                  text: null,
+                  saved: false,
+                  error: ex.message
+                });
+              }
+            }
+          }
+
+          updateStatusBadge();
+        };
+
+        await cvRouter.addResultReceiver(resultReceiver);
+        await cvRouter.initSettings("./read_vin.json");
+
+        // Enable original image output for frame capture
+        const ss = await cvRouter.getSimplifiedSettings("ReadVIN");
+        ss.outputOriginalImage = true;
+        ss.minImageCaptureInterval = 500;
+        await cvRouter.updateSettings("ReadVIN", ss);
+
+        barcodeScannerView.append(cameraView.getUIElement());
+
+        await cameraEnhancer.open();
+        await cvRouter.startCapturing("ReadVIN");
+        isScanning = true;
+        homePage.style.display = "none";
+        statusBadge.style.display = "flex";
+        stopBtnEl.style.display = "block";
+        targetBtn.style.display = "flex";
+      } catch (ex) {
+        console.log(ex.message || ex);
+        alert(ex.message || ex);
+      }
+    })();
+
+    function toggleTargeting() {
+      isTargeting = !isTargeting;
+      targetBtn.classList.toggle("active", isTargeting);
+      targetBtn.innerHTML = isTargeting
+        ? '<span class="target-icon">&#9678;</span> Collecting...'
+        : '<span class="target-icon">&#9678;</span> Aim at VIN';
+    }
+
+    async function startScanning() {
+      await pInit;
+      isScanning = true;
+      isTargeting = false;
+      targetBtn.classList.remove("active");
+      targetBtn.innerHTML = '<span class="target-icon">&#9678;</span> Aim at VIN';
+      parsedResultView.style.display = "none";
+      logPanel.style.display = "none";
+      barcodeScannerView.style.display = "block";
+      statusBadge.style.display = "flex";
+      stopBtnEl.style.display = "block";
+      targetBtn.style.display = "flex";
+      await cameraEnhancer.open();
+      await cvRouter.startCapturing("ReadVIN");
+      homePage.style.display = "none";
+    }
+
+    function stopScanning() {
+      isScanning = false;
+      isTargeting = false;
+      cvRouter.stopCapturing();
+      statusBadge.style.display = "none";
+      stopBtnEl.style.display = "none";
+      targetBtn.style.display = "none";
+      barcodeScannerView.style.display = "none";
+      parsedResultView.style.display = "none";
+      showLogPanel();
+    }
+
+    function updateStatusBadge() {
+      statusFrames.textContent = `Frames: ${frameCount}`;
+      statusFailures.textContent = `Saved: ${savedCount}`;
+      statusSuccesses.textContent = `Decoded: ${successCount}`;
+      downloadZipBtn.textContent = `Download ZIP (${savedCount} images)`;
+      downloadZipBtn.disabled = savedCount === 0;
+    }
+
+    function showLogPanel() {
+      logPanel.style.display = "block";
+
+      logStats.innerHTML = `
+        <div class="stat-row"><strong>Total frames processed:</strong> ${frameCount}</div>
+        <div class="stat-row"><strong>Successful decodes:</strong> ${successCount}</div>
+        <div class="stat-row"><strong>Failed frames:</strong> ${failureCount}</div>
+        <div class="stat-row"><strong>Images saved:</strong> ${savedCount}</div>
+        <div class="stat-row"><strong>Save interval:</strong> ${SAVE_INTERVAL_MS / 1000}s</div>
+      `;
+
+      // Show last 50 log entries (most recent first)
+      const recentLogs = logData.slice(-50).reverse();
+      logEntries.innerHTML = recentLogs.map(entry => {
+        const time = entry.timestamp.split("T")[1].split(".")[0];
+        const icon = entry.type === "success" ? "OK" : (entry.saved ? "SAVED" : "skip");
+        const text = entry.text ? ` — ${entry.text}` : "";
+        const cls = entry.type === "success" ? "log-success" : (entry.saved ? "log-saved" : "log-skip");
+        return `<div class="log-entry ${cls}"><span class="log-time">${time}</span> <span class="log-icon">[${icon}]</span>${text}</div>`;
+      }).join("");
+
+      updateStatusBadge();
+    }
+
+    async function downloadZip() {
+      if (collectedImages.length === 0) return;
+
+      downloadZipBtn.textContent = "Generating ZIP...";
+      downloadZipBtn.disabled = true;
+
+      try {
+        const zip = new JSZip();
+        const imgFolder = zip.folder("failed-vin-frames");
+
+        for (const img of collectedImages) {
+          const name = `fail_${String(img.index).padStart(4, "0")}.png`;
+          imgFolder.file(name, img.blob);
+        }
+
+        // Add log.json with metadata
+        const logMeta = {
+          caseId: "u-22272",
+          collectedAt: new Date().toISOString(),
+          template: "read_vin.json",
+          totalFrames: frameCount,
+          successCount: successCount,
+          failureCount: failureCount,
+          savedCount: savedCount,
+          saveIntervalMs: SAVE_INTERVAL_MS,
+          entries: logData
+        };
+        imgFolder.file("log.json", JSON.stringify(logMeta, null, 2));
+
+        const blob = await zip.generateAsync({ type: "blob" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `vin-failures-${new Date().toISOString().slice(0, 10)}.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (ex) {
+        alert("Failed to generate ZIP: " + (ex.message || ex));
+      } finally {
+        downloadZipBtn.textContent = `Download ZIP (${savedCount} images)`;
+        downloadZipBtn.disabled = false;
+      }
+    }
+
+    function handleVINResult(parsedResult) {
+      const oriParseInfo = [];
+      const resultInfo = JSON.parse(parsedResult.jsonString);
+      for (let info of resultInfo.ResultInfo) {
+        if (info.ChildFields) {
+          wrapResultObject(info.ChildFields);
+        }
+      }
+
+      function wrapResultObject(childFields) {
+        for (let childField of childFields) {
+          for (let field of childField) {
+            if (field.Value) {
+              oriParseInfo.push({
+                description: field.FieldName,
+                value: field.Value,
+              });
+            }
+            if (field.ChildFields) {
+              wrapResultObject(field.ChildFields);
+            }
+          }
+        }
+      }
+      return oriParseInfo;
+    }
+
+    function generateResultList(processedResult) {
+      parsedResultList.innerHTML = "";
+      const resultList = [];
+      for (let item of processedResult) {
+        const resultItem = document.createElement("li");
+        resultItem.className = "parsed-result-item";
+        resultItem.innerHTML = `<strong>${item.description}: </strong><span>${item.value}</span>`;
+        resultList.push(resultItem);
+      }
+      parsedResultList.append(...resultList);
+    }
+
+    // --- Event listeners ---
+
+    startBtn.addEventListener("click", () => {
+      loading.style.display = "block";
+      startIcon.style.display = "none";
+      startScanning();
+    });
+
+    backToScan.addEventListener("click", () => {
+      parsedResultView.style.display = "none";
+      barcodeScannerView.style.display = "block";
+    });
+
+    targetBtn.addEventListener("click", toggleTargeting);
+    stopBtnEl.addEventListener("click", stopScanning);
+    downloadZipBtn.addEventListener("click", downloadZip);
+
+    restartBtn.addEventListener("click", () => {
+      logPanel.style.display = "none";
+      startScanning();
+    });
+  </script>
+</body>
+
+</html>

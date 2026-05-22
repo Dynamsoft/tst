@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git count-objects -vH)",
+      "Bash(git rev-list --objects --all)",
+      "Bash(git cat-file --batch-check='%\\(objecttype\\) %\\(objectname\\) %\\(objectsize\\) %\\(rest\\)')",
+      "WebFetch(domain:cdn.jsdelivr.net)",
+      "Bash(git -c commit.gpgsign=false commit -m \"Fix VIN.dcpres 404 by pinning dcvData to @1.1.0\")",
+      "Bash(gh issue comment 289 --repo Dynamsoft/barcode-reader-javascript-samples --body \"Companion docs issue: https://github.com/dynamsoft-docs/barcode-reader-docs-js/issues/496\")",
+      "Bash(gh issue comment 496 --repo dynamsoft-docs/barcode-reader-docs-js --body \"Companion sample project issue: https://github.com/Dynamsoft/barcode-reader-javascript-samples/issues/289\")",
+      "Bash(git -c gpg.format=ssh -c commit.gpgsign=false commit -m \"Add GS1-AI read-and-parse sample\")",
+      "Bash(git -c commit.gpgsign=false commit -m \"Add GS1-AI RTU beta variant using DCV bundle 3.4.2000-beta\")",
+      "Bash(git -c commit.gpgsign=false commit -m \"Switch beta sample to DBR bundle 11.4.2000-beta-202604152312\")",
+      "Bash(git -c commit.gpgsign=false commit -m \"Use domain-bound license from README in GS1-AI RTU samples\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst"
+    ]
+  }
+}

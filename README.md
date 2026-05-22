@@ -16,6 +16,6 @@ https://dynamsoft.github.io/tst/samples/list-builder.html
 
 # Test License
 
-The following license can be used in all the samples (JS/web only), the license is bound to the domain `dynamsoft.github.io`:
+The following license can be used in all the samples (all products and editions), the license is bound to the domain `dynamsoft.github.io`:
 
 > DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=
