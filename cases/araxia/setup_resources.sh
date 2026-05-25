@@ -25,13 +25,7 @@ MRZ_DIST="$NODE_MODULES/dynamsoft-mrz-scanner/dist"
 # 1. MRZ Scanner bundle (IIFE - standalone)
 cp "$MRZ_DIST/mrz-scanner.bundle.js" "$DEST/"
 
-# 2. MRZ Scanner config files
-cp "$MRZ_DIST/mrz-scanner.template.json" "$DEST/"
-if [ -f "$MRZ_DIST/mrz-scanner.ui.xml" ]; then
-  cp "$MRZ_DIST/mrz-scanner.ui.xml" "$DEST/"
-fi
-
-# 3. DCV engine resources (WASM, workers)
+# 2. DCV engine resources (WASM, workers)
 mkdir -p "$DEST/dynamsoft-capture-vision-bundle/dist"
 cp "$NODE_MODULES/dynamsoft-capture-vision-bundle/dist/"* \
    "$DEST/dynamsoft-capture-vision-bundle/dist/" 2>/dev/null || true
