@@ -645,6 +645,9 @@
                 log("Initializing MRZ Scanner (camera mode)...", "info");
                 const mrzScanner = new Dynamsoft.MRZScanner({
                     license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjE2OTk4LU1qRTJPVGs0TFhkbFlpMVVjbWxoYkZCeWIybyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIxNjk5OCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJjaGVja0NvZGUiOjE2NzY3MDAxMjh9",
+                    engineResourcePaths: {
+                        dcvData: "/dist/dynamsoft-capture-vision-data/",
+                    },
                     returnOriginalImage: true,
                     returnDocumentImage: true,
                     returnPortraitImage: true,
@@ -698,6 +701,9 @@
                 log("Initializing MRZ Scanner (file mode)...", "info");
                 const mrzScanner = new Dynamsoft.MRZScanner({
                     license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjE2OTk4LU1qRTJPVGs0TFhkbFlpMVVjbWxoYkZCeWIybyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIxNjk5OCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJjaGVja0NvZGUiOjE2NzY3MDAxMjh9",
+                    engineResourcePaths: {
+                        dcvData: "/dist/dynamsoft-capture-vision-data/",
+                    },
                     returnOriginalImage: true,
                     returnDocumentImage: true,
                     returnPortraitImage: true,
