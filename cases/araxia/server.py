@@ -31,7 +31,7 @@ from dynamsoft_capture_vision_bundle import (
 # Replace with your Dynamsoft license key, or use the default trial key.
 LICENSE_KEY = os.environ.get(
     "DYNAMSOFT_LICENSE",
-    "t0122NQMAADL+j4AO3AmALiQXHqOQWx+5aRye+znAyEj8wrKvTHjp14Tma9zFVp+F7Kh1T/zCvBq0fgJDRi3nvhra1DPJjNxdZlvrEM8yTU8z4mPllBi4K8uUBkytz9xj+s9Ux7mYZ/gHn5nSgKn1mdk8XzCds2CArUhpqEc=;t0123NQMAAFYMBywwLw4+Jvf4Tnzyrcg62zzC+VlBOf9sjhWF3wuVy8559hMR2CZycfdm/QEuQ/KgiyKNH33zYY3BHkuFnL9YZdATh3iOKT1lbI+VY2LgrixTGjC1PnOv6T9THadin/EffGZKA6bWZ2b7fMF0zoIRtgBpxKhW",
+    "t0121NQMAADEeIsPBSF9fzodyNWmxjUzhGsDcgleMcF0VjzyujcHZvG/I2VLrzYowUbn+7akZfcGHbaSRMwnLs7A+TVo+19WohRGruI3le/mRjztGYeCoS6b8wNTvmUtM75nqHKp5Ip4z5Qemfs+8zPMG05ObW7IJlqum/w==;t0122NQMAAELgVB6Q14SVQj4xUjX73yoKIahp7gDpYVRVTdBAMJgaWwyiEGZQhOp+KkwrRDEVWl/0hzJwlIJlhOLqTkvdZFeLHDyxiftYrpcbeblnKAycVWXKD0z9nrnG9J6pxqmZJ8JzpvzA1O+Z1TxvMG0wb36wGWHNpvQ=",
 )
 
 app = Flask(__name__, static_folder="static", static_url_path="")
