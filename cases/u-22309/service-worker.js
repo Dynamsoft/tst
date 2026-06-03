@@ -48,7 +48,14 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log("[Service Worker] Caching all: app shell and content");
-      return cache.addAll(ASSETS_TO_CACHE);
+      // Use individual adds so a single failure doesn't abort the whole install
+      return Promise.allSettled(
+        ASSETS_TO_CACHE.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn(`[Service Worker] Failed to cache: ${url}`, err);
+          })
+        )
+      );
     })
   );
   // Force the waiting service worker to become the active one
