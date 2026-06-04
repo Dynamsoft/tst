@@ -151,6 +151,15 @@
         color: #999;
         font-size: 13px;
       }
+      .acc-idle .abort-link {
+        color: #dc3545;
+        cursor: pointer;
+        text-decoration: underline;
+        margin-left: 4px;
+      }
+      .acc-idle .abort-link:hover {
+        color: #a71d2a;
+      }
       .scan-again-btn {
         display: none;
         margin: 16px 0;
@@ -1108,6 +1117,7 @@
         } else {
           accumulatedBarcodes.clear();
           accumulatedTotal = 0;
+          autoAnalyzePaused = false;
           document.getElementById("accCount").textContent = "0";
           document.getElementById("accIdle").textContent = "";
         }
@@ -1130,23 +1140,41 @@
       }
 
       let countdownInterval = null;
+      let autoAnalyzePaused = false;
+
+      function abortAutoAnalyze() {
+        clearTimeout(autoAnalyzeTimer);
+        autoAnalyzeTimer = null;
+        clearInterval(countdownInterval);
+        autoAnalyzePaused = true;
+        const idleEl = document.getElementById("accIdle");
+        idleEl.textContent = "Auto-analyze paused. ";
+        const resumeLink = document.createElement("span");
+        resumeLink.className = "abort-link";
+        resumeLink.textContent = "Resume";
+        resumeLink.onclick = () => { autoAnalyzePaused = false; resetAutoAnalyzeTimer(); };
+        idleEl.appendChild(resumeLink);
+      }
 
       function resetAutoAnalyzeTimer() {
         clearTimeout(autoAnalyzeTimer);
+        autoAnalyzeTimer = null;
         clearInterval(countdownInterval);
         const idleEl = document.getElementById("accIdle");
         idleEl.textContent = "";
 
+        if (autoAnalyzePaused) return;
         if (accumulatedTotal < 3) return;
 
         const deadline = Date.now() + AUTO_ANALYZE_IDLE_MS;
         countdownInterval = setInterval(() => {
           const remaining = Math.max(0, deadline - Date.now());
-          idleEl.textContent = `Auto-analyze in ${(remaining / 1000).toFixed(1)}s...`;
+          idleEl.innerHTML = `Auto-analyze in ${(remaining / 1000).toFixed(1)}s… <span class="abort-link" onclick="abortAutoAnalyze()">Cancel</span>`;
           if (remaining <= 0) clearInterval(countdownInterval);
         }, 100);
 
         autoAnalyzeTimer = setTimeout(() => {
+          autoAnalyzeTimer = null;
           clearInterval(countdownInterval);
           if (videoState === "VIDEO_SCANNING" && accumulatedTotal >= 3) {
             idleEl.textContent = "Auto-analyzing...";
@@ -1191,7 +1219,10 @@
               }
               lastNewBarcodeTime = Date.now();
               updateAccumulationUI();
-              resetAutoAnalyzeTimer();
+              // Start countdown once when threshold reached; don't reset on every frame
+              if (accumulatedTotal >= 3 && !autoAnalyzeTimer && !autoAnalyzePaused) {
+                resetAutoAnalyzeTimer();
+              }
             },
           };
           await cvRouter.addResultReceiver(videoResultReceiver);
@@ -1363,6 +1394,8 @@
 
       function resetVideoMode() {
         accumulatedBarcodes.clear();
+        accumulatedTotal = 0;
+        autoAnalyzePaused = false;
         document.getElementById("accCount").textContent = "0";
         document.getElementById("accIdle").textContent = "";
         document.getElementById("btnScanAgain").style.display = "none";
