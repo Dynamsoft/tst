@@ -1107,6 +1107,7 @@
           document.getElementById("fileName").textContent = "No file selected";
         } else {
           accumulatedBarcodes.clear();
+          accumulatedTotal = 0;
           document.getElementById("accCount").textContent = "0";
           document.getElementById("accIdle").textContent = "";
         }
@@ -1116,6 +1117,7 @@
       let cameraEnhancer = null;
       let videoState = "VIDEO_IDLE";
       const accumulatedBarcodes = new Map();
+      let accumulatedTotal = 0; // total barcode detections (including duplicates)
       let lastNewBarcodeTime = 0;
       let autoAnalyzeTimer = null;
       let videoResultReceiver = null;
@@ -1123,8 +1125,8 @@
 
       function updateAccumulationUI() {
         document.getElementById("accCount").textContent = accumulatedBarcodes.size;
-        document.getElementById("btnAnalyze").style.display = accumulatedBarcodes.size >= 3 ? "inline-block" : "none";
-        document.getElementById("btnAnalyze").textContent = `Analyze Grid (${accumulatedBarcodes.size} found)`;
+        document.getElementById("btnAnalyze").style.display = accumulatedTotal >= 3 ? "inline-block" : "none";
+        document.getElementById("btnAnalyze").textContent = `Analyze Grid (${accumulatedBarcodes.size} unique)`;
       }
 
       let countdownInterval = null;
@@ -1135,7 +1137,7 @@
         const idleEl = document.getElementById("accIdle");
         idleEl.textContent = "";
 
-        if (accumulatedBarcodes.size < 3) return;
+        if (accumulatedTotal < 3) return;
 
         const deadline = Date.now() + AUTO_ANALYZE_IDLE_MS;
         countdownInterval = setInterval(() => {
@@ -1146,7 +1148,7 @@
 
         autoAnalyzeTimer = setTimeout(() => {
           clearInterval(countdownInterval);
-          if (videoState === "VIDEO_SCANNING" && accumulatedBarcodes.size >= 3) {
+          if (videoState === "VIDEO_SCANNING" && accumulatedTotal >= 3) {
             idleEl.textContent = "Auto-analyzing...";
             triggerAnalysis();
           }
@@ -1177,21 +1179,19 @@
             onDecodedBarcodesReceived: (result) => {
               if (videoState !== "VIDEO_SCANNING") return;
               const items = result.barcodeResultItems ?? [];
-              let newCount = 0;
+              if (items.length === 0) return;
               for (const item of items) {
                 if (!item.text) continue;
-                if (!accumulatedBarcodes.has(item.text)) newCount++;
+                accumulatedTotal++;
                 accumulatedBarcodes.set(item.text, {
                   text: item.text,
                   lastLocation: item.location,
                   seenCount: (accumulatedBarcodes.get(item.text)?.seenCount ?? 0) + 1,
                 });
               }
-              if (newCount > 0) {
-                lastNewBarcodeTime = Date.now();
-                updateAccumulationUI();
-                resetAutoAnalyzeTimer();
-              }
+              lastNewBarcodeTime = Date.now();
+              updateAccumulationUI();
+              resetAutoAnalyzeTimer();
             },
           };
           await cvRouter.addResultReceiver(videoResultReceiver);

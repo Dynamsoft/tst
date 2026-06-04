@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "heUMXtkXsEpyqoVOP11RKUJ0iF3eyKaYsJIQ7bKxK5oD40KVSRVnzIusPk0s25Ke6EBkbkpGdkVwM1Rw00O0Eg==",
+  "success": false,
+  "projectFilePath": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "The local source 'C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\Packages' doesn't exist.",
+      "libraryId": "Dynamsoft.DotNet.CaptureVision.Bundle"
+    }
+  ]
+}

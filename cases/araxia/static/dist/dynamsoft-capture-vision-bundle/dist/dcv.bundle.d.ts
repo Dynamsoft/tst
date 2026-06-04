@@ -1865,7 +1865,7 @@ declare const EnumBarcodeFormat: {
     BF_GS1_DATABAR_LIMITED: bigint;
     /**Patch code. */
     BF_PATCHCODE: bigint;
-    /**PDF417 */
+    /**Code 32 */
     BF_CODE_32: bigint;
     /**PDF417 */
     BF_PDF417: bigint;

@@ -1,0 +1,91 @@
+{
+  "version": 3,
+  "targets": {
+    "net6.0": {}
+  },
+  "libraries": {},
+  "projectFileDependencyGroups": {
+    "net6.0": [
+      "Dynamsoft.DotNet.CaptureVision.Bundle >= 3.4.2000"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\kunta\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
+      "projectName": "VINScanner",
+      "projectPath": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
+      "packagesPath": "C:\\Users\\kunta\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\NuGet.Config",
+        "C:\\Users\\kunta\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net6.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\Packages": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net6.0": {
+        "targetAlias": "net6.0",
+        "dependencies": {
+          "Dynamsoft.DotNet.CaptureVision.Bundle": {
+            "target": "Package",
+            "version": "[3.4.2000, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200\\RuntimeIdentifierGraph.json"
+      }
+    }
+  },
+  "logs": [
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "The local source 'C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\Packages' doesn't exist.",
+      "libraryId": "Dynamsoft.DotNet.CaptureVision.Bundle"
+    }
+  ]
+}
