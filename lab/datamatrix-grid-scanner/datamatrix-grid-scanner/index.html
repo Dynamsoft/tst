@@ -1086,6 +1086,30 @@
         document.getElementById("uploadSection").style.display = mode === "upload" ? "flex" : "none";
         document.getElementById("videoSection").style.display = mode === "video" ? "block" : "none";
         document.getElementById("btnScanAgain").style.display = "none";
+
+        // Reset shared UI
+        document.getElementById("canvas").style.display = "none";
+        const placeholder = document.querySelector(".canvas-placeholder");
+        if (placeholder) {
+          placeholder.style.display = "";
+          placeholder.textContent = mode === "video"
+            ? "Snapshot will appear here after analysis"
+            : "Image preview will appear here after uploading";
+        }
+        document.getElementById("resultsSection").style.display = "none";
+        document.getElementById("logSection").innerHTML = "";
+        document.getElementById("logSection").style.display = "none";
+        document.getElementById("progressStrip").className = "progress-strip";
+        for (let i = 1; i <= 4; i++) setPhaseStatus(i, "pending");
+
+        // Reset mode-specific state
+        if (mode === "upload") {
+          document.getElementById("fileName").textContent = "No file selected";
+        } else {
+          accumulatedBarcodes.clear();
+          document.getElementById("accCount").textContent = "0";
+          document.getElementById("accIdle").textContent = "";
+        }
       }
 
       // ─── Video mode ─────────────────────────────────────────────────────
@@ -1103,12 +1127,27 @@
         document.getElementById("btnAnalyze").textContent = `Analyze Grid (${accumulatedBarcodes.size} found)`;
       }
 
+      let countdownInterval = null;
+
       function resetAutoAnalyzeTimer() {
         clearTimeout(autoAnalyzeTimer);
-        document.getElementById("accIdle").textContent = "";
+        clearInterval(countdownInterval);
+        const idleEl = document.getElementById("accIdle");
+        idleEl.textContent = "";
+
+        if (accumulatedBarcodes.size < 3) return;
+
+        const deadline = Date.now() + AUTO_ANALYZE_IDLE_MS;
+        countdownInterval = setInterval(() => {
+          const remaining = Math.max(0, deadline - Date.now());
+          idleEl.textContent = `Auto-analyze in ${(remaining / 1000).toFixed(1)}s...`;
+          if (remaining <= 0) clearInterval(countdownInterval);
+        }, 100);
+
         autoAnalyzeTimer = setTimeout(() => {
+          clearInterval(countdownInterval);
           if (videoState === "VIDEO_SCANNING" && accumulatedBarcodes.size >= 3) {
-            document.getElementById("accIdle").textContent = "Auto-analyzing...";
+            idleEl.textContent = "Auto-analyzing...";
             triggerAnalysis();
           }
         }, AUTO_ANALYZE_IDLE_MS);
@@ -1172,6 +1211,7 @@
 
       function stopVideoMode() {
         clearTimeout(autoAnalyzeTimer);
+        clearInterval(countdownInterval);
         try { cvRouter?.stopCapturing(); } catch (_) {}
         if (videoResultReceiver) {
           try { cvRouter?.removeResultReceiver(videoResultReceiver); } catch (_) {}
@@ -1194,6 +1234,7 @@
         isProcessing = true;
         videoState = "VIDEO_ANALYZING";
         clearTimeout(autoAnalyzeTimer);
+        clearInterval(countdownInterval);
 
         // Hide video controls
         document.getElementById("btnStopCamera").style.display = "none";

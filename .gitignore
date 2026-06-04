@@ -15,3 +15,7 @@
 *.pkg
 *.deb
 *.rpm
+.gstack/
+
+# Sample images (not for public)
+lab/datamatrix-grid-scanner/datamatrix-grid-scanner/sample_*.png
