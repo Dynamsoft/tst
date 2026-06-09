@@ -7,7 +7,7 @@
   <meta name="description" content="Scan barcodes with tip messages and beep feedback using Dynamsoft Barcode Reader." />
   <meta name="keywords" content="barcode scanner, tip message, beep, camera scanning" />
   <title>Dynamsoft Barcode Reader Sample - Tip Message &amp; Beep</title>
-  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-bundle@3.4.2001/dist/dcv.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11.4.2001/dist/dbr.bundle.js"></script>
 </head>
 
 <body>
@@ -64,12 +64,19 @@
           fallbackOverlay.style.display = "";
         };
 
+        /* ── Spinner overlay (shown while decoding image) ── */
+        const spinner = document.createElement("div");
+        spinner.className = "spinner-overlay";
+        spinner.innerHTML = '<div class="spinner"></div><div>Decoding...</div>';
+        spinner.style.display = "none";
+
         /* ── Single-frame mode flag ── */
         let inSingleFrameMode = false;
 
         /* ── Switch to singleFrameMode for image capture ── */
         const switchToSingleFrame = async () => {
           stopTipCycle();
+          spinner.style.display = "";
           inSingleFrameMode = true;
           await cvRouter.stopCapturing();
           await cameraEnhancer.close();
@@ -104,6 +111,7 @@
         /* ── Resume camera from singleFrameMode ── */
         const resumeCamera = async () => {
           fallbackOverlay.style.display = "none";
+          spinner.style.display = "none";
           resultView.innerHTML = "";
           if (inSingleFrameMode) {
             await cvRouter.stopCapturing();
@@ -132,6 +140,7 @@
         resultReceiver.onDecodedBarcodesReceived = (result) => {
           const items = result.barcodeResultItems ?? [];
           if (inSingleFrameMode) {
+            spinner.style.display = "none";
             if (!items.length) {
               resultView.innerHTML = "<div class='result-item'>No barcode found in image</div>";
               setOverlay("\u{274C} No barcode found \u{2014} tap to try another photo", switchToSingleFrame);
@@ -158,7 +167,7 @@
         /* ── Mount UI and start ── */
         const cameraContainer = document.querySelector(".camera-view");
         cameraContainer.style.position = "relative";
-        cameraContainer.append(cameraView.getUIElement(), fallbackOverlay);
+        cameraContainer.append(cameraView.getUIElement(), spinner, fallbackOverlay);
         await cameraEnhancer.open();
         cameraView.setScanLaserVisible(true);
         await cvRouter.startCapturing("ReadBarcodes_SpeedFirst");
@@ -177,6 +186,9 @@
     .result-item { padding: 4px 0; border-bottom: 1px solid #eee; }
     .format { display: inline-block; background: #fe8e14; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 13px; margin-right: 6px; }
     .dm-camera-mn-toast { font-size: 16px !important; font-weight: 600 !important; padding: 10px 14px !important; }
+    .spinner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(0, 0, 0, 0.5); color: #fff; font-size: 16px; font-weight: 600; z-index: 8; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .fallback-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 12px 16px; background: rgba(0, 0, 0, 0.75); color: #fff; font-size: 15px; font-weight: 600; text-align: center; cursor: pointer; z-index: 10; }
   </style>
 </body>
