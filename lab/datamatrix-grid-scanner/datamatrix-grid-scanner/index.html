@@ -721,10 +721,13 @@
         });
       }
 
+      const AUTO_AXIS = { elementCount: -1, isStaggered: false, angle: -1, isEqualSpacing: false, spacing: -1, spacingUnit: 0 };
+
       async function analyzeLayoutWithFallback(locations, width, height) {
         return await withTimeout(
           Dynamsoft.DIP.LayoutAnalyzer.analyze(locations, {
             pattern: Dynamsoft.DIP.EnumLayoutPattern.LP_MATRIX,
+            axes: [AUTO_AXIS, AUTO_AXIS],
             inputImageWidth: width,
             inputImageHeight: height,
           }),
@@ -1012,8 +1015,9 @@
           const layoutResult = await analyzeLayoutWithFallback(locations, width, height);
           console.log("Layout analysis result:", layoutResult);
 
-          if (layoutResult.errorCode !== 0) {
-            log(`[Phase 2] Layout analysis failed (code ${layoutResult.errorCode}).`);
+          const layoutErrCode1 = layoutResult.errorInfo?.errorCode ?? layoutResult.errorCode ?? 0;
+          if (layoutErrCode1 !== 0) {
+            log(`[Phase 2] Layout analysis failed (code ${layoutErrCode1}).`);
             setPhaseStatus(2, "error");
             stopProgress("error");
             return;
@@ -1337,8 +1341,9 @@
           const layoutResult = await analyzeLayoutWithFallback(locations, width, height);
           console.log("Layout analysis result:", layoutResult);
 
-          if (layoutResult.errorCode !== 0) {
-            log(`[Phase 2] Layout analysis failed (code ${layoutResult.errorCode}).`);
+          const layoutErrCode2 = layoutResult.errorInfo?.errorCode ?? layoutResult.errorCode ?? 0;
+          if (layoutErrCode2 !== 0) {
+            log(`[Phase 2] Layout analysis failed (code ${layoutErrCode2}).`);
             setPhaseStatus(2, "error");
             stopProgress("error");
             videoState = "VIDEO_DONE";

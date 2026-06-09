@@ -964,11 +964,6 @@ interface AuxiliaryRegionElement extends RegionObjectElement {
     confidence: number;
 }
 
-declare const mapAsyncDependency: {
-    [key: string]: any;
-};
-declare const waitAsyncDependency: (depName: string | string[]) => Promise<void>;
-declare const doOrWaitAsyncDependency: (depName: string | string[], asyncFunc: () => Promise<void>) => Promise<void>;
 declare const imagePtrToUint8Array: (data: {
     ptr: number;
     length: number;
@@ -979,15 +974,12 @@ declare const getNextTaskID: () => number;
 declare const mapTaskCallBack: {
     [key: string]: (body: any) => void;
 };
-declare let onLog: (message: string) => void | undefined;
-declare const setOnLog: (value: typeof onLog) => void;
 declare let bDebug: boolean;
 declare const setBDebug: (value: boolean) => void;
 declare const innerVersions: InnerVersions;
 declare const mapPackageRegister: {
     [key: string]: any;
 };
-declare const workerAutoResources: WorkerAutoResources;
 declare class CoreModule {
     static get engineResourcePaths(): EngineResourcePaths;
     static set engineResourcePaths(value: EngineResourcePaths);
@@ -997,8 +989,7 @@ declare class CoreModule {
     static get bSupportIRTModule(): number;
     private static _versions;
     static get versions(): any;
-    static get _onLog(): (message: string) => void | undefined;
-    static set _onLog(value: (message: string) => void | undefined);
+    static _onLog: (message: string) => void;
     static get _bDebug(): boolean;
     static set _bDebug(value: boolean);
     static _bundleEnv: "DCV" | "DBR";
@@ -1013,7 +1004,7 @@ declare class CoreModule {
      *
      * @returns A promise that resolves when the resources have been successfully released. It does not provide any value upon resolution.
      */
-    static isModuleLoaded(name?: string): boolean;
+    static isModuleLoaded(): boolean;
     static loadWasm(): Promise<void>;
     /**
      * An event that fires during the loading of a WebAssembly module (.wasm).
@@ -1280,7 +1271,7 @@ declare const productNameMap: {
     readonly dcvBundle: "dynamsoft-capture-vision-bundle";
 };
 
-export { CoreModule, EnumBufferOverflowProtectionMode, EnumCapturedResultItemType, EnumColourChannelUsageType, EnumCornerType, EnumCrossVerificationStatus, EnumErrorCode, EnumGrayscaleEnhancementMode, EnumGrayscaleTransformationMode, EnumImageCaptureDistanceMode, EnumImageFileFormat, EnumImagePixelFormat, EnumImageTagType, EnumIntermediateResultUnitType, EnumMeasureUnit, EnumModuleName, EnumPDFReadingMode, EnumRasterDataSource, EnumRegionObjectElementType, EnumSectionType, ImageSourceAdapter, _saveToFile, _toBlob, _toCanvas, _toImage, bDebug, blobToDsImage, checkIsLink, compareVersion, createImageData, d, doOrWaitAsyncDependency, e, encodeBMP, getNextTaskID, handleEngineResourcePaths, imagePtrToUint8Array, innerVersions, isArc, isContour, isDSImageData, isDSRect, isDsImageKeyValue, isImageTag, isLineSegment, isObject, isOriginalDsImageData, isPoint, isPolygon, isQuad, isRect, isSimdSupported, mapAsyncDependency, mapPackageRegister, mapTaskCallBack, onLog, productNameMap, requestResource, resolveDsImageData, setBDebug, setOnLog, waitAsyncDependency, worker, workerAutoResources };
+export { CoreModule, EnumBufferOverflowProtectionMode, EnumCapturedResultItemType, EnumColourChannelUsageType, EnumCornerType, EnumCrossVerificationStatus, EnumErrorCode, EnumGrayscaleEnhancementMode, EnumGrayscaleTransformationMode, EnumImageCaptureDistanceMode, EnumImageFileFormat, EnumImagePixelFormat, EnumImageTagType, EnumIntermediateResultUnitType, EnumMeasureUnit, EnumModuleName, EnumPDFReadingMode, EnumRasterDataSource, EnumRegionObjectElementType, EnumSectionType, ImageSourceAdapter, _saveToFile, _toBlob, _toCanvas, _toImage, bDebug, blobToDsImage, checkIsLink, compareVersion, createImageData, d, e, encodeBMP, getNextTaskID, handleEngineResourcePaths, imagePtrToUint8Array, innerVersions, isArc, isContour, isDSImageData, isDSRect, isDsImageKeyValue, isImageTag, isLineSegment, isObject, isOriginalDsImageData, isPoint, isPolygon, isQuad, isRect, isSimdSupported, mapPackageRegister, mapTaskCallBack, productNameMap, requestResource, resolveDsImageData, setBDebug, worker };
 export type { Arc, AuxiliaryRegionElement, BinaryImageUnit, CapturedResultBase, CapturedResultItem, ColourImageUnit, Contour, ContoursUnit, Corner, DSFile, DSImageData, DSRect, DwtInfo, Edge, EngineResourcePaths, EnhancedGrayscaleImageUnit, ErrorInfo, FileImageTag, GrayscaleImageUnit, ImageSourceErrorListener, ImageTag, InnerVersions, IntermediateResult, IntermediateResultExtraInfo, IntermediateResultUnit, LineSegment, LineSegmentsUnit, MapController, MimeType, ObservationParameters, OriginalImageResultItem, PDFReadingParameter, PathInfo, Point, Polygon, PostMessageBody, PredetectedRegionElement, PredetectedRegionsUnit, Quadrilateral, Rect, RegionObjectElement, ScaledColourImageUnit, ShortLinesUnit, TextRemovedBinaryImageUnit, TextZone, TextZonesUnit, TextureDetectionResultUnit, TextureRemovedBinaryImageUnit, TextureRemovedGrayscaleImageUnit, TransformedGrayscaleImageUnit, Warning, WasmLoadOptions, WasmType, WasmVersions, WorkerAutoResources };
 
 
@@ -2678,6 +2669,10 @@ interface LayoutAnalysisParameter {
 interface LayoutAnalysisResult {
     /** Newly generated quadrilaterals. */
     inferredQuads: Array<Quadrilateral>;
+    /** Number of rows in the logical grid. */
+    rowCount: number;
+    /** Maximum number of columns across all rows. */
+    colCount: number;
     /**
      * 2D layout grid.
      * In line mode, shorter rows can be padded with LES_NONE elements.
@@ -2685,8 +2680,14 @@ interface LayoutAnalysisResult {
     elements: Array<Array<LayoutElement>>;
     /** Actual layout pattern detected by the engine. */
     detectedPattern: EnumLayoutPattern;
-    /** 0 for success, non-zero for error. */
-    errorCode: number;
+    /**
+      * Error information.
+      * errorCode indicates the execution result.
+      * errorString provides a human-readable description.
+      * For successful execution, errorCode should be 0 and
+      * errorString may be empty.
+      */
+    errorInfo: ErrorInfo;
 }
 
 /**
@@ -2975,7 +2976,7 @@ declare class LicenseManager {
     */
     static initLicense(license: string, options?: {
         executeNow: boolean;
-    } | boolean): void | Promise<void>;
+    } | boolean): Promise<void>;
     /**
      * The following methods should be called before `initLicense`.
      */
@@ -3182,7 +3183,7 @@ declare class ImageIO {
      *
      * @returns A promise that resolves with an object containing the image data as a Uint8Array and the file format.
      */
-    static saveToMemory(image: Blob, fileFormat: string): Promise<number>;
+    static saveToMemory(image: Blob, fileFormat?: string): Promise<number>;
     /**
      * This method reads an image from a Base64-encoded string. The image format is automatically detected based on the content of the string.
      *
@@ -3199,7 +3200,7 @@ declare class ImageIO {
      *
      * @returns A promise that resolves with a Base64-encoded string representing the image.
      */
-    static saveToBase64String(image: Blob | DSImageData, fileFormat: string): Promise<string>;
+    static saveToBase64String(image: Blob | DSImageData, fileFormat?: string): Promise<string>;
 }
 
 declare class ImageDrawer {
@@ -3336,25 +3337,25 @@ declare class Camera {
     _video: HTMLVideoElement;
     _coreInnerLayer: HTMLElement;
     _coreOuterLayer: HTMLElement;
-    _regionBoxWrapper: HTMLElement;
-    _regionBoxMask: HTMLElement;
-    _regionBoxBorder: HTMLElement;
+    _regionBoxWrapper?: HTMLElement | null;
+    _regionBoxMask?: HTMLElement | null;
+    _regionBoxBorder?: HTMLElement | null;
     _objectFit: 'contain' | 'cover' | 'fill';
     _uiInlineScript2Blob: boolean;
     _uiInternalCss2Blob: boolean;
     _uiInternalCss2ExistedSheet: boolean;
     _ui?: HTMLElement;
-    _pOpen: Promise<void> & {
+    _pOpen?: (Promise<void> & {
         isPending: boolean;
         resolve: () => void;
         reject: () => void;
-    };
+    }) | null;
     _getUserMediaTimeout: number;
     _paused: boolean;
     _shouldClose: boolean;
     _cameraChangedWhenPaused: boolean;
-    _requestedCamera: CameraPreset | MediaTrackConstraints;
-    _requestedResolution: MediaTrackConstraints;
+    _requestedCamera: CameraPreset | MediaTrackConstraints | null;
+    _requestedResolution: MediaTrackConstraints | null;
     _regionBox: {
         width?: number;
         height?: number;
@@ -3400,6 +3401,9 @@ declare class Camera {
      * If `value` is a falsy value, `coreShell` is used as `ui`.
      **/
     set ui(value: HTMLElement | DocumentFragment | string | undefined);
+    /**
+     * "closed" | "opening" | "opened" | "paused" | "closing"
+     */
     get status(): CameraStatus;
     get requestedCamera(): "back" | "front" | "macro-back" | "quick-back" | "customized-video" | MediaTrackConstraints;
     get requestedResolution(): {
@@ -3424,7 +3428,7 @@ declare class Camera {
         borderStyle?: Partial<CSSStyleDeclaration>;
         innerUi?: Node | NodeList;
     };
-    onOpened: (camera: Camera) => void | any;
+    onOpened?: (camera: Camera) => void | any;
     static hasCamera(): Promise<boolean>;
     static hasMacroCamera(): Promise<boolean>;
     static hasFrontCamera(): Promise<boolean>;
@@ -3458,7 +3462,7 @@ declare class Camera {
      * */
     requestCamera(resetToDefault: undefined): Promise<void>;
     /** If call `requestCamera()` when the camera is `opened`, it will call `close()` then re`open()` Internally. */
-    requestCamera(camera: string | CameraInfo | MediaTrackConstraints): Promise<void>;
+    requestCamera(camera: string | CameraInfo | MediaTrackConstraints | null | undefined): Promise<void>;
     requestResolution(width: number, height?: number): Promise<void>;
     requestResolution(widthHeightPair: [number, number] | number[]): Promise<void>;
     requestResolution(constraints: {
@@ -3468,6 +3472,7 @@ declare class Camera {
     }): Promise<void>;
     requestResolution(notRequired: null): Promise<void>;
     requestResolution(resetToDefault: undefined): Promise<void>;
+    requestResolution(arg1: any, arg2?: any): Promise<void>;
     /**
      * Similar to `camera.track.applyConstraints`,
      * but auto add constraints of original camera and original resolution.
@@ -3592,10 +3597,10 @@ type CameraPreset = typeof ArrCameraPreset[number];
             x: number;
             y: number;
         }>;
-        _gestureZoomListener: EventListener;
+        _gestureZoomListener: ((this: HTMLElement, ev: TouchEvent) => any) | null;
         get enableGestureZoom(): boolean;
         set enableGestureZoom(value: boolean);
-        _wheelZoomListener: EventListener;
+        _wheelZoomListener: ((this: HTMLElement, ev: WheelEvent) => any) | null;
         get enableWheelZoom(): boolean;
         set enableWheelZoom(value: boolean);
         getZoomRange(): {
@@ -3624,14 +3629,14 @@ type CameraPreset = typeof ArrCameraPreset[number];
         _changeZoomByWheel(ev: WheelEvent): void;
         _changeZoomByTouch(ev: TouchEvent): void;
         /** The `zoom` event is triggered when zoom updated via a touch gesture or mouse wheel. */
-        addEventListener(type: 'zoom', listener: (this: Camera, softZoom?: {
+        addEventListener(type: 'zoom', listener: (this: Camera, softZoom: {
             zoom: number;
             center: {
                 x: number;
                 y: number;
             };
         }) => void | any): void;
-        removeEventListener(type: 'zoom', listener: (this: Camera, softZoom?: {
+        removeEventListener(type: 'zoom', listener: (this: Camera, softZoom: {
             zoom: number;
             center: {
                 x: number;
@@ -3641,19 +3646,19 @@ type CameraPreset = typeof ArrCameraPreset[number];
     }
 
 interface AdvancedFocusParameters {
-    minFocusDistanceLimit?: number;
-    maxFocusDistanceLimit?: number;
-    firstStepWaitDuration?: number;
-    coarseStepWaitDuration?: number;
-    switchStepWaitDuration?: number;
-    fineStepWaitDuration?: number;
-    maxStepCount?: number;
+    minFocusDistanceLimit: number;
+    maxFocusDistanceLimit: number;
+    firstStepWaitDuration: number;
+    coarseStepWaitDuration: number;
+    switchStepWaitDuration: number;
+    fineStepWaitDuration: number;
+    maxStepCount: number;
     /** value < 0 means no never */
-    backToContinousDuration?: number;
+    backToContinousDuration: number;
     /** The focus width and height, 0 ~ 1, represents the ratio of the length to the `Math.min(video.videoWidth, video.videoHeight)` */
-    focusWH?: number;
+    focusWH: number;
     /** From far to near, 0 ~ 1. The closer to 1, the more sensitive but more slow. */
-    coarseTuneRate?: number;
+    coarseTuneRate: number;
     /**
      * 0 ~ 1.
      * When the correct focus is closer, the far focus contrast data is unreliable
@@ -3662,9 +3667,9 @@ interface AdvancedFocusParameters {
      * When closer to 0, there will be more error tolerance,
      * and it may also cause the focus to be too close and the process to be too slow.
      **/
-    coarseTuneTolerance?: number;
+    coarseTuneTolerance: number;
     /** From near to far, 1 ~ 1.xx. The closer to 1, the more sensitive but more slow. */
-    fineTuneRate?: number;
+    fineTuneRate: number;
 }
 declare namespace Camera {
         function _getImageContrast(data: Uint8Array | Uint8ClampedArray, width: number, height: number): number;
@@ -3672,7 +3677,7 @@ declare namespace Camera {
     interface Camera {
         _enableTapToFocus: false | 'simple' | 'experimental-advanced';
         _isFocusing: boolean;
-        _tapToFocusListner: EventListener;
+        _tapToFocusListner: ((this: HTMLElement, ev: PointerEvent) => any) | null;
         _simpleFocus(): Promise<void>;
         _advancedFocusParameters: AdvancedFocusParameters;
         _advancedFocusTaskId: number;
@@ -3722,7 +3727,29 @@ interface AutoTorchParameters {
         get shouldCloseWhenHide(): boolean;
         set shouldCloseWhenHide(value: boolean);
         _closeWhenHide(): Promise<void>;
-        _closeWhenHideListener: EventListener;
+        _closeWhenHideListener: EventListener | null;
+        _bindCloseWhenHide(): void;
+        _unbindCloseWhenHide(): void;
+    }
+declare namespace Camera {
+        let _id4CloseWhenNotInDOM: number;
+        let _stMSBNotInDOMCamera: Set<Camera>;
+    }
+    interface Camera {
+        _id4CloseWhenNotInDOM: number;
+        _shouldCloseWhenNotInDOM: boolean;
+        _bClosedBecauseOfNotInDOM: boolean;
+        /**
+         * After turn on `shouldCloseWhenNotInDOM`:
+         * 1. Once a camera insert into DOM, if the camera leave DOM, it auto close.
+         * 2. Once a mediaStream-binded camera insert into DOM, or a already in DOM camera is opened,
+         *    we call this camera as A,
+         *    Other cameras who is not in DOM and created before A, will be closed.
+         */
+        get shouldCloseWhenNotInDOM(): boolean;
+        set shouldCloseWhenNotInDOM(value: boolean);
+        _updateMo4CloseWhenNotInDOM(): void;
+        _mo4CloseWhenNotInDOM: MutationObserver | null;
     }
 declare namespace Camera {
         function showFilePicker(inputOptions?: {
@@ -3744,15 +3771,15 @@ declare const stringToHtml: (str: string, config?: {
 }) => Node;
 
 declare class FramePipeline {
-    camera: Camera;
+    camera?: Camera;
     _ctx: CanvasRenderingContext2D;
-    _data: Uint8Array<ArrayBuffer>;
+    _data?: Uint8Array<ArrayBuffer> | null;
     _dataTime: number;
-    _x: number;
-    _y: number;
-    _w: number;
-    _h: number;
-    _type: string;
+    _x?: number;
+    _y?: number;
+    _w?: number;
+    _h?: number;
+    _type?: string;
     maxTimeout: number;
     _pipeTaskId: any;
     isSaveOriginalRgba: boolean;
@@ -3760,7 +3787,7 @@ declare class FramePipeline {
      * The `originalRgba` share `ArrayBuffer` with the `data` returned by `getData(..., type: 'rgba')`.
      * So you should be careful when transferring `data` to other thread.
      */
-    originalRgba: Uint8ClampedArray<ArrayBuffer>;
+    originalRgba?: Uint8ClampedArray<ArrayBuffer> | null;
     constructor(camera?: Camera);
     _getData(): Uint8Array<ArrayBuffer>;
     /**
@@ -3778,12 +3805,12 @@ declare class FramePipeline {
         width?: number;
         height?: number;
         type?: 'rgba' | 'gray';
-    }): Uint8Array;
+    }): Uint8Array | null;
 }
 
 declare class Beep {
-    _stAudioFree: Set<unknown>;
-    _stAudioPlaying: Set<unknown>;
+    _stAudioFree: Set<HTMLAudioElement>;
+    _stAudioPlaying: Set<HTMLAudioElement>;
     _timeLastPlay: number;
     _bWarnedMaxTrack: boolean;
     maxPlayingBeep: number;
@@ -4040,8 +4067,8 @@ declare namespace Camera {
         _dceSettingsBeforeSingleFrameMode: any;
         _singleFrameMode: "disabled" | "camera" | "image";
         _singleFrameModeClickCallback: any;
-        _singleFrameModeResultForDcv: DCEFrame;
-        _singleFrameModeCvs: HTMLCanvasElement;
+        _singleFrameModeResultForDcv: DCEFrame | null;
+        _singleFrameModeCvs: HTMLCanvasElement | null;
         get singleFrameMode(): "disabled" | "camera" | "image";
         set singleFrameMode(value: "disabled" | "camera" | "image");
         setCameraView(view: CameraView): void;
@@ -4173,7 +4200,7 @@ declare class DrawingLayer {
     _newSelectedDrawingItems: DrawingItem[];
     _newDeselectedDrawingItems: DrawingItem[];
     _selectionChangedTask: any;
-    _onSelectionChanged: (newSelectedDrawingItems: DrawingItem[], newDeselectedDrawingItems: DrawingItem[]) => void;
+    _onSelectionChanged?: (newSelectedDrawingItems: DrawingItem[], newDeselectedDrawingItems: DrawingItem[]) => void;
     getId(): this;
     isVisible(): boolean;
     setVisible(value: boolean): void;
@@ -4190,8 +4217,8 @@ declare class DrawingLayer {
     getMode(): "editor" | "viewer";
     setMode(mode: 'editor' | 'viewer'): Promise<void>;
     _delaySelectionChanged(): void;
-    get onSelectionChanged(): (newSelectedDrawingItems: DrawingItem[], newDeselectedDrawingItems: DrawingItem[]) => void;
-    set onSelectionChanged(value: (newSelectedDrawingItems: DrawingItem[], newDeselectedDrawingItems: DrawingItem[]) => void);
+    get onSelectionChanged(): ((newSelectedDrawingItems: DrawingItem[], newDeselectedDrawingItems: DrawingItem[]) => void) | undefined;
+    set onSelectionChanged(value: ((newSelectedDrawingItems: DrawingItem[], newDeselectedDrawingItems: DrawingItem[]) => void) | undefined);
 }
 /**
  * Determines if a point is inside a quadrilateral.
@@ -4223,7 +4250,7 @@ declare class DrawingItem {
     }[];
     getState(): EnumDrawingItemState;
     addNote(note: Note, replace?: boolean): void;
-    getNote(name: string): Note;
+    getNote(name: string): Note | null;
     getNotes(): Note[];
     hasNote(name: string): boolean;
     updateNote(name: string, content: any, isMergeContent?: boolean): void;
