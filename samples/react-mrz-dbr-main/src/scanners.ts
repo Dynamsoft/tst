@@ -1,9 +1,9 @@
 import { MRZScanner, EnumDocumentSide, MRZDate, MRZImage, MRZResult } from "dynamsoft-mrz-scanner";
-import { CapturedResultReceiver } from "dynamsoft-capture-vision-bundle";
+import { CapturedResultReceiver, CameraEnhancer } from "dynamsoft-capture-vision-bundle";
 
 // Get a 30-day trial license at https://www.dynamsoft.com/customer/license/trialLicense
 // (must include both the MRZ Scanner and the Barcode Reader products).
-const DYNAMSOFT_LICENSE = "YOUR_LICENSE_KEY_HERE";
+const DYNAMSOFT_LICENSE = "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=";
 
 export interface PassportScanResult {
 	kind: "mrz";
@@ -83,15 +83,20 @@ const SCAN_HINT = "Point at the MRZ or PDF417 barcode";
  * so barcode hits are caught by a receiver on the scanner's internal router
  * and whichever channel produces a result first wins.
  * Returns null when the scan was cancelled.
+ *
+ * onCameraReady receives the CameraEnhancer once the camera is live, so the
+ * caller can mount its own camera picker (see CameraPicker).
  */
-export async function scanDocument(): Promise<DocumentScanResult> {
+export async function scanDocument(
+	onCameraReady?: (cameraEnhancer: CameraEnhancer) => void,
+): Promise<DocumentScanResult> {
 	const mrzScanner = new MRZScanner({
 		license: DYNAMSOFT_LICENSE,
-		templateFilePath: "/mrz-pdf417.template.json",
+		templateFilePath: "mrz-pdf417.template.json",
 		// Engine files are copied into public/ by vite.config.ts (self-hosted).
 		engineResourcePaths: {
-			dcvBundle: "/dynamsoft-capture-vision-bundle/dist",
-			dcvData: "/dynamsoft-capture-vision-data",
+			dcvBundle: "dynamsoft-capture-vision-bundle/dist",
+			dcvData: "dynamsoft-capture-vision-data",
 		},
 		returnDocumentImage: true,
 		returnPortraitImage: true,
@@ -116,6 +121,10 @@ export async function scanDocument(): Promise<DocumentScanResult> {
 		// text lines (layer 3); the barcode highlight (layer 2) stays visible.
 		resources.cameraView?.getDrawingLayer(1)?.setVisible(false);
 		resources.cameraView?.getDrawingLayer(3)?.setVisible(false);
+
+		if (resources.cameraEnhancer) {
+			onCameraReady?.(resources.cameraEnhancer);
+		}
 
 		const barcodeFound = new Promise<ColombianIdScanResult>((resolve) => {
 			const receiver = new CapturedResultReceiver();

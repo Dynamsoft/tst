@@ -1,7 +1,9 @@
 import { useState } from "react";
+import type { CameraEnhancer } from "dynamsoft-capture-vision-bundle";
 import { scanDocument, PassportScanResult, ColombianIdScanResult } from "./scanners";
 import MrzResultPage from "./components/MrzResultPage";
 import BarcodeResultPage from "./components/BarcodeResultPage";
+import CameraPicker from "./components/CameraPicker";
 import "./App.css";
 
 type View = "landing" | "scanning" | "mrz-result" | "barcode-result";
@@ -10,6 +12,7 @@ function App() {
 	const [view, setView] = useState<View>("landing");
 	const [passport, setPassport] = useState<PassportScanResult | null>(null);
 	const [colombianId, setColombianId] = useState<ColombianIdScanResult | null>(null);
+	const [cameraEnhancer, setCameraEnhancer] = useState<CameraEnhancer | null>(null);
 	const [error, setError] = useState("");
 
 	// returnTo: where to go when the scan is cancelled
@@ -17,7 +20,7 @@ function App() {
 		setError("");
 		setView("scanning");
 		try {
-			const result = await scanDocument();
+			const result = await scanDocument(setCameraEnhancer);
 			if (result?.kind === "mrz") {
 				setPassport(result);
 				setView("mrz-result");
@@ -30,6 +33,8 @@ function App() {
 		} catch (err) {
 			setError(err instanceof Error ? err.message : String(err));
 			setView(returnTo);
+		} finally {
+			setCameraEnhancer(null);
 		}
 	};
 
@@ -62,7 +67,12 @@ function App() {
 				</div>
 			)}
 
-			{view === "scanning" && <p className="scanning-hint">Scanning...</p>}
+			{view === "scanning" && (
+				<>
+					<p className="scanning-hint">Scanning...</p>
+					{cameraEnhancer && <CameraPicker cameraEnhancer={cameraEnhancer} />}
+				</>
+			)}
 
 			{view === "mrz-result" && passport && (
 				<MrzResultPage

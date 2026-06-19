@@ -22,6 +22,7 @@ for (const pkg of ["dynamsoft-capture-vision-bundle", "dynamsoft-capture-vision-
 }
 
 export default defineConfig({
+	base: "./",
 	// HTTPS so the camera also works when testing from another device
 	plugins: [basicSsl(), react()],
 	server: {

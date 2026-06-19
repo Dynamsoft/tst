@@ -1,5 +1,4 @@
 node_modules
-dist
 
 # engine packages copied into public/ by vite.config.ts
 public/dynamsoft-capture-vision-bundle
