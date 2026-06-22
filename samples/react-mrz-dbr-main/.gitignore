@@ -1,0 +1,5 @@
+node_modules
+
+# engine packages copied into public/ by vite.config.ts
+public/dynamsoft-capture-vision-bundle
+public/dynamsoft-capture-vision-data

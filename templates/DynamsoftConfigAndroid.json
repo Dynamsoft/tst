@@ -1,0 +1,99 @@
+{
+  "BarcodeFormatSpecificationOptions" : [
+    {
+      "Name":"MIN_DISTANCE_TO_IMAGE_BORDERS",
+      "BarcodeZoneMinDistanceToImageBorders": 50,
+      "MinQuietZoneWidth" :  10
+    }
+  ],
+  "BarcodeReaderTaskSettingOptions": [
+    {
+      "Name": "task_read_barcodes",
+      "BarcodeFormatSpecificationNameArray": ["MIN_DISTANCE_TO_IMAGE_BORDERS"],
+      "SectionArray": [
+        {
+          "ImageParameterName": "ip_read_barcodes",
+          "Section": "ST_REGION_PREDETECTION",
+          "StageArray": [
+            {
+              "Stage": "SST_PREDETECT_REGIONS"
+            }
+          ]
+        },
+        {
+          "ImageParameterName": "ip_read_barcodes",
+          "Section": "ST_BARCODE_LOCALIZATION",
+          "StageArray": [
+            {
+              "LocalizationModes": [
+                {
+                  "Mode": "LM_CONNECTED_BLOCKS"
+                },
+                {
+                  "Mode": "LM_LINES"
+                }
+              ],
+              "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES"
+            }
+          ]
+        },
+        {
+          "ImageParameterName": "ip_read_barcodes",
+          "Section": "ST_BARCODE_DECODING",
+          "StageArray": [
+            {
+              "DeblurModes": [
+                {
+                  "Mode": "DM_BASED_ON_LOC_BIN"
+                },
+                {
+                  "Mode": "DM_THRESHOLD_BINARIZATION"
+                },
+                {
+                  "Mode": "DM_DEEP_ANALYSIS"
+                }
+              ],
+              "Stage": "SST_DECODE_BARCODES"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "CaptureVisionTemplates": [
+    {
+      "ImageROIProcessingNameArray": [
+        "roi_read_barcodes"
+      ],
+      "MaxParallelTasks": 0,
+      "Name": "ReadBarcodes_Default",
+      "Timeout": 200
+    }
+  ],
+  "ImageParameterOptions": [
+    {
+      "ApplicableStages": [
+        {
+          "BinarizationModes": [
+            {
+              "BlockSizeX": 39,
+              "BlockSizeY": 39,
+              "EnableFillBinaryVacancy": 0,
+              "Mode": "BM_LOCAL_BLOCK"
+            }
+          ],
+          "Stage": "SST_BINARIZE_IMAGE"
+        }
+      ],
+      "Name": "ip_read_barcodes"
+    }
+  ],
+  "TargetROIDefOptions": [
+    {
+      "Name": "roi_read_barcodes",
+      "TaskSettingNameArray": [
+        "task_read_barcodes"
+      ]
+    }
+  ]
+}
