@@ -71,6 +71,21 @@
       overflow: auto;
     }
 
+    .spinner-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      background: rgba(0,0,0,0.5); color: #fff; font-size: 16px; font-weight: 600; z-index: 8;
+    }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
   </style>
 </head>
 
@@ -79,8 +94,8 @@
   <div class="focus-controls">
     <span id="focus-status" style="font-size:13px;color:#999;">Checking focusDistance support...</span>
     <button id="btn-center" onclick="triggerFocusCenter()" disabled>Focus Center</button>
-    <button id="btn-singleframe" onclick="toggleSingleFrameMode()">Single-Frame Mode</button>
-    <button id="btn-capabilities" onclick="downloadCapabilities()">Download Camera Capabilities</button>
+    <button id="btn-singleframe" onclick="toggleSingleFrameMode()" disabled>Single-Frame Mode</button>
+    <button id="btn-capabilities" onclick="downloadCapabilities()" disabled>Download Camera Capabilities</button>
   </div>
   <!-- This div will host the barcode scanner's camera view -->
   <div class="barcode-scanner-view"></div>
@@ -105,16 +120,22 @@
       try {
         await cvRouter.stopCapturing();
         await cameraEnhancer.close();
+        const btnCaps = document.getElementById("btn-capabilities");
+        const spinner = document.querySelector(".spinner-overlay");
         if (!inSingleFrameMode) {
           cameraEnhancer.singleFrameMode = "image";
           inSingleFrameMode = true;
           btn.textContent = "Back to Camera";
           btn.classList.add("active");
+          btnCaps.disabled = true;
+          spinner.style.display = "";
         } else {
           cameraEnhancer.singleFrameMode = "disabled";
           inSingleFrameMode = false;
           btn.textContent = "Single-Frame Mode";
           btn.classList.remove("active");
+          btnCaps.disabled = false;
+          spinner.style.display = "none";
         }
         await cameraEnhancer.open();
         await cvRouter.startCapturing("ReadBarcodes_SpeedFirst");
@@ -179,6 +200,10 @@
         const resultReceiver = new Dynamsoft.CVR.CapturedResultReceiver();
         const resultView = document.querySelector(".result-view");
         resultReceiver.onDecodedBarcodesReceived = (result) => {
+          if (inSingleFrameMode) {
+            const spinner = document.querySelector(".spinner-overlay");
+            if (spinner) spinner.style.display = "none";
+          }
           resultView.innerHTML = "";
           for (let item of result.barcodeResultItems) {
             const div = document.createElement("div");
@@ -198,14 +223,26 @@
         settings.BarcodeReaderTaskSettingOptions[0].BarcodeFormatIds = ["BF_PDF417"];
         await cvRouter.initSettings(settings);
 
-        document.querySelector(".barcode-scanner-view").append(cameraView.getUIElement());
+        const spinner = document.createElement("div");
+        spinner.className = "spinner-overlay";
+        spinner.innerHTML = '<div class="spinner"></div><div>Decoding...</div>';
+        spinner.style.display = "none";
+
+        const cameraContainer = document.querySelector(".barcode-scanner-view");
+        cameraContainer.style.position = "relative";
+        cameraContainer.append(cameraView.getUIElement(), spinner);
         await cameraEnhancer.open();
         cameraView.setScanLaserVisible(true);
 
         // Check if the current camera+browser supports focusDistance
         const statusEl = document.getElementById("focus-status");
         const btnCenter = document.getElementById("btn-center");
+        const btnCaps = document.getElementById("btn-capabilities");
         const videoTrack = cameraEnhancer.getVideoEl()?.srcObject?.getVideoTracks()?.[0];
+        if (videoTrack) {
+          btnCaps.disabled = false;
+          document.getElementById("btn-singleframe").disabled = false;
+        }
         if (videoTrack?.getCapabilities) {
           const caps = videoTrack.getCapabilities();
           if (caps.focusDistance) {
