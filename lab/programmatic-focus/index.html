@@ -61,7 +61,7 @@
     /* Container where the barcode scanner will be rendered */
     .barcode-scanner-view {
       width: 100%;
-      height: calc(100% - 280px);
+      height: calc(100% - 230px);
     }
 
     .result-view {
@@ -71,33 +71,15 @@
       overflow: auto;
     }
 
-    .browser-notice {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffc107;
-      padding: 6px 12px;
-      text-align: center;
-      font-size: 13px;
-      display: none;
-    }
   </style>
 </head>
 
 <body>
   <h1 class="barcode-scanner-title">Programmatic Focus</h1>
-  <!-- Browser compatibility notice for setFocus() -->
-  <div class="browser-notice" id="browser-notice">
-    Note: setFocus() only works with Chromium-based browsers (Chrome, Edge) on Windows or Android.
-    Safari, Firefox, and all iOS browsers are not supported.
-  </div>
   <div class="focus-controls">
-    <button id="btn-continuous" class="active" onclick="setFocusMode('continuous')">Continuous</button>
-    <button id="btn-center" onclick="setFocusMode('center')">Focus Center</button>
-    <button id="btn-manual" onclick="setFocusMode('manual')">Manual (distance)</button>
-    <label id="distance-label" style="display:none;">
-      Distance: <input id="distance-input" type="range" min="0" max="1000" value="200" style="vertical-align:middle;" />
-      <span id="distance-value">200</span>
-    </label>
+    <span id="focus-status" style="font-size:13px;color:#999;">Checking focusDistance support...</span>
+    <button id="btn-center" onclick="triggerFocusCenter()" disabled>Focus Center</button>
+    <button id="btn-capabilities" onclick="downloadCapabilities()">Download Camera Capabilities</button>
   </div>
   <!-- This div will host the barcode scanner's camera view -->
   <div class="barcode-scanner-view"></div>
@@ -114,60 +96,50 @@
 
     let cameraEnhancer;
 
-    // Show browser compatibility notice for non-Chromium browsers
-    const isChromium = !!window.chrome;
-    if (!isChromium) {
-      document.getElementById("browser-notice").style.display = "block";
+    async function triggerFocusCenter() {
+      if (!cameraEnhancer) return;
+      try {
+        await cameraEnhancer.setFocus({
+          mode: "manual",
+          area: {
+            centerPoint: { x: "50%", y: "50%" },
+            width: "50%",
+            height: "50%"
+          }
+        });
+      } catch (ex) {
+        console.warn("setFocus failed:", ex.message || ex);
+      }
     }
 
-    /**
-     * setFocus() uses the browser's MediaStream Image Capture API to control camera focus.
-     * It only works with Chromium-based browsers (Chrome, Edge) on Windows or Android.
-     * Safari, Firefox, and all iOS browsers (which use WebKit) are not supported.
-     */
-    async function setFocusMode(mode) {
+    async function downloadCapabilities() {
       if (!cameraEnhancer) return;
-
-      // Update active button state
-      document.querySelectorAll(".focus-controls button").forEach(btn => btn.classList.remove("active"));
-      document.getElementById("distance-label").style.display = "none";
-
       try {
-        if (mode === "continuous") {
-          document.getElementById("btn-continuous").classList.add("active");
-          await cameraEnhancer.setFocus({ mode: "continuous" });
-        } else if (mode === "center") {
-          document.getElementById("btn-center").classList.add("active");
-          // Focus on the center 50% area — the SDK adjusts focus distance based on blurriness
-          await cameraEnhancer.setFocus({
-            mode: "manual",
-            area: {
-              centerPoint: { x: "50%", y: "50%" },
-              width: "50%",
-              height: "50%"
-            }
-          });
-        } else if (mode === "manual") {
-          document.getElementById("btn-manual").classList.add("active");
-          document.getElementById("distance-label").style.display = "inline";
-          const distance = parseInt(document.getElementById("distance-input").value);
-          await cameraEnhancer.setFocus({ mode: "manual", distance });
+        const videoTrack = cameraEnhancer.getVideoEl()?.srcObject?.getVideoTracks()?.[0];
+        if (!videoTrack) {
+          alert("No active video track found.");
+          return;
         }
+        const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
+        const settings = videoTrack.getSettings ? videoTrack.getSettings() : {};
+        const data = {
+          label: videoTrack.label,
+          capabilities,
+          currentSettings: settings,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "camera-capabilities.json";
+        a.click();
+        URL.revokeObjectURL(url);
       } catch (ex) {
-        console.warn("setFocus failed:", ex.message || ex);
+        alert("Failed to collect capabilities: " + (ex.message || ex));
       }
     }
-
-    // Update focus when the distance slider changes
-    document.getElementById("distance-input").addEventListener("input", async (e) => {
-      document.getElementById("distance-value").textContent = e.target.value;
-      if (!cameraEnhancer) return;
-      try {
-        await cameraEnhancer.setFocus({ mode: "manual", distance: parseInt(e.target.value) });
-      } catch (ex) {
-        console.warn("setFocus failed:", ex.message || ex);
-      }
-    });
 
     (async () => {
       try {
@@ -202,6 +174,26 @@
         document.querySelector(".barcode-scanner-view").append(cameraView.getUIElement());
         await cameraEnhancer.open();
         cameraView.setScanLaserVisible(true);
+
+        // Check if the current camera+browser supports focusDistance
+        const statusEl = document.getElementById("focus-status");
+        const btnCenter = document.getElementById("btn-center");
+        const videoTrack = cameraEnhancer.getVideoEl()?.srcObject?.getVideoTracks()?.[0];
+        if (videoTrack?.getCapabilities) {
+          const caps = videoTrack.getCapabilities();
+          if (caps.focusDistance) {
+            statusEl.textContent = "focusDistance supported (" + caps.focusDistance.min + "–" + caps.focusDistance.max + ")";
+            statusEl.style.color = "#28a745";
+            btnCenter.disabled = false;
+          } else {
+            statusEl.textContent = "focusDistance not supported by this camera";
+            statusEl.style.color = "#dc3545";
+          }
+        } else {
+          statusEl.textContent = "getCapabilities() not available in this browser";
+          statusEl.style.color = "#dc3545";
+        }
+
         await cvRouter.startCapturing("ReadBarcodes_SpeedFirst");
       } catch (ex) {
         alert(ex.message || ex);
