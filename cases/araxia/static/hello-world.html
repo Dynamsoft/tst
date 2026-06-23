@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Dynamsoft MRZ Scanner - Hello World</title>
+		<script src="https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@4.0.0/dist/mrz-scanner.bundle.js"></script>
+	</head>
+	<body>
+		<h1>Dynamsoft MRZ Scanner</h1>
+		<div id="results"></div>
+
+		<script type="module">
+			const results = document.querySelector("#results");
+
+			const mrzscanner = new Dynamsoft.MRZScanner({
+				license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+			});
+
+			const result = await mrzscanner.launch();
+			if (!result?.data) {
+				results.textContent = "No MRZ scanned. Please try again.";
+			} else {
+				const mrzSide = result.getDocumentImage(Dynamsoft.EnumDocumentSide.MRZ);
+				const portraitSide = result.getDocumentImage(Dynamsoft.EnumDocumentSide.Opposite);
+				const portrait = result.getPortraitImage();
+				if (portraitSide?.toCanvas) results.appendChild(portraitSide.toCanvas());
+				if (mrzSide?.toCanvas) results.appendChild(mrzSide.toCanvas());
+				if (portrait?.toCanvas) results.appendChild(portrait.toCanvas());
+
+				const pre = document.createElement("pre");
+				pre.textContent = JSON.stringify(result.data, null, 2);
+				results.appendChild(pre);
+			}
+		</script>
+	</body>
+</html>

@@ -1,56 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MRZ Scanner Test</title>
     <script src="dist/mrz-scanner.bundle.js"></script>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        button { font-size: 1.1rem; padding: 0.75rem 2rem; cursor: pointer; }
-        pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; margin-top: 1rem; }
-        canvas { max-width: 100%; margin-top: 1rem; border: 1px solid #ccc; }
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      button {
+        font-size: 1.1rem;
+        padding: 0.75rem 2rem;
+        cursor: pointer;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 1rem;
+        overflow-x: auto;
+        margin-top: 1rem;
+      }
+      canvas {
+        max-width: 100%;
+        margin-top: 1rem;
+        border: 1px solid #ccc;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>MRZ Scanner — Client Test</h1>
     <p>Tests the guided capture messages: "Move your ID to fit the frame", "Move closer", "Detecting document quality"</p>
-    <br>
+    <br />
     <button id="scanBtn">Launch Scanner</button>
     <div id="results"></div>
 
     <script type="module">
-        document.getElementById("scanBtn").addEventListener("click", async () => {
-            const results = document.getElementById("results");
-            results.innerHTML = "<p>Launching scanner...</p>";
+      document.getElementById("scanBtn").addEventListener("click", async () => {
+        const results = document.getElementById("results");
+        results.innerHTML = "<p>Launching scanner...</p>";
 
-            const mrzScanner = new Dynamsoft.MRZScanner({
-                license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
-                scannerViewConfig: {
-                    messagesConfig: {
-                        positionDocument: "Move your ID to fit the frame",
-                        moveCloser: "Move closer to fit the frame",
-                        detectingQuality: "Detecting document quality. Please hold steady",
-                        scanSuccess: "Document captured ✓",
-                    },
-                },
-            });
-
-            const result = await mrzScanner.launch();
-            results.innerHTML = "";
-
-            if (!result?.data) {
-                results.innerHTML = "<p>No MRZ scanned.</p>";
-                return;
-            }
-
-            const docImg = result.getDocumentImage(Dynamsoft.EnumDocumentSide.MRZ);
-            if (docImg?.toCanvas) results.appendChild(docImg.toCanvas());
-
-            const pre = document.createElement("pre");
-            pre.textContent = JSON.stringify(result.data, null, 2);
-            results.appendChild(pre);
+        const mrzScanner = new Dynamsoft.MRZScanner({
+          license:
+            "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+          scannerViewConfig: {
+            messagesConfig: {
+              positionDocument: "Move your ID to fit the frame",
+              moveCloser: "Move closer to fit the frame",
+              detectingQuality: "Detecting document quality. Please hold steady",
+              scanSuccess: "Document captured ✓",
+            },
+          },
         });
+
+        const result = await mrzScanner.launch();
+        results.innerHTML = "";
+
+        if (!result?.data) {
+          results.innerHTML = "<p>No MRZ scanned.</p>";
+          return;
+        }
+
+        const docImg = result.getDocumentImage(Dynamsoft.EnumDocumentSide.MRZ);
+        if (docImg?.toCanvas) results.appendChild(docImg.toCanvas());
+
+        const pre = document.createElement("pre");
+        pre.textContent = JSON.stringify(result.data, null, 2);
+        results.appendChild(pre);
+      });
     </script>
-</body>
+  </body>
 </html>
