@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MRZ Scanner Test</title>
-    <script src="dist/mrz-scanner.bundle.js"></script>
+    <!-- <script src="dist/mrz-scanner.bundle.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@4.0.0/dist/mrz-scanner.bundle.js"></script>
     <style>
       body {
         font-family: system-ui, sans-serif;
@@ -65,6 +66,14 @@
 
         const docImg = result.getDocumentImage(Dynamsoft.EnumDocumentSide.MRZ);
         if (docImg?.toCanvas) results.appendChild(docImg.toCanvas());
+
+        const portraitImg = result.getPortraitImage();
+        if (portraitImg?.toCanvas) {
+          const label = document.createElement("h3");
+          label.textContent = "Portrait";
+          results.appendChild(label);
+          results.appendChild(portraitImg.toCanvas());
+        }
 
         const pre = document.createElement("pre");
         pre.textContent = JSON.stringify(result.data, null, 2);
