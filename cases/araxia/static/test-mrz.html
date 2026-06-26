@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MRZ Scanner Test</title>
-    <!-- <script src="dist/mrz-scanner.bundle.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@4.0.0/dist/mrz-scanner.bundle.js"></script>
+    <script src="dist/mrz-scanner.bundle.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@4.0.0/dist/mrz-scanner.bundle.js"></script> -->
     <style>
       body {
         font-family: system-ui, sans-serif;
@@ -48,10 +48,13 @@
             "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
           scannerViewConfig: {
             messagesConfig: {
-              positionDocument: "Move your ID to fit the frame",
-              moveCloser: "Move closer to fit the frame",
-              detectingQuality: "Detecting document quality. Please hold steady",
+              positionMRZ: "Move your ID to fit the frame",
+              holdSteady: "Detecting document quality. Please hold steady",
               scanSuccess: "Document captured ✓",
+              moveCloser: "Move closer to fit the frame",
+              moveFurther: "Move further away from the document",
+              alignDocument: "Align your document within the frame",
+              holdFlat: "Hold your document flat",
             },
           },
         });

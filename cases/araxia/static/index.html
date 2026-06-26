@@ -55,6 +55,8 @@
         .btn-primary:hover { background: #1d4ed8; }
         .btn-secondary { background: #e5e7eb; color: #374151; margin-left: 0.5rem; }
         .btn-secondary:hover { background: #d1d5db; }
+        .btn-warning { background: #f59e0b; color: #fff; }
+        .btn-warning:hover { background: #d97706; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Result screen */
@@ -84,6 +86,7 @@
         }
         .status-success { background: #dcfce7; color: #166534; }
         .status-error { background: #fee2e2; color: #991b1b; }
+        .status-warning { background: #fef3c7; color: #92400e; }
         .status-processing { background: #dbeafe; color: #1e40af; }
 
         .image-section {
@@ -137,7 +140,6 @@
             font-weight: 500;
             word-break: break-all;
         }
-        .field-value.invalid { color: #dc2626; }
 
         .mrz-text {
             grid-column: 1 / -1;
@@ -171,7 +173,25 @@
             text-align: center;
         }
 
-        /* Section divider */
+        .poor-quality-card {
+            background: #fef3c7;
+            border: 1px solid #fde047;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .poor-quality-card h3 {
+            color: #92400e;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        .poor-quality-card p {
+            color: #78350f;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
         .section-label {
             font-size: 0.9rem;
             font-weight: 600;
@@ -180,27 +200,6 @@
             padding-bottom: 0.35rem;
             border-bottom: 2px solid #e5e7eb;
         }
-
-        /* Cross-verification */
-        .verification-card {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 0.75rem;
-        }
-        .verification-card.match { background: #dcfce7; border: 1px solid #86efac; }
-        .verification-card.mismatch { background: #fef9c3; border: 1px solid #fde047; }
-        .verification-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-        }
-        .verification-card.match .verification-title { color: #166534; }
-        .verification-card.mismatch .verification-title { color: #854d0e; }
-        .mismatch-list { margin: 0; padding-left: 1.25rem; font-size: 0.85rem; }
-        .mismatch-list li { margin-bottom: 0.25rem; }
-        .mismatch-field { font-weight: 600; }
-        .mismatch-client { color: #6b7280; }
-        .mismatch-server { color: #854d0e; }
 
         /* Activity log — floating top bar */
         .activity-log-wrapper {
@@ -264,14 +263,14 @@
 
     <div class="app-header">
         <h1>Travel Document Verification</h1>
-        <p>Client-side ID Capture + Server-side MRZ Reading</p>
+        <p>Guided ID Capture + Server-side MRZ Verification</p>
     </div>
 
     <div class="container">
         <!-- Start Screen -->
         <div id="start-screen" class="start-card">
             <h2>Scan a Travel Document</h2>
-            <p>Position your passport or visa in front of the camera.<br>The scanner will automatically detect and capture the document.</p>
+            <p>Position your passport, visa, or ID card in front of the camera.<br>The scanner will guide you to capture a quality image.</p>
             <div>
                 <button id="btn-scan" class="btn btn-primary" onclick="startScan()">Start Camera Scan</button>
                 <button id="btn-upload" class="btn btn-secondary" onclick="startUpload()">Upload Image</button>
@@ -288,23 +287,20 @@
 
             <div id="image-section" class="image-section"></div>
 
-            <!-- Client-side MRZ (quality indicator) -->
-            <div id="client-result-section" style="display:none">
-                <div class="section-label">Client-side MRZ (Quality Check)</div>
-                <div id="client-fields" class="fields-grid"></div>
-            </div>
-
-            <!-- Server-side MRZ (authoritative) -->
+            <!-- Server-side MRZ result (the only result shown to the user) -->
             <div id="server-result-section" style="display:none">
-                <div class="section-label">Server-side MRZ (Verified Result)</div>
+                <div class="section-label">Document Verification Result</div>
                 <div id="server-status"></div>
                 <div id="server-fields" class="fields-grid"></div>
             </div>
 
-            <!-- Cross-verification -->
-            <div id="cross-verification-section" style="display:none">
-                <div class="section-label">Cross-Verification</div>
-                <div id="cross-verification"></div>
+            <!-- Poor quality card (shown when server MRZ fails) -->
+            <div id="poor-quality-section" style="display:none">
+                <div class="poor-quality-card">
+                    <h3>Image Quality: Poor</h3>
+                    <p>The server could not read the document. Please retake with better lighting and stability.</p>
+                    <button class="btn btn-warning" onclick="startScan()">Retake Photo</button>
+                </div>
             </div>
 
             <div class="actions">
@@ -345,7 +341,8 @@
             document.getElementById("activity-log").innerHTML = "";
         }
 
-        const CLIENT_MRZ_LABELS = {
+        // Labels for server-side MRZ fields (only these are shown to the user)
+        const SERVER_MRZ_LABELS = {
             documentType: "Document Type",
             documentNumber: "Document Number",
             firstName: "Given Name(s)",
@@ -417,80 +414,6 @@
         }
 
         // ---------------------------------------------------------------
-        // Cross-verify client vs server MRZ results
-        // ---------------------------------------------------------------
-        const VERIFY_FIELDS = {
-            documentNumber: "Document Number",
-            lastName: "Surname",
-            firstName: "Given Name(s)",
-            nationality: "Nationality",
-            issuingState: "Issuing State",
-            sex: "Sex",
-            dateOfBirth: "Date of Birth",
-            dateOfExpiry: "Date of Expiry",
-        };
-
-        function normalizeDateToYYMMDD(value) {
-            if (!value) return "";
-            // Server returns "YYMMDD" string; client returns {year, month, day} object
-            if (typeof value === "object" && value.year != null) {
-                const yy = String(value.year % 100).padStart(2, "0");
-                const mm = String(value.month).padStart(2, "0");
-                const dd = String(value.day).padStart(2, "0");
-                return yy + mm + dd;
-            }
-            // Already a string — strip any dashes/spaces and take last 6 chars
-            const s = String(value).replace(/[-\s]/g, "");
-            return s.length >= 6 ? s.slice(-6) : s;
-        }
-
-        function normalizeValue(key, value) {
-            if (value == null) return "";
-            if (key === "dateOfBirth" || key === "dateOfExpiry") {
-                return normalizeDateToYYMMDD(value);
-            }
-            return String(value).trim().toUpperCase();
-        }
-
-        function crossVerify(clientData, serverData) {
-            const mismatches = [];
-            for (const [key, label] of Object.entries(VERIFY_FIELDS)) {
-                const clientVal = normalizeValue(key, clientData[key]);
-                const serverVal = normalizeValue(key, serverData[key]);
-                if (clientVal && serverVal && clientVal !== serverVal) {
-                    mismatches.push({ label, clientVal, serverVal });
-                }
-            }
-            return mismatches;
-        }
-
-        function renderCrossVerification(mismatches) {
-            const section = document.getElementById("cross-verification-section");
-            const container = document.getElementById("cross-verification");
-            section.style.display = "block";
-
-            if (mismatches.length === 0) {
-                container.innerHTML =
-                    '<div class="verification-card match">' +
-                    '<div class="verification-title">All fields match between client and server</div>' +
-                    'Client-side and server-side MRZ reads are consistent.' +
-                    '</div>';
-            } else {
-                let html =
-                    '<div class="verification-card mismatch">' +
-                    `<div class="verification-title">${mismatches.length} field(s) differ between client and server</div>` +
-                    '<ul class="mismatch-list">';
-                for (const m of mismatches) {
-                    html += `<li><span class="mismatch-field">${esc(m.label)}:</span> ` +
-                        `<span class="mismatch-client">client "${esc(m.clientVal)}"</span> vs ` +
-                        `<span class="mismatch-server">server "${esc(m.serverVal)}"</span></li>`;
-                }
-                html += '</ul></div>';
-                container.innerHTML = html;
-            }
-        }
-
-        // ---------------------------------------------------------------
         // Convert DSImageData to Blob for upload
         // ---------------------------------------------------------------
         async function imageDataToBlob(dsImageData) {
@@ -522,25 +445,28 @@
         }
 
         // ---------------------------------------------------------------
-        // Main scan flow
+        // Main result handler
         // ---------------------------------------------------------------
         async function handleResult(result) {
             showResult();
-            log("Processing scan result...", "info");
+            log("Processing capture result...", "info");
+
+            // Reset sections
+            document.getElementById("server-result-section").style.display = "none";
+            document.getElementById("poor-quality-section").style.display = "none";
 
             if (!result || !result.data) {
-                setStatus("No MRZ Detected", "error");
-                log("No MRZ detected in image", "err");
+                setStatus("Capture Failed", "error");
+                log("No document captured", "err");
                 document.getElementById("image-section").innerHTML = "";
-                document.getElementById("client-result-section").style.display = "none";
-                document.getElementById("server-result-section").style.display = "none";
-                document.getElementById("cross-verification-section").style.display = "none";
                 return;
             }
 
-            log("Client-side MRZ read complete", "ok");
+            // Client-side MRZ was used as a quality signal internally by the SDK.
+            // We do NOT display any client-side MRZ data to the end user.
+            log("Document captured with quality validation (client-side MRZ confirmed readability)", "ok");
 
-            // -- Images --
+            // -- Show captured document image --
             const imageSection = document.getElementById("image-section");
             imageSection.innerHTML = "";
 
@@ -556,37 +482,17 @@
                 imageSection.appendChild(box);
             }
 
-            const portraitImage = result.getPortraitImage();
-            if (portraitImage && portraitImage.toCanvas) {
-                const box = document.createElement("div");
-                box.className = "image-box";
-                box.style.maxWidth = "180px";
-                const h3 = document.createElement("h3");
-                h3.textContent = "Portrait";
-                const canvas = portraitImage.toCanvas();
-                box.appendChild(h3);
-                box.appendChild(canvas);
-                imageSection.appendChild(box);
-            }
-
-            // -- Client-side MRZ result (quality check) --
-            const clientSection = document.getElementById("client-result-section");
-            const clientFields = document.getElementById("client-fields");
-            clientSection.style.display = "block";
-            renderFields(clientFields, result.data, CLIENT_MRZ_LABELS);
-            log(`Client MRZ: ${result.data.documentType || "unknown type"} — ${result.data.firstName || ""} ${result.data.lastName || ""}`, "info");
-
-            // -- Send to server --
+            // -- Upload to server for authoritative MRZ extraction --
             const serverSection = document.getElementById("server-result-section");
             const serverStatus = document.getElementById("server-status");
             const serverFields = document.getElementById("server-fields");
             serverSection.style.display = "block";
             serverFields.innerHTML = "";
-            setStatus("Processing on server...", "processing");
-            serverStatus.innerHTML = '<span class="status-badge status-processing"><span class="spinner"></span>Sending to server for verification...</span>';
+            setStatus("Verifying...", "processing");
+            serverStatus.innerHTML = '<span class="status-badge status-processing"><span class="spinner"></span>Uploading for verification...</span>';
 
             try {
-                // Get the best image to send: prefer document image, fall back to original
+                // Prefer document image (cropped + deskewed), fall back to original
                 const imageToSend = documentImage
                     || result.getOriginalImage(Dynamsoft.EnumDocumentSide.MRZ);
 
@@ -595,32 +501,22 @@
                 }
 
                 const blob = await imageDataToBlob(imageToSend);
-                log(`Sending image to server (${(blob.size / 1024).toFixed(1)} KB)...`, "info");
+                log(`Uploading image to server (${(blob.size / 1024).toFixed(1)} KB)...`, "info");
                 const t0 = performance.now();
                 const serverResult = await sendToServer(blob);
-
                 const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
 
                 if (serverResult.success) {
-                    log(`Server response received in ${elapsed}s — MRZ read OK`, "ok");
-                    serverStatus.innerHTML = '<span class="status-badge status-success">MRZ successfully read on server</span>';
-                    renderFields(serverFields, serverResult.data, CLIENT_MRZ_LABELS);
-
-                    // Cross-verify client vs server
-                    log("Running cross-verification (client vs server)...", "info");
-                    const mismatches = crossVerify(result.data, serverResult.data);
-                    renderCrossVerification(mismatches);
-                    if (mismatches.length === 0) {
-                        log("Cross-verification passed — all fields match", "ok");
-                        setStatus("Verified", "success");
-                    } else {
-                        log(`Cross-verification: ${mismatches.length} field(s) differ`, "err");
-                        setStatus("Mismatch", "error");
-                    }
+                    log(`Server verified document in ${elapsed}s`, "ok");
+                    setStatus("Verified", "success");
+                    serverStatus.innerHTML = '<span class="status-badge status-success">Document verified successfully</span>';
+                    renderFields(serverFields, serverResult.data, SERVER_MRZ_LABELS);
                 } else {
-                    log(`Server response in ${elapsed}s — failed: ${serverResult.error}`, "err");
-                    setStatus("Server MRZ Failed", "error");
-                    serverStatus.innerHTML = `<div class="error-msg">${esc(serverResult.error)}</div>`;
+                    // Server couldn't read MRZ — show poor quality message
+                    log(`Server MRZ failed (${elapsed}s): ${serverResult.error}`, "err");
+                    setStatus("Poor Quality", "warning");
+                    serverSection.style.display = "none";
+                    document.getElementById("poor-quality-section").style.display = "block";
                 }
             } catch (err) {
                 log(`Server error: ${err.message}`, "err");
@@ -642,7 +538,7 @@
 
             try {
                 clearLog();
-                log("Initializing MRZ Scanner (camera mode)...", "info");
+                log("Initializing document scanner...", "info");
                 const mrzScanner = new Dynamsoft.MRZScanner({
                     license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjE2OTk4LU1qRTJPVGs0TFhkbFlpMVVjbWxoYkZCeWIybyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIxNjk5OCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJjaGVja0NvZGUiOjE2NzY3MDAxMjh9",
                     engineResourcePaths: {
@@ -651,12 +547,24 @@
                     },
                     returnOriginalImage: true,
                     returnDocumentImage: true,
-                    returnPortraitImage: true,
+                    returnPortraitImage: false, // No portrait scanning for this use case
+                    scannerViewConfig: {
+                        messagesConfig: {
+                            // Use "document" / "ID" instead of "MRZ" in user-facing messages
+                            positionDocument: "Move your ID to fit the frame",
+                            moveCloser: "Move closer to fit the frame",
+                            detectingQuality: "Detecting document quality. Please hold steady",
+                            scanSuccess: "Document captured \u2713",
+                            positionMRZ: "Move your ID to fit the frame",
+                        },
+                    },
                 });
-                log("Scanner initialized — opening camera...", "ok");
+                log("Scanner ready — opening camera...", "ok");
 
+                document.getElementById("activity-log-wrapper").style.zIndex = "1";
                 const result = await mrzScanner.launch();
-                log("Document captured from camera", "ok");
+                document.getElementById("activity-log-wrapper").style.zIndex = "";
+                log("Document captured", "ok");
                 console.log("Scan result:", result);
                 await handleResult(result);
             } catch (err) {
@@ -699,7 +607,7 @@
             try {
                 clearLog();
                 log(`File selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, "info");
-                log("Initializing MRZ Scanner (file mode)...", "info");
+                log("Initializing scanner (file mode)...", "info");
                 const mrzScanner = new Dynamsoft.MRZScanner({
                     license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjE2OTk4LU1qRTJPVGs0TFhkbFlpMVVjbWxoYkZCeWIybyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21kbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIxNjk5OCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NkbHMuZHluYW1zb2Z0b25saW5lLmNvbS8iLCJjaGVja0NvZGUiOjE2NzY3MDAxMjh9",
                     engineResourcePaths: {
@@ -708,12 +616,12 @@
                     },
                     returnOriginalImage: true,
                     returnDocumentImage: true,
-                    returnPortraitImage: true,
+                    returnPortraitImage: false,
                 });
                 log("Scanner initialized — processing file...", "ok");
 
                 const result = await mrzScanner.launch(file);
-                log("File processed — MRZ extraction complete", "ok");
+                log("File processed", "ok");
                 console.log("Upload result:", result);
                 await handleResult(result);
             } catch (err) {
