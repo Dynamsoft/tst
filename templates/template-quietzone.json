@@ -11,7 +11,7 @@
                 "BF_DOTCODE"
             ],
             "MirrorMode": "MM_BOTH",
-			"MinQuietZoneWidth": 5,
+			"MinQuietZoneWidth": 10,
             "Name": "bfs1"
         },
         {
