@@ -1,0 +1,36 @@
+{
+  "CaptureVisionTemplates": [
+    {
+      "Name": "ReadPDF417_SpeedFirst",
+      "ImageROIProcessingNameArray": ["ROI_PDF417"],
+      "Timeout": 1000
+    },
+    {
+      "Name": "ReadPDF417_ReadRateFirst",
+      "ImageROIProcessingNameArray": ["ROI_PDF417_Accuracy"],
+      "Timeout": 5000
+    }
+  ],
+  "TargetROIDefOptions": [
+    {
+      "Name": "ROI_PDF417",
+      "TaskSettingNameArray": ["Task_PDF417"]
+    },
+    {
+      "Name": "ROI_PDF417_Accuracy",
+      "TaskSettingNameArray": ["Task_PDF417_Accuracy"]
+    }
+  ],
+  "BarcodeReaderTaskSettingOptions": [
+    {
+      "Name": "Task_PDF417",
+      "BarcodeFormatIds": ["BF_PDF417"],
+      "ExpectedBarcodesCount": 0
+    },
+    {
+      "Name": "Task_PDF417_Accuracy",
+      "BarcodeFormatIds": ["BF_PDF417"],
+      "ExpectedBarcodesCount": 0
+    }
+  ]
+}

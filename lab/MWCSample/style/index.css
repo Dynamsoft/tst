@@ -1,0 +1,245 @@
+.mwc-container {
+    --ddv-primary: #000000;
+}
+
+.mwc-container .ddv-button-activated {
+    background-color: black !important;
+    color: #FE8E14;
+}
+
+.mwc-container .ddv-filter-list {
+    width: 100%;
+}
+
+.mwc-container .ddv-filter-list-header {
+    justify-content: flex-end;
+    padding: 0 20px;
+}
+
+.mwc-container .ddv-filter-list-header>div {
+    border-radius: 4px;
+    border: 1px solid var(--ddv-font-color);
+}
+
+.mwc-container .ddv-crop-box {
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.mwc-container .ddv-crop-box .ddv-crop-buttonGroup {
+    display: none;
+}
+
+.mwc-container .ddv-crop-box input:last-of-type {
+    margin-left: 50px;
+}
+
+.mwc-container .ddv-crop-box label {
+    margin-left: 5px;
+}
+
+.mwc-container .ddv-pull-down-selected {
+    color: #FE8E14;
+}
+
+.mwc-container .ddv-display-mode-box {
+    width: 194px;
+    height: 110px;
+    border-radius: 4px;
+}
+
+/* Header */
+.mwc-header {
+    height: 56px;
+    flex-shrink: 0;
+    justify-content: space-between;
+}
+
+.mwc-pagination {
+    background: #151414;
+    height: 40px;
+    min-width: 140px;
+    border-radius: 4px;
+}
+
+.mwc-pagination .ddv-button {
+    width: 40px;
+    height: 40px;
+}
+
+.mwc-pagination .ddv-first-page,
+.mwc-pagination .ddv-last-page {
+    display: none;
+}
+
+.mwc-pagination .icon-arrow-left {
+    margin-right: auto;
+    margin-left: 0px;
+    font-size: 22px;
+}
+
+.mwc-pagination .icon-arrow-right {
+    margin-left: auto;
+    margin-right: 0px;
+    font-size: 22px;
+}
+
+.mwc-result-view-button {
+    width: 54px;
+    height: 32px;
+    background: #FE8E14;
+    border-radius: 4px;
+    margin-right: 12px;
+}
+
+.mwc-result-view-button span {
+    font-size: 14px;
+}
+
+/* Edit Footer */
+.mwc-edit-footer {
+    height: 80px;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.mwc-separator-line {
+    height: 16px;
+    margin-bottom: 22px;
+}
+
+.mwc-edit-footer>.ddv-button {
+    flex-direction: column;
+    width: 52px;
+    height: 100%;
+}
+
+.mwc-edit-footer>.ddv-button>span {
+    font-size: 10px;
+    margin-top: 10px;
+}
+
+.mwc-edit-footer .ddv-button>.ddv-down-arrow {
+    display: none;
+}
+
+/* Result Footer */
+.mwc-result-footer {
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.mwc-result-footer>.ddv-button {
+    width: 120px;
+    height: 40px;
+    background: #FFFFFF;
+    border-radius: 4px;
+    color: #000000;
+}
+
+.mwc-result-footer>.ddv-button>span {
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.mwc-result-footer>.mwc-download {
+    background: #FE8E14;
+    color: white;
+}
+
+/* Adjust Bar */
+.mwc-adjust-bar {
+    flex-shrink: 0;
+    height: 80px;
+    background: #1A1A1B;
+}
+
+.mwc-adjust-bar>.ddv-button>span {
+    margin-left: 8px;
+}
+
+.mwc-retake-button {
+    width: 105px;
+}
+
+.mwc-detect-button {
+    width: 135px;
+}
+
+.mwc-full-image-button {
+    width: 105px;
+}
+
+/* Edit Header */
+.mwc-edit-header {
+    height: 56px;
+    flex-shrink: 0;
+    justify-content: space-between;
+}
+
+.mwc-edit-cancel {
+    width: 54px;
+    height: 32px;
+    border-radius: 4px;
+    margin-left: 12px;
+    font-size: 14px;
+    padding: 0;
+}
+
+.mwc-edit-apply {
+    width: 54px;
+    height: 32px;
+    background: #FE8E14;
+    border-radius: 4px;
+    margin-right: 12px;
+    font-size: 14px;
+}
+
+.mwc-edit-apply>span,
+.mwc-edit-cancel>span {
+    font-size: 14px;
+}
+
+/* DisplayMode Button */
+.mwc-display-mode-list {
+    position: absolute;
+    width: 194px;
+    height: 104px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    bottom: 90px;
+    left: 10px;
+    z-index: 16;
+    border-radius: 8px;
+    overflow: visible;
+    background: #1D1D1D;
+}
+
+.mwc-display-mode-list>.ddv-button {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 10px;
+    font-size: 24px;
+    height: 40px;
+}
+
+.mwc-display-mode-list>.ddv-button>span {
+    font-size: 12px;
+    margin-left: 10px;
+}
+
+.mwc-display-mode-list>.mwc-display-mode-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    background: transparent;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #000000;
+    left: 16px;
+    bottom: -6px;
+}

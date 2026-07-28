@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barcode Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11.4.2001/dist/dbr.bundle.js"></script>
+</head>
+<body>
+  <button id="scan">Scan Barcode</button>
+  <script>
+    document.getElementById("scan").onclick = () => {
+      new Dynamsoft.BarcodeScanner()
+        .launch()
+        .then((result) => alert(result.barcodeResults[0].text))
+        .catch(console.error);
+    };
+  </script>
+</body>
+</html>
