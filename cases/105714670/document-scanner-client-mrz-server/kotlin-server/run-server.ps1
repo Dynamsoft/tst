@@ -18,7 +18,7 @@ param(
     # to a specific machine — pass it here or via install-service.ps1 -CertHost.
     [string] $CertHost = $env:APP_CERT_HOST,
 
-    [string] $Java = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.8-hotspot\bin\java.exe",
+    [string] $Java = "C:\Program Files\Eclipse Adoptium\jdk-25.0.2.8-hotspot\bin\java.exe",
 
     [string] $Jar = "target\mds-mrz-kotlin-server-1.0.0.jar",
 
