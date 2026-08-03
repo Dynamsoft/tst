@@ -1,0 +1,139 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #5c6470;
+  --border: #dfe3e8;
+  --accent: #fe8e14;
+  --error: #c0392b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d;
+    --fg: #f2f4f7;
+    --muted: #9aa3af;
+    --border: #2c3038;
+    --error: #ff6b5a;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.app {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+h1 {
+  font-size: 1.35rem;
+  margin: 0 0 0.35rem;
+}
+
+.subtitle {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.scan-button {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: var(--accent);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.scan-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.panel {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.panel.error {
+  border-color: var(--error);
+}
+
+.panel.error p {
+  margin: 0 0 0.5rem;
+  color: var(--error);
+}
+
+.panel.error .hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.25rem;
+}
+
+.fields {
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.field {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.6rem;
+}
+
+.field:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.field dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.field dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+}
+
+.mrz-text {
+  margin: 1rem 0 0;
+  padding: 0.75rem;
+  background: rgba(127, 127, 127, 0.12);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+}

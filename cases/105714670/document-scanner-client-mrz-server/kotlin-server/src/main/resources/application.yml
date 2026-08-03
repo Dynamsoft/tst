@@ -1,0 +1,23 @@
+server:
+  # Bound on all interfaces, so the demo is reachable from another machine.
+  # Override with APP_PORT; keep the default in sync with Application.kt.
+  port: ${APP_PORT:8080}
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+    # key-store / key-store-password / key-alias are set at startup in Application.kt,
+    # after the self-signed dev certificate has been generated.
+
+spring:
+  application:
+    name: mrz-kotlin-server
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  mvc:
+    log-request-details: false
+
+logging:
+  level:
+    root: INFO

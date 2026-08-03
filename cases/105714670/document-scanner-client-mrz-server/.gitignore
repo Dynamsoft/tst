@@ -1,0 +1,24 @@
+# Node
+node_modules/
+
+# Claude Code local settings
+.claude/settings.local.json
+.claude/settings.local.json.tmp.*
+
+# Client build output. public/dynamsoft/ is ~61 MB of engine resources copied
+# out of node_modules by scripts/copy-resources.mjs — regenerate, never commit.
+web-client/dist/
+web-client/public/dynamsoft/
+
+# Maven
+kotlin-server/target/
+
+# Generated at runtime: self-signed dev certificate, its SAN marker,
+# temp upload directory, supervisor logs.
+kotlin-server/keystore.p12
+kotlin-server/keystore.p12.san
+kotlin-server/uploads/
+kotlin-server/logs/
+
+# Machine-specific certificate hosts, written by install-service.ps1
+kotlin-server/cert-hosts.txt
