@@ -43,6 +43,22 @@ export default function App() {
       // Self-hosted engine — see scripts/copy-resources.mjs. Required because
       // the page is served with COEP require-corp.
       engineResourcePaths: { rootDirectory: "/dynamsoft/" },
+      // Auto-capture: detect the document, auto-crop, and shoot the frame
+      // without a manual shutter tap. Enabling Auto-Crop implicitly enables
+      // Smart Capture and Bounds Detection.
+      scannerViewConfig: {
+        enableAutoCropMode: true,
+        enableSmartCaptureMode: true,
+        // Hide the subfooter mode toggles (Detect Borders, Smart Capture,
+        // Auto Crop) so the modes stay locked to the values above.
+        showSubfooter: false,
+      },
+      // Relabel the result-view "Done" button to reflect the next step.
+      resultViewConfig: {
+        toolbarButtonsConfig: {
+          done: { label: "Read MRZ" },
+        },
+      },
     });
 
     return () => {
