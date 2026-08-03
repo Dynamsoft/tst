@@ -32,6 +32,25 @@ that exposes customer details, including but not limited to:
 - Any file a customer shared privately (e.g. via a ticket or email) unless it has been
   explicitly cleared for public sample use and scrubbed of identifying information
 
+## Do not commit large or vendored resource files
+
+Keep the repo lean — do not commit large binaries or third-party resources that don't
+belong in version control, including but not limited to:
+
+- Installers and executables (e.g. `.exe`, `.msi`, `.dmg`, `.pkg`, `.deb`, `.rpm`)
+- Publicly available SDK/runtime downloads (bundles, engine binaries, `.wasm` blobs,
+  model files) that can instead be fetched via CDN, package manager, or a documented
+  download step
+- `node_modules/`, `venv`/`.venv`, and other package-manager-managed dependency
+  directories — commit the manifest/lockfile, not the installed packages
+- Build output and caches (`dist/`, `build/`, compiled artifacts) unless a specific
+  sample genuinely needs to ship a prebuilt bundle
+- Any other large binary blob that can be reproduced from a build step or fetched from
+  its official source instead of being checked in
+
+If a sample needs one of these, prefer referencing it via CDN/package manager, add a
+setup script/instructions to fetch it, or add it to `.gitignore` instead of committing it.
+
 ## Before committing or opening a PR
 
 - Review every changed/added file's contents (not just the diff summary) for the items
@@ -39,5 +58,7 @@ that exposes customer details, including but not limited to:
 - If a case directory (`cases/<id>` or `cases/<name>`) is based on a real customer
   engagement, keep it generic: strip identifying data, use placeholder credentials, and
   favor synthetic sample inputs over real captures.
+- Check `git status`/`git diff --stat` for unexpectedly large or vendored files before
+  staging — don't rely on `git add -A` without reviewing what it picked up.
 - When in doubt about whether something is sensitive, ask the user before committing
   rather than committing and asking forgiveness.
