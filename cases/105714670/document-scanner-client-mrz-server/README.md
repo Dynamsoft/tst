@@ -137,11 +137,19 @@ java -jar target\mds-mrz-kotlin-server-1.0.0.jar
 The server speaks HTTPS on purpose, using a self-signed certificate it generates
 on first start:
 
-- `getUserMedia` (the camera) only works in a **secure context**.
-- The Dynamsoft WASM engine needs `SharedArrayBuffer`, which needs
-  cross-origin isolation — the `Cross-Origin-Opener-Policy` and
-  `Cross-Origin-Embedder-Policy` headers set by `SecurityHeadersFilter.kt`. Those
-  only take effect over HTTPS.
+- `getUserMedia` (the camera) only works in a **secure context**. That is the
+  whole reason for HTTPS here, and it applies regardless of anything below.
+
+Cross-origin isolation is a **separate, optional** matter. The
+`Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers are
+currently commented out in both `SecurityHeadersFilter.kt` and
+`web-client/vite.config.ts`, so the engine runs its single-threaded WASM build.
+Uncomment them **in both places** to opt into `SharedArrayBuffer` and the
+multi-threaded build, which is faster on mobile. The tradeoff: COEP
+`require-corp` blocks every subresource that does not send a CORP header, CDN
+scripts included, which is why the engine is self-hosted under
+`web-client/public/dynamsoft/`. Enable them in only one place and dev and
+production quietly diverge.
 
 `http://localhost` is also a secure context, so a plain-HTTP dev server works on
 the same machine — but **not** from a phone or another computer. Hence HTTPS.
@@ -171,8 +179,9 @@ java -jar target/mds-mrz-kotlin-server-1.0.0.jar
 
 Nothing is generated in that case, and the file is never modified. Or terminate
 TLS at a reverse proxy (nginx, Caddy, IIS, a cloud load balancer) and let it
-forward to this server — just make sure the proxy still sends the COOP and COEP
-headers to the browser, or the WASM engine will not start.
+forward to this server. If you have enabled the cross-origin isolation headers,
+make sure the proxy forwards them rather than stripping them, or the engine will
+fall back to its single-threaded build.
 
 ## Testing from a phone or another machine
 
@@ -210,8 +219,8 @@ cd web-client && npm run dev     # http://localhost:5173, proxies /api to :8080
 ```
 
 Run the server too — the Vite dev server only serves the UI and forwards
-`/api/mrz` to it. Vite sends the same COOP/COEP headers as the server, so dev and
-production behave alike.
+`/api/mrz` to it. Its cross-origin isolation headers are commented out to match
+the server, so dev and production behave alike.
 
 ## API
 

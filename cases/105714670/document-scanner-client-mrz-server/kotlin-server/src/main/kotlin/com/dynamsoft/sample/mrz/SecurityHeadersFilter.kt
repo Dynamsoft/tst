@@ -7,8 +7,16 @@ import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 /**
- * Required headers for SharedArrayBuffer (used by the DCV WASM engine in the browser).
- * Adds cross-origin isolation headers to every response.
+ * Cross-origin isolation headers for the browser-side DCV WASM engine, currently
+ * DISABLED. web-client/vite.config.ts has the same pair commented out, so dev and
+ * production behave the same — keep them in step, or the engine picks a different
+ * WASM build in each and problems only surface after deployment.
+ *
+ * Uncomment to opt into `SharedArrayBuffer`, which lets the engine use its
+ * multi-threaded build: faster capture, most noticeably on mobile. The cost is
+ * that COEP `require-corp` blocks every subresource without a CORP header —
+ * CDN scripts included — which is why the engine is self-hosted under
+ * web-client/public/dynamsoft/.
  */
 @Component
 class SecurityHeadersFilter : OncePerRequestFilter() {
