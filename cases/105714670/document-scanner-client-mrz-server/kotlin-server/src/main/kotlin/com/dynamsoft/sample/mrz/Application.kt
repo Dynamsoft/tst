@@ -42,8 +42,8 @@ import kotlin.system.exitProcess
  * separated by `;`, are passed to initLicense verbatim.
  */
 private val LICENSE_KEY: String = System.getenv("DYNAMSOFT_LICENSE")
-    ?: "t0096+wAAAHIXZrtjWZ18BFvwSWcizIrQQZReTySwquc2e8N0+J1A7tsGXOhAHw+/HPdrNrElZaao6dCjd+m4RC0CFRw/QP4TvXVS3WxuuzLemjOJjP+Z/MTaopKTyQ7YTjKL;" +
-        "t0095+wAAACjW3YfRmVvi3rMkNcbSI3Ja/94W8BJGrjMHMcjsqiPvu9jMmGBGYOLkL5LPVeancrIrckXk3tDAhVdDpWSx11Nv6Qn25+TblfHWmCmo+J8pn9icQqunbt3wMpI="
+    ?: "t0124NQMAAKnOjvPaSysrrd3LLu8Mf81Lbx3AucMosi3ZIwwyamYC84W3mqFCwRQWKQuQ/rn7F8paxhu9m2Z6a2OM4zwEL4MuUozEJu5tvV5v5OWQ1goDZzWZ8gPTvmeWmN4zzXPu5pn+wWOm/MC075nNPG8wg/OqTmQFn1CksQ==;" +
+        "t0124NQMAAEnHjkcBM7Ni/vlIiEO8DDz/Mv6pF/435BIKKe/6ZiqFU1O5ulDfYYjp8O5PvieKsKnQIbNKnxJPQAZFzTRiuNzHIkVP7OJR5ul5xtocUtvGwFVFpjRg2v/MLabvTPMcq3mmO3jNlAZM+59ZzPMBMziv6kRmvXukvw=="
 
 /** Built React client. Produced by `npm run build` in ../web-client. */
 private val STATIC_DIR: Path =

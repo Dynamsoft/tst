@@ -32,9 +32,10 @@ class MrzService {
      * safe for concurrent capture calls. For real throughput, pool routers instead.
      */
     private val router = CaptureVisionRouter().apply {
-        // Increase timeout for slow environments
+        // Cap processing time per image so one hard image can't hold the
+        // shared router lock for long (default is 2 s).
         val settings = getSimplifiedSettings(MRZ_TEMPLATE)
-        settings.timeout = 30_000 // 30 seconds (default is 2 s)
+        settings.timeout = 5_000 // 5 seconds maximum
         updateSettings(MRZ_TEMPLATE, settings)
     }
 

@@ -1,4 +1,12 @@
 <#
+    OPTIONAL — REFERENCE ONLY. You do NOT need this script to run or test the
+    sample. To try the demo, just build and run the jar directly:
+        java -jar target\mds-mrz-kotlin-server-1.0.0.jar
+    This installer is included only as an example of how you *could* keep the
+    demo running unattended across crashes and reboots on a dedicated Windows
+    box. It is not part of the MRZ solution and can be ignored for evaluation
+    and testing.
+
     Registers (or removes) the "MDS-MRZ-Demo" scheduled task that keeps
     run-server.ps1 alive.
 

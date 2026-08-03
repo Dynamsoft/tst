@@ -1,4 +1,11 @@
 <#
+    OPTIONAL — REFERENCE ONLY. You do NOT need this script to run or test the
+    sample. To try the demo, just build and run the jar directly:
+        java -jar target\mds-mrz-kotlin-server-1.0.0.jar
+    This supervisor is included only as an example of how you *could* keep the
+    demo alive unattended on a dedicated Windows box. It is not part of the MRZ
+    solution and can be ignored (or deleted) for evaluation and testing.
+
     Supervisor for the MRZ demo server: restarts the jar whenever it exits, for
     any reason — killed, crashed, or OOM.
 
