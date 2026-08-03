@@ -8,7 +8,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 /**
  * Required headers for SharedArrayBuffer (used by the DCV WASM engine in the browser).
- * Equivalent to the Flask backend's `@app.after_request` hook.
+ * Adds cross-origin isolation headers to every response.
  */
 @Component
 class SecurityHeadersFilter : OncePerRequestFilter() {

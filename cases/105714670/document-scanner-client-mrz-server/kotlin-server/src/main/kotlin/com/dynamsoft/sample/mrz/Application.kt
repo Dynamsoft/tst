@@ -5,10 +5,6 @@
  * `POST /api/mrz`, backed by Dynamsoft Capture Vision Java Edition
  * (`com.dynamsoft:dcv`) using the `ReadPassportAndId` template.
  *
- * Unlike the sibling `mrz-scanner-client-and-server` project, the client here
- * performs NO MRZ recognition — it only captures and deskews the document.
- * All MRZ reading happens on this server.
- *
  * NOTE: Spring Boot is used here as a lightweight demo server only. It is NOT a
  * Dynamsoft SDK requirement. The only Dynamsoft dependency is `com.dynamsoft:dcv`.
  *
@@ -46,8 +42,8 @@ import kotlin.system.exitProcess
  * separated by `;`, are passed to initLicense verbatim.
  */
 private val LICENSE_KEY: String = System.getenv("DYNAMSOFT_LICENSE")
-    ?: "t0162pgQAAJoNojB2Zht8f281qYek2uIDqNKM7PoQWCyXWtX9SuDZO+A/NuEWuJj5hrBh6giYe0cdojyBcj9CNbsgNhvqH1nGRYAQ7ObDwcwCit+3OY7ZnrFsVpqz8RNE1eQBptw0UZprTf0m77tsvl/0ydcmyqmaPMCU582yzz5TlN7NPtN37DZ5gCnPm9U+/zKRr4e1RSeHH4KbrE6s/gNjlPQP;" +
-        "t0162pgQAAHf1MpEq9mE/HOGe0EGHs8O9dLhAs4KOYBMQMP1lDPHbK3W6FkTsSWxZ5nleluGakTjC6tWfQlnqMT7wYOmTHf2TAPGwyYeHWRQM29ccx6Q93osdl2x8BVE1ZYCpf5oozbWmftPsq2x+X/Qp5ybKqZoywNTrzbLPPlMdn80+43/sNmWAqdeb1T5/MnMa89qi18OB4CfrpnhEvAA4ivQF"
+    ?: "t0096+wAAAHIXZrtjWZ18BFvwSWcizIrQQZReTySwquc2e8N0+J1A7tsGXOhAHw+/HPdrNrElZaao6dCjd+m4RC0CFRw/QP4TvXVS3WxuuzLemjOJjP+Z/MTaopKTyQ7YTjKL;" +
+        "t0095+wAAACjW3YfRmVvi3rMkNcbSI3Ja/94W8BJGrjMHMcjsqiPvu9jMmGBGYOLkL5LPVeancrIrckXk3tDAhVdDpWSx11Nv6Qn25+TblfHWmCmo+J8pn9icQqunbt3wMpI="
 
 /** Built React client. Produced by `npm run build` in ../web-client. */
 private val STATIC_DIR: Path =

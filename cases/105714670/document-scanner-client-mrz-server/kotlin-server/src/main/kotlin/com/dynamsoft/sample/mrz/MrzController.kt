@@ -57,8 +57,8 @@ class MrzController(private val mrzService: MrzService) {
             val parsedResult = result.parsedResult
             val items = parsedResult?.items
             if (items.isNullOrEmpty()) {
-                // Matches the Flask backend: a readable request that yielded no MRZ
-                // is reported with HTTP 200 and success = false.
+                // A readable request that yielded no MRZ is reported with
+                // HTTP 200 and success = false.
                 return ResponseEntity.ok(
                     mapOf(
                         "success" to false,

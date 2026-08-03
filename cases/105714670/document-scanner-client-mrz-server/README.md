@@ -23,7 +23,7 @@ kotlin-server/  Spring Boot + Kotlin, serves that build and exposes /api/mrz
 | | |
 |---|---|
 | Node.js | 20 or newer |
-| JDK | 25 or newer — a **JDK**, not a JRE (`keytool` is needed for the dev certificate) |
+| JDK | 21 or newer — a **JDK**, not a JRE (`keytool` is needed for the dev certificate) |
 | Maven | 3.9 or newer |
 | Network | `download2.dynamsoft.com` must be reachable — `com.dynamsoft:dcv` is not on Maven Central |
 
@@ -33,18 +33,18 @@ Install the three tools, then confirm each is on your `PATH`:
 
 ```bash
 node --version    # v20.x or newer
-java -version     # 25 or newer, and must say "JDK"/"Runtime Environment", not just a JRE
+java -version     # 21 or newer, and must say "JDK"/"Runtime Environment", not just a JRE
 mvn -version      # 3.9 or newer
 ```
 
 If any command is missing or reports an older version:
 
 - **Node.js 20+** — install from <https://nodejs.org> (LTS build) or via a version manager (`nvm`, `fnm`, `volta`).
-- **JDK 25+** — install a full JDK, e.g. [Eclipse Temurin 25](https://adoptium.net/temurin/releases/?version=25) or [Microsoft Build of OpenJDK 25](https://learn.microsoft.com/java/openjdk/download). Set `JAVA_HOME` to the install directory and add `%JAVA_HOME%\bin` (Windows) or `$JAVA_HOME/bin` (Linux/macOS) to your `PATH`. Verify `keytool -help` runs — it ships with the JDK, not a JRE.
-- **Maven 3.9+** — install from <https://maven.apache.org/download.cgi> (or `brew install maven`, `choco install maven`, `sdk install maven`) and ensure its `bin` directory is on your `PATH`. Maven uses whatever JDK `JAVA_HOME` points at, so set `JAVA_HOME` to your JDK 25 before building.
+- **JDK 21+** — install a full JDK, e.g. [Eclipse Temurin 21](https://adoptium.net/temurin/releases/?version=21) or [Microsoft Build of OpenJDK 21](https://learn.microsoft.com/java/openjdk/download). Set `JAVA_HOME` to the install directory and add `%JAVA_HOME%\bin` (Windows) or `$JAVA_HOME/bin` (Linux/macOS) to your `PATH`. Verify `keytool -help` runs — it ships with the JDK, not a JRE.
+- **Maven 3.9+** — install from <https://maven.apache.org/download.cgi> (or `brew install maven`, `choco install maven`, `sdk install maven`) and ensure its `bin` directory is on your `PATH`. Maven uses whatever JDK `JAVA_HOME` points at, so set `JAVA_HOME` to your JDK 21 before building.
 - **Network** — the server build downloads `com.dynamsoft:dcv` from `https://download2.dynamsoft.com/maven/jar`. If you are behind a proxy, configure it in Maven's `settings.xml` so this host is reachable.
 
-> Windows note: `run-server.ps1` has a `-Java` parameter (default points at a Temurin JDK 25 path). Pass your own JDK path if it differs, e.g. `./run-server.ps1 -Java "C:\Program Files\Eclipse Adoptium\jdk-25.0.2.8-hotspot\bin\java.exe"`.
+> Windows note: `run-server.ps1` locates Java automatically — it checks `JAVA_HOME`, then `PATH`, then the common JDK install folders. If it can't find one (or you have several installed and want a specific one), pass it explicitly, e.g. `./run-server.ps1 -Java "C:\Program Files\Eclipse Adoptium\jdk-21.0.5.11-hotspot\bin\java.exe"`.
 
 ## Quick start
 
@@ -61,6 +61,9 @@ java -jar target/mds-mrz-kotlin-server-1.0.0.jar
 ```
 
 Then open **https://localhost:8080** and accept the certificate warning.
+
+> Runs out of the box on the bundled Dynamsoft trial keys. To use your own,
+> see [Licensing](#licensing) — one key for the browser scanner, one for the server.
 
 Build the client first. The server exits with an error if `web-client/dist` is
 missing, because that is what it serves.

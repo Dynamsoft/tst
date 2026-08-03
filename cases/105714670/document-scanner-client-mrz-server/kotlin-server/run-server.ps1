@@ -18,7 +18,10 @@ param(
     # to a specific machine — pass it here or via install-service.ps1 -CertHost.
     [string] $CertHost = $env:APP_CERT_HOST,
 
-    [string] $Java = "C:\Program Files\Eclipse Adoptium\jdk-25.0.2.8-hotspot\bin\java.exe",
+    # Path to java.exe. Left empty on purpose so the sample stays machine-
+    # independent: when blank it is resolved at startup from JAVA_HOME, then
+    # PATH, then the common Windows JDK install roots. Pass a path to override.
+    [string] $Java = "",
 
     [string] $Jar = "target\mds-mrz-kotlin-server-1.0.0.jar",
 
@@ -56,10 +59,53 @@ function Write-Log {
     Write-Output $line
 }
 
-if (-not (Test-Path $Java)) {
-    Write-Log "FATAL java not found at $Java"
+# Locate a JDK without hard-coding a machine-specific path. Order: an explicit
+# -Java argument, then JAVA_HOME, then java on PATH, then the newest java.exe
+# under the usual Windows JDK install roots.
+function Resolve-Java {
+    param([string] $Explicit)
+
+    if (-not [string]::IsNullOrWhiteSpace($Explicit)) { return $Explicit }
+
+    if (-not [string]::IsNullOrWhiteSpace($env:JAVA_HOME)) {
+        $fromHome = Join-Path $env:JAVA_HOME "bin\java.exe"
+        if (Test-Path $fromHome) { return $fromHome }
+    }
+
+    $onPath = Get-Command java.exe -ErrorAction SilentlyContinue
+    if ($onPath) { return $onPath.Source }
+
+    $roots = @(
+        "$env:ProgramFiles\Eclipse Adoptium",
+        "$env:ProgramFiles\Java",
+        "$env:ProgramFiles\Microsoft\jdk",
+        "$env:ProgramFiles\Zulu",
+        "$env:ProgramFiles\Amazon Corretto",
+        "${env:ProgramFiles(x86)}\Eclipse Adoptium",
+        "${env:ProgramFiles(x86)}\Java"
+    ) | Where-Object { $_ -and (Test-Path $_) }
+
+    $candidates = foreach ($r in $roots) {
+        Get-ChildItem -Path $r -Recurse -Filter java.exe -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -like "*\bin\java.exe" }
+    }
+    if ($candidates) {
+        $newest = $candidates | Sort-Object {
+            try { [version](($_.VersionInfo.ProductVersion -replace '[^0-9.].*$', '').TrimEnd('.')) }
+            catch { [version]'0.0' }
+        } -Descending | Select-Object -First 1
+        return $newest.FullName
+    }
+
+    return $null
+}
+
+$Java = Resolve-Java $Java
+if ([string]::IsNullOrWhiteSpace($Java) -or -not (Test-Path $Java)) {
+    Write-Log "FATAL no Java runtime found. Install a JDK 21+ and set JAVA_HOME or add java to PATH, or pass -Java 'C:\path\to\bin\java.exe'."
     exit 1
 }
+Write-Log "using java at $Java"
 if (-not (Test-Path $jarPath)) {
     Write-Log "FATAL jar not found at $jarPath - run 'mvn package' first"
     exit 1

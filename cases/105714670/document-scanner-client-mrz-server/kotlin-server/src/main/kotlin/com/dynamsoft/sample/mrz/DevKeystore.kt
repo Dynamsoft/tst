@@ -7,9 +7,8 @@ import java.nio.file.Paths
 /**
  * Generates a self-signed PKCS12 keystore for the HTTPS dev server.
  *
- * The Flask sample uses `ssl_context="adhoc"`, which mints a throwaway
- * certificate on every start. Java has no direct equivalent, so we shell out to
- * the JDK's `keytool` once and cache the result next to the project.
+ * We shell out to the JDK's `keytool` once and cache the result next to the
+ * project, reusing it on subsequent starts.
  *
  * The certificate must name every address the demo is opened at, not just
  * localhost: a hostname missing from the SAN is rejected outright by mobile
@@ -17,7 +16,7 @@ import java.nio.file.Paths
  * hosts via `APP_CERT_HOST`; see Application.kt.
  *
  * Browsers still show a certificate warning, because the certificate is
- * self-signed — expected for a demo, same as Flask.
+ * self-signed — expected for a demo.
  */
 object DevKeystore {
 
