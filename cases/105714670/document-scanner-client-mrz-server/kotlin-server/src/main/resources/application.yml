@@ -15,6 +15,11 @@ spring:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
+      # Keep uploads in memory so a user's document is never written to disk.
+      # This is the size above which the servlet container spills an upload to its
+      # temp directory; the default is 0B, meaning it always does. Held at or above
+      # max-file-size, no upload is ever spilled. Must stay >= max-file-size.
+      file-size-threshold: 20MB
   mvc:
     log-request-details: false
 

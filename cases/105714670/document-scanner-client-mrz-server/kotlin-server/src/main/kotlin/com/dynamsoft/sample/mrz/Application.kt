@@ -127,7 +127,8 @@ fun main(args: Array<String>) {
         println("[WARNING] License init threw: ${e.message}")
     }
 
-    Files.createDirectories(Paths.get("uploads"))
+    // No uploads directory: documents are processed in memory and never stored.
+    // See MrzController.
 
     // HTTPS is required: the camera only works in a secure context.
     if (KEYSTORE_IS_EXTERNAL) {

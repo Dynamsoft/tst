@@ -120,6 +120,14 @@ export default function App() {
         </p>
       </header>
 
+      {/* Stated up front, before the user is asked to photograph their passport —
+          it is only reassuring if they read it before they decide. */}
+      <p className="privacy-note">
+        <strong>Your document is not stored.</strong> The image is held in memory
+        only while the MRZ is read, then discarded — it is never written to disk on
+        the server and no copy is kept.
+      </p>
+
       <button className="scan-button" onClick={handleScan} disabled={busy}>
         {status.kind === "scanning"
           ? "Scanning…"

@@ -7,20 +7,27 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 @RestController
 class MrzController(private val mrzService: MrzService) {
-
-    private val uploadsDir: Path = Paths.get("uploads")
 
     /**
      * Receive a document image, run server-side MRZ extraction + parsing,
      * and return the parsed result as JSON.
      *
      * Expects multipart/form-data with an 'image' file field.
+     *
+     * The document never touches disk. The bytes are read into memory, passed
+     * straight to the engine, and dropped when this method returns — nothing is
+     * written, logged, or kept, so there is no document to delete afterwards and
+     * nothing to find if the machine is later inspected.
+     *
+     * Two things make that true, and both matter:
+     *  - `spring.servlet.multipart.file-size-threshold` in application.yml is
+     *    raised above `max-file-size`, so the servlet container buffers the upload
+     *    in memory instead of spilling it to its temp directory. At the default of
+     *    0B, every upload would be written to disk before this method is entered.
+     *  - MrzService.capture takes the bytes, not a path.
      */
     @PostMapping("/api/mrz")
     fun processMrz(
@@ -29,23 +36,12 @@ class MrzController(private val mrzService: MrzService) {
         if (image == null) {
             return failure("No image file provided", HttpStatus.BAD_REQUEST)
         }
-        val filename = image.originalFilename
-        if (filename.isNullOrEmpty()) {
-            return failure("Empty filename", HttpStatus.BAD_REQUEST)
+        if (image.isEmpty) {
+            return failure("Empty image file", HttpStatus.BAD_REQUEST)
         }
 
-        // Save to a temp file for DCV processing
-        val suffix = filename.substringAfterLast('.', "").let { if (it.isEmpty()) ".png" else ".$it" }
-        var tmpPath: Path? = null
-        try {
-            Files.createDirectories(uploadsDir)
-            tmpPath = Files.createTempFile(uploadsDir, "upload-", suffix)
-            image.inputStream.use { input ->
-                Files.newOutputStream(tmpPath).use { output -> input.copyTo(output) }
-            }
-
-            // Process with Dynamsoft Capture Vision
-            val result = mrzService.capture(tmpPath.toString())
+        return try {
+            val result = mrzService.capture(image.bytes)
 
             if (result.errorCode != EnumErrorCode.EC_OK) {
                 return failure(
@@ -54,27 +50,22 @@ class MrzController(private val mrzService: MrzService) {
                 )
             }
 
-            val parsedResult = result.parsedResult
-            val items = parsedResult?.items
+            val items = result.parsedResult?.items
             if (items.isNullOrEmpty()) {
                 // A readable request that yielded no MRZ is reported with
                 // HTTP 200 and success = false.
-                return ResponseEntity.ok(
+                ResponseEntity.ok(
                     mapOf(
                         "success" to false,
                         "error" to "No MRZ detected in the image. Please try with a clearer image.",
                     )
                 )
+            } else {
+                // Extract fields from the first parsed item
+                ResponseEntity.ok(mapOf("success" to true, "data" to mrzService.extractMrzFields(items[0])))
             }
-
-            // Extract fields from the first parsed item
-            val fields = mrzService.extractMrzFields(items[0])
-            return ResponseEntity.ok(mapOf("success" to true, "data" to fields))
         } catch (e: Exception) {
-            return failure(e.message ?: e.toString(), HttpStatus.INTERNAL_SERVER_ERROR)
-        } finally {
-            // Clean up temp file
-            tmpPath?.let { runCatching { Files.deleteIfExists(it) } }
+            failure(e.message ?: e.toString(), HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 

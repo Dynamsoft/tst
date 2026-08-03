@@ -67,6 +67,22 @@ h1 {
   border-radius: 0.5rem;
 }
 
+/* Sits above the scan button, so it is read before the user photographs an ID.
+   Quiet styling on purpose — a reassurance, not a warning. */
+.privacy-note {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.privacy-note strong {
+  color: inherit;
+}
+
 .panel h2 {
   margin: 0 0 0.75rem;
   font-size: 0.8rem;

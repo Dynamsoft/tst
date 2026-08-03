@@ -92,6 +92,27 @@ Two things to check on Linux:
 - **`keytool` must be present** — it ships with the JDK (not a JRE) and is used
   once to generate the self-signed dev certificate, exactly as on Windows.
 
+## Document handling: nothing is stored
+
+The uploaded document never touches the server's disk. `MrzController` reads the
+bytes into memory, hands them straight to the engine via `capture(ByteArray)`, and
+lets them go when the request ends. There is no uploads directory, nothing is
+logged, and no copy is kept — so there is nothing to purge on a schedule and
+nothing to find if the machine is inspected later.
+
+Two settings make that true, and both are required:
+
+| Where | Why |
+|---|---|
+| `spring.servlet.multipart.file-size-threshold: 20MB` | The size above which the servlet container spills an upload to its temp directory. **The default is `0B`, meaning every upload is written to disk** before your code runs. Held at or above `max-file-size`, nothing is ever spilled. |
+| `MrzService.capture(ByteArray)` | Takes bytes, not a path. The file-path overload would require writing the document out first. |
+
+If you raise `max-file-size`, raise `file-size-threshold` to match, or uploads
+silently start landing on disk again.
+
+The client states this on the page, above the scan button, so the user reads it
+before photographing an identity document — see `privacy-note` in `App.tsx`.
+
 ## Licensing
 
 Two **separate** keys are needed — one per edition:

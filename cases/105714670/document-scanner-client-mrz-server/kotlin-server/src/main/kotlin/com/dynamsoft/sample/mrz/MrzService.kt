@@ -41,8 +41,15 @@ class MrzService {
 
     private val captureLock = Any()
 
-    fun capture(imagePath: String): CapturedResult =
-        synchronized(captureLock) { router.capture(imagePath, MRZ_TEMPLATE) }
+    /**
+     * Read an MRZ straight from the encoded image bytes.
+     *
+     * Deliberately the only capture entry point: the file-path overload would mean
+     * the document had to be written to disk first, and this sample never puts a
+     * user's document on disk. See MrzController.
+     */
+    fun capture(imageBytes: ByteArray): CapturedResult =
+        synchronized(captureLock) { router.capture(imageBytes, MRZ_TEMPLATE) }
 
     /**
      * Return field value only if it passes validation, otherwise empty string.
