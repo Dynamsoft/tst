@@ -1,0 +1,13 @@
+node_modules/
+uploads/
+__pycache__/
+*.pyc
+.venv/
+
+# Kotlin / Maven backend
+target/
+keystore.p12
+
+# Engine bundle and DCV resources, copied out of node_modules by
+# setup_resources.sh. Regenerate with `npm install && bash setup_resources.sh`.
+static/dist/

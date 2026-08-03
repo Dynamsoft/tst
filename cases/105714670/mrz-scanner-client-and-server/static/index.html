@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Document Verification</title>
+    <script src="dist/mrz-scanner.bundle.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100dvh;
+        }
+
+        .app-header {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            text-align: center;
+        }
+        .app-header h1 { font-size: 1.25rem; font-weight: 600; }
+        .app-header p { font-size: 0.85rem; opacity: 0.7; margin-top: 0.25rem; }
+
+        .container {
+            max-width: 720px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Home / Start screen */
+        .start-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .start-card h2 { margin-bottom: 0.5rem; }
+        .start-card p { color: #666; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #e5e7eb; color: #374151; margin-left: 0.5rem; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-warning { background: #f59e0b; color: #fff; }
+        .btn-warning:hover { background: #d97706; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Result screen */
+        .result-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            display: none;
+        }
+        .result-card.visible { display: block; }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .result-header h2 { font-size: 1.1rem; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-success { background: #dcfce7; color: #166534; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-warning { background: #fef3c7; color: #92400e; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+
+        .image-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .image-box {
+            flex: 1;
+            min-width: 200px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .image-box h3 {
+            background: #f9fafb;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .image-box canvas, .image-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        @media (max-width: 500px) {
+            .fields-grid { grid-template-columns: 1fr; }
+        }
+
+        .field {
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .field-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .field-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .mrz-text {
+            grid-column: 1 / -1;
+            font-family: "Courier New", monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .actions { margin-top: 1.5rem; text-align: center; }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .poor-quality-card {
+            background: #fef3c7;
+            border: 1px solid #fde047;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .poor-quality-card h3 {
+            color: #92400e;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        .poor-quality-card p {
+            color: #78350f;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 1.25rem 0 0.75rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* Activity log — floating top bar */
+        .activity-log-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            transition: transform 0.25s ease;
+        }
+        .activity-log-wrapper.collapsed { transform: translateY(calc(-100% + 32px)); }
+
+        .activity-log-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1a2e;
+            color: #94a3b8;
+            font-family: "Courier New", monospace;
+            font-size: 0.78rem;
+            padding: 0.35rem 1rem;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid #2d2d4a;
+        }
+        .activity-log-toggle:hover { color: #e2e8f0; }
+        .activity-log-toggle .arrow { transition: transform 0.25s; }
+        .activity-log-wrapper.collapsed .activity-log-toggle .arrow { transform: rotate(180deg); }
+
+        .activity-log {
+            background: #1a1a2e;
+            color: #a3e635;
+            font-family: "Courier New", monospace;
+            font-size: 0.78rem;
+            line-height: 1.5;
+            padding: 0.5rem 1rem 0.75rem;
+            max-height: 180px;
+            overflow-y: auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .log-entry { margin: 0; padding: 0; }
+        .log-time { color: #94a3b8; }
+        .log-msg { color: #e2e8f0; }
+        .log-msg.ok { color: #a3e635; }
+        .log-msg.err { color: #f87171; }
+        .log-msg.info { color: #60a5fa; }
+
+        /* Push page content below collapsed log bar */
+        body { padding-top: 34px; }
+    </style>
+</head>
+<body>
+    <!-- Floating Activity Log -->
+    <div id="activity-log-wrapper" class="activity-log-wrapper collapsed">
+        <div id="activity-log" class="activity-log"></div>
+        <div class="activity-log-toggle" onclick="document.getElementById('activity-log-wrapper').classList.toggle('collapsed')">
+            <span>Activity Log</span>
+            <span class="arrow">&#9650;</span>
+        </div>
+    </div>
+
+    <div class="app-header">
+        <h1>Travel Document Verification</h1>
+        <p>Guided ID Capture + Server-side MRZ Verification</p>
+    </div>
+
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-card">
+            <h2>Scan a Travel Document</h2>
+            <p>Position your passport, visa, or ID card in front of the camera.<br>The scanner will guide you to capture a quality image.</p>
+            <div>
+                <button id="btn-scan" class="btn btn-primary" onclick="startScan()">Start Camera Scan</button>
+                <button id="btn-upload" class="btn btn-secondary" onclick="startUpload()">Upload Image</button>
+            </div>
+            <div id="error-home"></div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="result-card">
+            <div class="result-header">
+                <h2>Verification Result</h2>
+                <span id="result-status" class="status-badge"></span>
+            </div>
+
+            <div id="image-section" class="image-section"></div>
+
+            <!-- Server-side MRZ result (the only result shown to the user) -->
+            <div id="server-result-section" style="display:none">
+                <div class="section-label">Document Verification Result</div>
+                <div id="server-status"></div>
+                <div id="server-fields" class="fields-grid"></div>
+            </div>
+
+            <!-- Poor quality card (shown when server MRZ fails) -->
+            <div id="poor-quality-section" style="display:none">
+                <div class="poor-quality-card">
+                    <h3>Image Quality: Poor</h3>
+                    <p>The server could not read the document. Please retake with better lighting and stability.</p>
+                    <button class="btn btn-warning" onclick="startScan()">Retake Photo</button>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="startScan()">Scan Again</button>
+                <button class="btn btn-secondary" onclick="showStart()">Back</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // ---------------------------------------------------------------
+        // Helpers
+        // ---------------------------------------------------------------
+        function esc(str) {
+            const d = document.createElement("div");
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        // ---------------------------------------------------------------
+        // Activity log
+        // ---------------------------------------------------------------
+        function log(msg, type = "") {
+            const wrapper = document.getElementById("activity-log-wrapper");
+            const el = document.getElementById("activity-log");
+            wrapper.classList.remove("collapsed");
+            const now = new Date();
+            const ts = now.toLocaleTimeString("en-GB", { hour12: false }) + "." + String(now.getMilliseconds()).padStart(3, "0");
+            const entry = document.createElement("div");
+            entry.className = "log-entry";
+            entry.innerHTML = `<span class="log-time">[${ts}]</span> <span class="log-msg ${type}">${esc(msg)}</span>`;
+            el.appendChild(entry);
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById("activity-log").innerHTML = "";
+        }
+
+        // Labels for server-side MRZ fields (only these are shown to the user)
+        const SERVER_MRZ_LABELS = {
+            documentType: "Document Type",
+            documentNumber: "Document Number",
+            firstName: "Given Name(s)",
+            lastName: "Surname",
+            nationality: "Nationality",
+            issuingState: "Issuing State",
+            sex: "Sex",
+            dateOfBirth: "Date of Birth",
+            dateOfExpiry: "Date of Expiry",
+            mrzText: "MRZ Text",
+        };
+
+        // ---------------------------------------------------------------
+        // View helpers
+        // ---------------------------------------------------------------
+        function showStart() {
+            document.getElementById("start-screen").style.display = "";
+            document.getElementById("result-screen").classList.remove("visible");
+        }
+        window.showStart = showStart;
+
+        function showResult() {
+            document.getElementById("start-screen").style.display = "none";
+            document.getElementById("result-screen").classList.add("visible");
+        }
+
+        function setStatus(text, type) {
+            const el = document.getElementById("result-status");
+            el.textContent = text;
+            el.className = "status-badge status-" + type;
+        }
+
+        function formatMRZDate(dateObj) {
+            if (!dateObj) return "";
+            if (typeof dateObj === "string") return dateObj;
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${dateObj.year}-${pad(dateObj.month)}-${pad(dateObj.day)}`;
+        }
+
+        // ---------------------------------------------------------------
+        // Render fields into a grid container
+        // ---------------------------------------------------------------
+        function renderFields(container, data, labels) {
+            container.innerHTML = "";
+            for (const [key, label] of Object.entries(labels)) {
+                let value = data[key];
+                if (value == null || value === "") continue;
+
+                // Format date objects
+                if (key === "dateOfBirth" || key === "dateOfExpiry") {
+                    value = formatMRZDate(value);
+                }
+
+                const div = document.createElement("div");
+                div.className = "field" + (key === "mrzText" ? " mrz-text" : "");
+
+                const lbl = document.createElement("div");
+                lbl.className = "field-label";
+                lbl.textContent = label;
+
+                const val = document.createElement("div");
+                val.className = "field-value";
+                val.textContent = typeof value === "object" ? JSON.stringify(value) : String(value);
+
+                div.appendChild(lbl);
+                div.appendChild(val);
+                container.appendChild(div);
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Convert DSImageData to Blob for upload
+        // ---------------------------------------------------------------
+        async function imageDataToBlob(dsImageData) {
+            // The SDK attaches toCanvas / toBlob helpers
+            if (dsImageData.toBlob) {
+                return await dsImageData.toBlob();
+            }
+            if (dsImageData.toCanvas) {
+                const canvas = dsImageData.toCanvas();
+                return await new Promise((resolve) =>
+                    canvas.toBlob(resolve, "image/png")
+                );
+            }
+            throw new Error("Cannot convert image data to blob");
+        }
+
+        // ---------------------------------------------------------------
+        // Send image to server for MRZ processing
+        // ---------------------------------------------------------------
+        async function sendToServer(blob) {
+            const form = new FormData();
+            form.append("image", blob, "document.png");
+
+            const resp = await fetch("/api/mrz", {
+                method: "POST",
+                body: form,
+            });
+            return await resp.json();
+        }
+
+        // ---------------------------------------------------------------
+        // Main result handler
+        // ---------------------------------------------------------------
+        async function handleResult(result) {
+            showResult();
+            log("Processing capture result...", "info");
+
+            // Reset sections
+            document.getElementById("server-result-section").style.display = "none";
+            document.getElementById("poor-quality-section").style.display = "none";
+
+            if (!result || !result.data) {
+                setStatus("Capture Failed", "error");
+                log("No document captured", "err");
+                document.getElementById("image-section").innerHTML = "";
+                return;
+            }
+
+            // Client-side MRZ was used as a quality signal internally by the SDK.
+            // We do NOT display any client-side MRZ data to the end user.
+            log("Document captured with quality validation (client-side MRZ confirmed readability)", "ok");
+
+            // -- Show captured document image --
+            const imageSection = document.getElementById("image-section");
+            imageSection.innerHTML = "";
+
+            const documentImage = result.getDocumentImage(Dynamsoft.EnumDocumentSide.MRZ);
+            if (documentImage && documentImage.toCanvas) {
+                const box = document.createElement("div");
+                box.className = "image-box";
+                const h3 = document.createElement("h3");
+                h3.textContent = "Captured Document";
+                const canvas = documentImage.toCanvas();
+                box.appendChild(h3);
+                box.appendChild(canvas);
+                imageSection.appendChild(box);
+            }
+
+            // -- Upload to server for authoritative MRZ extraction --
+            const serverSection = document.getElementById("server-result-section");
+            const serverStatus = document.getElementById("server-status");
+            const serverFields = document.getElementById("server-fields");
+            serverSection.style.display = "block";
+            serverFields.innerHTML = "";
+            setStatus("Verifying...", "processing");
+            serverStatus.innerHTML = '<span class="status-badge status-processing"><span class="spinner"></span>Uploading for verification...</span>';
+
+            try {
+                // Prefer document image (cropped + deskewed), fall back to original
+                const imageToSend = documentImage
+                    || result.getOriginalImage(Dynamsoft.EnumDocumentSide.MRZ);
+
+                if (!imageToSend) {
+                    throw new Error("No image available to send to server");
+                }
+
+                const blob = await imageDataToBlob(imageToSend);
+                log(`Uploading image to server (${(blob.size / 1024).toFixed(1)} KB)...`, "info");
+                const t0 = performance.now();
+                const serverResult = await sendToServer(blob);
+                const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+
+                if (serverResult.success) {
+                    log(`Server verified document in ${elapsed}s`, "ok");
+                    setStatus("Verified", "success");
+                    serverStatus.innerHTML = '<span class="status-badge status-success">Document verified successfully</span>';
+                    renderFields(serverFields, serverResult.data, SERVER_MRZ_LABELS);
+                } else {
+                    // Server couldn't read MRZ — show poor quality message
+                    log(`Server MRZ failed (${elapsed}s): ${serverResult.error}`, "err");
+                    setStatus("Poor Quality", "warning");
+                    serverSection.style.display = "none";
+                    document.getElementById("poor-quality-section").style.display = "block";
+                }
+            } catch (err) {
+                log(`Server error: ${err.message}`, "err");
+                setStatus("Server Error", "error");
+                serverStatus.innerHTML = `<div class="error-msg">Failed to reach server: ${esc(err.message)}</div>`;
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Scan via camera
+        // ---------------------------------------------------------------
+        async function startScan() {
+            const btnScan = document.getElementById("btn-scan");
+            const btnUpload = document.getElementById("btn-upload");
+            const errorHome = document.getElementById("error-home");
+            errorHome.innerHTML = "";
+            btnScan.disabled = true;
+            btnUpload.disabled = true;
+
+            try {
+                clearLog();
+                log("Initializing document scanner...", "info");
+                const mrzScanner = new Dynamsoft.MRZScanner({
+                    license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+                    engineResourcePaths: {
+                        dcvBundle: "dist/dynamsoft-capture-vision-bundle/dist/",
+                        dcvData: "dist/dynamsoft-capture-vision-data/",
+                    },
+                    returnOriginalImage: true,
+                    returnDocumentImage: true,
+                    returnPortraitImage: false, // No portrait scanning for this use case
+                    scannerViewConfig: {
+                        messagesConfig: {
+                            scanSuccess: "Document captured \u2713",
+                        },
+                    },
+                });
+                log("Scanner ready — opening camera...", "ok");
+
+                document.getElementById("activity-log-wrapper").style.zIndex = "1";
+                const result = await mrzScanner.launch();
+                document.getElementById("activity-log-wrapper").style.zIndex = "";
+                log("Document captured", "ok");
+                console.log("Scan result:", result);
+                await handleResult(result);
+            } catch (err) {
+                log(`Camera scan error: ${err.message}`, "err");
+                console.error("Scan error:", err);
+                errorHome.innerHTML = `<div class="error-msg">${esc(err.message)}</div>`;
+            } finally {
+                btnScan.disabled = false;
+                btnUpload.disabled = false;
+            }
+        }
+        window.startScan = startScan;
+
+        // ---------------------------------------------------------------
+        // Scan via file upload
+        // ---------------------------------------------------------------
+        async function startUpload() {
+            const btnScan = document.getElementById("btn-scan");
+            const btnUpload = document.getElementById("btn-upload");
+            const errorHome = document.getElementById("error-home");
+            errorHome.innerHTML = "";
+
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = "image/*";
+            input.style.display = "none";
+            document.body.appendChild(input);
+
+            const file = await new Promise((resolve) => {
+                input.onchange = (e) => resolve(e.target.files?.[0] ?? null);
+                input.addEventListener("cancel", () => resolve(null));
+                input.click();
+            });
+            document.body.removeChild(input);
+            if (!file) return;
+
+            btnScan.disabled = true;
+            btnUpload.disabled = true;
+
+            try {
+                clearLog();
+                log(`File selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, "info");
+                log("Initializing scanner (file mode)...", "info");
+                const mrzScanner = new Dynamsoft.MRZScanner({
+                    license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+                    engineResourcePaths: {
+                        dcvBundle: "dist/dynamsoft-capture-vision-bundle/dist/",
+                        dcvData: "dist/dynamsoft-capture-vision-data/",
+                    },
+                    returnOriginalImage: true,
+                    returnDocumentImage: true,
+                    returnPortraitImage: false,
+                });
+                log("Scanner initialized — processing file...", "ok");
+
+                const result = await mrzScanner.launch(file);
+                log("File processed", "ok");
+                console.log("Upload result:", result);
+                await handleResult(result);
+            } catch (err) {
+                log(`File upload error: ${err.message}`, "err");
+                console.error("Upload error:", err);
+                errorHome.innerHTML = `<div class="error-msg">${esc(err.message)}</div>`;
+            } finally {
+                btnScan.disabled = false;
+                btnUpload.disabled = false;
+            }
+        }
+        window.startUpload = startUpload;
+    </script>
+</body>
+</html>
