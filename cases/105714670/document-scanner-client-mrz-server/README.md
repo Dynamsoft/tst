@@ -101,8 +101,27 @@ Two **separate** keys are needed — one per edition:
 | `web-client/src/App.tsx` (`MDS_LICENSE`) | Mobile Document Scanner, runs in the browser | `VITE_MDS_LICENSE` at build time |
 | `kotlin-server/.../Application.kt` (`LICENSE_KEY`) | Capture Vision **Java Edition**, runs on the server | `DYNAMSOFT_LICENSE` environment variable |
 
-Replace both with your own keys. Request a 30-day trial at
-<https://www.dynamsoft.com/customer/license/trialLicense>.
+> **These are your own keys.** Both bundled licenses are trial keys already
+> issued to *your* Dynamsoft organization (ID `105714670`) — they are not shared
+> demo keys, so you can test with them as-is, no sign-up needed. **Both are valid
+> through September 2, 2026.** After that, or to move beyond trial limits, request
+> a fresh trial at <https://www.dynamsoft.com/customer/license/trialLicense>.
+
+For reference, the two keys shipped in the source are:
+
+- **Mobile Document Scanner** (client, in `App.tsx`):
+
+  ```
+  DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA1NzE0NjcwLU1UQTFOekUwTmpjd0xYZGxZaTFVY21saGJGQnliMm8iLCJtYWluU2VydmVyVVJMIjoiaHR0cHM6Ly9tZGxzLmR5bmFtc29mdG9ubGluZS5jb20vIiwib3JnYW5pemF0aW9uSUQiOiIxMDU3MTQ2NzAiLCJzdGFuZGJ5U2VydmVyVVJMIjoiaHR0cHM6Ly9zZGxzLmR5bmFtc29mdG9ubGluZS5jb20vIiwiY2hlY2tDb2RlIjo2NTc2MDU0Mzh9
+  ```
+
+- **Capture Vision Java Edition** (server, in `Application.kt`):
+
+  ```
+  t0124NQMAAKnOjvPaSysrrd3LLu8Mf81Lbx3AucMosi3ZIwwyamYC84W3mqFCwRQWKQuQ/rn7F8paxhu9m2Z6a2OM4zwEL4MuUozEJu5tvV5v5OWQ1goDZzWZ8gPTvmeWmN4zzXPu5pn+wWOm/MC075nNPG8wg/OqTmQFn1CksQ==;t0124NQMAAEnHjkcBM7Ni/vlIiEO8DDz/Mv6pF/435BIKKe/6ZiqFU1O5ulDfYYjp8O5PvieKsKnQIbNKnxJPQAZFzTRiuNzHIkVP7OJR5ul5xtocUtvGwFVFpjRg2v/MLabvTPMcq3mmO3jNlAZM+59ZzPMBMziv6kRmvXukvw==
+  ```
+
+To use different keys, override them as shown above rather than editing the source.
 
 ```bash
 # Linux / macOS
@@ -248,11 +267,18 @@ does not cover the hostname you used. Check the address bar is `https://` and se
 
 **Port already in use** — set `APP_PORT`.
 
-## Keeping the server running (Windows, optional)
+## Keeping the server running (Windows, optional — reference only)
+
+> **You do not need any of this to try the sample.** To test, just build and run
+> the jar as in [Quick start](#quick-start) (`java -jar target/mds-mrz-kotlin-server-1.0.0.jar`).
+> Nothing below is part of the MRZ solution — the `*.ps1` scripts are included
+> purely as a **reference** for how you *could* keep the demo alive unattended on
+> a dedicated Windows box. Skip this entire section for evaluation and testing.
 
 `run-server.ps1` and `install-service.ps1` register a Scheduled Task that keeps
 the server alive across crashes and reboots. They are convenience scripts for a
-long-lived demo box and are not needed for local development.
+long-lived demo box and are not needed for local development, evaluation, or
+testing.
 
 ```powershell
 .\install-service.ps1                                  # install and start
@@ -266,3 +292,5 @@ Logs land in `kotlin-server/logs/` — `supervisor.log` for restart history,
 Two layers keep it up: `run-server.ps1` restarts the jar whenever it exits, and
 the Scheduled Task restarts `run-server.ps1` if that is killed, as well as at
 boot. A global mutex and an orphan sweep on startup keep it to one instance.
+This layering is deliberately more than a demo needs; it is here to show one
+robust approach, not because the sample requires it.
