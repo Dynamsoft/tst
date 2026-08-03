@@ -18,8 +18,8 @@ class SecurityHeadersFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        response.setHeader("Cross-Origin-Opener-Policy", "same-origin")
-        response.setHeader("Cross-Origin-Embedder-Policy", "require-corp")
+        // response.setHeader("Cross-Origin-Opener-Policy", "same-origin")
+        // response.setHeader("Cross-Origin-Embedder-Policy", "require-corp")
         filterChain.doFilter(request, response)
     }
 }
