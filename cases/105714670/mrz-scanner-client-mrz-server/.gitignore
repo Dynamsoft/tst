@@ -1,0 +1,18 @@
+# Node
+node_modules/
+
+# Client build output
+web-client/dist/
+
+# Maven
+kotlin-server/target/
+
+# Generated at runtime: self-signed dev certificate, its SAN marker,
+# temp upload directory, supervisor logs.
+kotlin-server/keystore.p12
+kotlin-server/keystore.p12.san
+kotlin-server/uploads/
+kotlin-server/logs/
+
+# Machine-specific certificate hosts, written by install-service.ps1
+kotlin-server/cert-hosts.txt
