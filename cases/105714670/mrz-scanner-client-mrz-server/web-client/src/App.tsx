@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { MRZScanner } from "dynamsoft-mrz-scanner";
+import { MRZScanner, EnumResultStatus, EnumDocumentSide } from "dynamsoft-mrz-scanner";
 import { readMrz, type MrzFields } from "./api";
 import "./App.css";
 
@@ -53,7 +53,7 @@ export default function App() {
       const result = await scanner.launch();
 
       // User dismissed the scanner without capturing.
-      if (result.status !== "RS_SUCCESS") {
+      if (result.status !== EnumResultStatus.RS_SUCCESS) {
         setStatus({ kind: "idle" });
         return;
       }
@@ -61,7 +61,7 @@ export default function App() {
       // We only care about the document image — the client-side MRZ result is
       // discarded. The MRZ recognition on the client serves solely to confirm
       // the image is clear enough; the authoritative reading comes from the server.
-      const docImage = result.getDocumentImage();
+      const docImage = result.getDocumentImage(EnumDocumentSide.MRZ);
       if (!docImage) {
         setStatus({ kind: "error", message: "No document image captured." });
         return;
