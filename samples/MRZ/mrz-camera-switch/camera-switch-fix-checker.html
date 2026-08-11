@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>MRZ Scanner - Camera Switch Fix Checker</title>
+		<script src="https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@4.0.0/dist/mrz-scanner.bundle.js"></script>
+		<style>
+			body { font-family: "Segoe UI", Arial, sans-serif; margin: 24px; color: #222; max-width: 760px; }
+			h1 { font-size: 20px; }
+			.note { font-size: 13px; color: #666; }
+			.toggle { font-size: 13px; margin: 12px 0; display: block; }
+			button { font-size: 14px; padding: 8px 18px; margin: 8px 0; }
+			ol { font-size: 13px; color: #444; }
+			#log { background: #f7f7f7; border: 1px solid #ddd; padding: 10px; font-size: 12px; font-family: Consolas, monospace; white-space: pre-wrap; overflow-x: auto; margin-top: 12px; }
+			#badge {
+				position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 2147483647;
+				background: rgba(0, 0, 0, 0.75); color: #fff; border-radius: 6px;
+				font-family: Consolas, monospace; font-size: 11px; line-height: 1.5;
+				padding: 6px 8px; display: none; pointer-events: auto; word-break: break-all;
+			}
+			#badge .state { font-weight: bold; }
+		</style>
+	</head>
+	<body>
+		<h1>Camera Switch Fix Checker</h1>
+		<p class="note">
+			Checks the "video turns square / zoomed after switching back &gt; front &gt; back" issue seen on
+			iPhone 17 + Edge. When a camera switch happens, the SDK sizes the preview box from the camera's
+			reported width/height read during the video "resize" event, but on that device the browser is
+			still reporting the previous camera's dimensions and sends no corrected update once they settle,
+			so the box keeps the wrong shape. This page re-measures and re-fits the preview shortly after each
+			resize event (setTimeout 0) to pick up the settled dimensions.
+		</p>
+
+		<label class="toggle"><input type="checkbox" id="fix-toggle" checked /> Apply fix (re-run video fit after resize settles)</label>
+
+		<button id="open">Open scanner</button>
+
+		<ol>
+			<li>Tap "Open scanner" and allow camera access.</li>
+			<li>Use the camera switch button: back &gt; front &gt; back.</li>
+			<li>Watch whether the preview becomes square / zoomed in after returning to the back camera.</li>
+			<li>The black badge at the bottom shows fix state and resize diagnostics. Tap it to toggle the fix while scanning, then switch cameras again to compare.</li>
+			<li>Refresh the page before each new open, so there is no hardware camera cache.</li>
+		</ol>
+
+		<div id="log"></div>
+		<div id="badge"></div>
+
+		<script>
+			const TEST_LICENSE =
+				"DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=";
+
+			const badge = document.getElementById("badge");
+			const logEl = document.getElementById("log");
+			const lines = [];
+			let fixEnabled = true;
+
+			function log(msg) {
+				const line = new Date().toTimeString().slice(0, 8) + " " + msg;
+				lines.push(line);
+				renderBadge();
+				logEl.textContent = lines.join("\n");
+			}
+
+			function renderBadge() {
+				badge.innerHTML =
+					'<span class="state">FIX ' + (fixEnabled ? "ON" : "OFF") + "</span> (tap badge to toggle)<br>" +
+					lines.slice(-5).join("<br>");
+			}
+
+			badge.addEventListener("click", () => {
+				fixEnabled = !fixEnabled;
+				log("fix toggled " + (fixEnabled ? "ON" : "OFF"));
+			});
+
+			function hookVideoResize(cameraView) {
+				const video = cameraView.getVideoElement();
+				video.addEventListener("resize", () => {
+					const atEvent = video.videoWidth + "x" + video.videoHeight;
+					const wrapper = video.parentElement && video.parentElement.parentElement;
+					setTimeout(() => {
+						const settled = video.videoWidth + "x" + video.videoHeight;
+						const arBefore = (wrapper && wrapper.style.aspectRatio) || "?";
+						if (fixEnabled) {
+							try {
+								if (typeof cameraView._updateObjectFit === "function") cameraView._updateObjectFit();
+								else cameraView.setVideoFit(cameraView.getVideoFit());
+							} catch (e) {
+								log("refit error: " + (e && e.message));
+							}
+							try {
+								if (typeof cameraView._updateCanvasSize === "function") cameraView._updateCanvasSize();
+							} catch (e) {}
+						}
+						const arAfter = (wrapper && wrapper.style.aspectRatio) || "?";
+						log(
+							"resize: event " + atEvent + " > settled " + settled +
+							" | AR " + arBefore + " > " + arAfter + (fixEnabled ? " (refit)" : "")
+						);
+					}, 0);
+				});
+				log("video resize hooked, fix " + (fixEnabled ? "ON" : "OFF"));
+			}
+
+			document.getElementById("open").addEventListener("click", async function () {
+				this.disabled = true;
+				fixEnabled = document.getElementById("fix-toggle").checked;
+
+				const scanner = new Dynamsoft.MRZScanner({ license: TEST_LICENSE });
+				const done = scanner.launch().catch((e) => ({ error: e }));
+
+				const cameraView = await new Promise((resolve) => {
+					let tries = 0;
+					const timer = setInterval(() => {
+						const cv = scanner.resources && scanner.resources.cameraView;
+						if (cv && typeof cv.getVideoElement === "function" && cv.getVideoElement()) {
+							clearInterval(timer);
+							resolve(cv);
+						} else if (++tries > 300) {
+							clearInterval(timer);
+							resolve(null);
+						}
+					}, 100);
+				});
+
+				if (cameraView) {
+					hookVideoResize(cameraView);
+				} else {
+					log("cameraView not found, workaround not active");
+				}
+				badge.style.display = "block";
+				renderBadge();
+
+				const result = await done;
+				badge.style.display = "none";
+				if (result && result.error) {
+					log("scanner error: " + (result.error.message || result.error));
+				} else if (result && result.data) {
+					log("scan finished: " + (result.data.documentNumber || "MRZ read OK"));
+				} else {
+					log("scanner closed without result");
+				}
+				log("refresh the page to run again");
+			});
+		</script>
+	</body>
+</html>
