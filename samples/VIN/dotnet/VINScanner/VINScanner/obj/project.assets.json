@@ -1,41 +1,145 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
-    "net6.0": {}
+    "net6.0": {
+      "Dynamsoft.DotNet.CaptureVision.Bundle/3.4.2000": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Dynamsoft.CaptureVision.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/Dynamsoft.CaptureVision.dll": {}
+        },
+        "build": {
+          "build/Dynamsoft.Dotnet.CaptureVision.Bundle.targets": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "Dynamsoft.DotNet.CaptureVision.Bundle/3.4.2000": {
+      "sha512": "bks1TeXxI7Ixl/d1RY1aEzWwR4WD+O3EZtqkw3NZwE8dH29CtGaAJv87Pnlt+CHqky1TNT76HwyZbtozl5ZB5g==",
+      "type": "package",
+      "path": "dynamsoft.dotnet.capturevision.bundle/3.4.2000",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/Dynamsoft.Dotnet.CaptureVision.Bundle.targets",
+        "build/linux/libDynamicPdf.so",
+        "build/linux/libDynamsoftBarcodeReader.so",
+        "build/linux/libDynamsoftCaptureVisionRouter.so",
+        "build/linux/libDynamsoftCaptureVision_C.so",
+        "build/linux/libDynamsoftCodeParser.so",
+        "build/linux/libDynamsoftCodeParserDedicator.so",
+        "build/linux/libDynamsoftCore.so",
+        "build/linux/libDynamsoftDocumentNormalizer.so",
+        "build/linux/libDynamsoftIdentityUtility.so",
+        "build/linux/libDynamsoftImageProcessing.so",
+        "build/linux/libDynamsoftLabelRecognizer.so",
+        "build/linux/libDynamsoftLicense.so",
+        "build/linux/libDynamsoftNeuralNetwork.so",
+        "build/linux/libDynamsoftUtility.so",
+        "build/resources/ConfusableChars.data",
+        "build/resources/Models/Code128Decoder.data",
+        "build/resources/Models/Code39ITFDecoder.data",
+        "build/resources/Models/DataMatrixQRCodeDeblur.data",
+        "build/resources/Models/DataMatrixQRCodeLocalization.data",
+        "build/resources/Models/EAN13Decoder.data",
+        "build/resources/Models/LetterCharRecognition.data",
+        "build/resources/Models/LowercaseCharRecognition.data",
+        "build/resources/Models/MRZCharRecognition.data",
+        "build/resources/Models/MRZLocalization.data",
+        "build/resources/Models/MRZTextLineRecognition.data",
+        "build/resources/Models/NumberCharRecognition.data",
+        "build/resources/Models/NumberLetterCharRecognition.data",
+        "build/resources/Models/NumberLowercaseCharRecognition.data",
+        "build/resources/Models/NumberUppercaseCharRecognition.data",
+        "build/resources/Models/OneDDeblur.data",
+        "build/resources/Models/OneDLocalization.data",
+        "build/resources/Models/PDF417Deblur.data",
+        "build/resources/Models/PDF417Localization.data",
+        "build/resources/Models/UppercaseCharRecognition.data",
+        "build/resources/Models/VINCharRecognition.data",
+        "build/resources/OverlappingChars.data",
+        "build/resources/ParserResources/AADHAAR.data",
+        "build/resources/ParserResources/AAMVA_DL_ID.data",
+        "build/resources/ParserResources/GS1_AI.data",
+        "build/resources/ParserResources/MRTD.data",
+        "build/resources/ParserResources/SOUTH_AFRICA_DL.data",
+        "build/resources/ParserResources/VIN.data",
+        "build/resources/Templates/DBR-PresetTemplates.json",
+        "build/resources/Templates/DDN-PresetTemplates.json",
+        "build/resources/Templates/DLR-PresetTemplates.json",
+        "build/resources/Templates/DriverLicenseScanner.json",
+        "build/resources/Templates/MRZScanner.json",
+        "build/resources/Templates/VINScanner.json",
+        "build/windows/x64/DynamicPdfx64.dll",
+        "build/windows/x64/DynamsoftBarcodeReaderx64.dll",
+        "build/windows/x64/DynamsoftCaptureVisionRouterx64.dll",
+        "build/windows/x64/DynamsoftCaptureVision_C.dll",
+        "build/windows/x64/DynamsoftCodeParserDedicatorx64.dll",
+        "build/windows/x64/DynamsoftCodeParserx64.dll",
+        "build/windows/x64/DynamsoftCorex64.dll",
+        "build/windows/x64/DynamsoftDocumentNormalizerx64.dll",
+        "build/windows/x64/DynamsoftIdentityUtilityx64.dll",
+        "build/windows/x64/DynamsoftImageProcessingx64.dll",
+        "build/windows/x64/DynamsoftLabelRecognizerx64.dll",
+        "build/windows/x64/DynamsoftLicensex64.dll",
+        "build/windows/x64/DynamsoftNeuralNetworkx64.dll",
+        "build/windows/x64/DynamsoftUtilityx64.dll",
+        "build/windows/x86/DynamicPdf.dll",
+        "build/windows/x86/DynamsoftBarcodeReaderx86.dll",
+        "build/windows/x86/DynamsoftCaptureVisionRouterx86.dll",
+        "build/windows/x86/DynamsoftCaptureVision_C.dll",
+        "build/windows/x86/DynamsoftCodeParserDedicatorx86.dll",
+        "build/windows/x86/DynamsoftCodeParserx86.dll",
+        "build/windows/x86/DynamsoftCorex86.dll",
+        "build/windows/x86/DynamsoftDocumentNormalizerx86.dll",
+        "build/windows/x86/DynamsoftIdentityUtilityx86.dll",
+        "build/windows/x86/DynamsoftImageProcessingx86.dll",
+        "build/windows/x86/DynamsoftLabelRecognizerx86.dll",
+        "build/windows/x86/DynamsoftLicensex86.dll",
+        "build/windows/x86/DynamsoftNeuralNetworkx86.dll",
+        "build/windows/x86/DynamsoftUtilityx86.dll",
+        "dynamsoft.dotnet.capturevision.bundle.3.4.2000.nupkg.sha512",
+        "dynamsoft.dotnet.capturevision.bundle.nuspec",
+        "lib/net3.5/Dynamsoft.CaptureVision.dll",
+        "lib/net6.0/Dynamsoft.CaptureVision.dll"
+      ]
+    }
+  },
   "projectFileDependencyGroups": {
     "net6.0": [
       "Dynamsoft.DotNet.CaptureVision.Bundle >= 3.4.2000"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\kunta\\.nuget\\packages\\": {}
+    "C:\\Users\\Justin\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
+      "projectUniqueName": "C:\\Users\\Justin\\Desktop\\git\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
       "projectName": "VINScanner",
-      "projectPath": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
-      "packagesPath": "C:\\Users\\kunta\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\obj\\",
+      "projectPath": "C:\\Users\\Justin\\Desktop\\git\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
+      "packagesPath": "C:\\Users\\Justin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Justin\\Desktop\\git\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\NuGet.Config",
-        "C:\\Users\\kunta\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\Justin\\Desktop\\git\\tst\\samples\\VIN\\dotnet\\VINScanner\\NuGet.Config",
+        "C:\\Users\\Justin\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net6.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\Packages": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
+        "C:\\Users\\Justin\\Desktop\\git\\tst\\samples\\VIN\\Packages": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net6.0": {
+          "framework": "net6.0",
           "targetAlias": "net6.0",
           "projectReferences": {}
         }
@@ -49,10 +153,12 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net6.0": {
+        "framework": "net6.0",
         "targetAlias": "net6.0",
         "dependencies": {
           "Dynamsoft.DotNet.CaptureVision.Bundle": {
@@ -71,21 +177,31 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[6.0.36, 6.0.36]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300\\RuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1301",
-      "level": "Error",
-      "message": "The local source 'C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\Packages' doesn't exist.",
-      "libraryId": "Dynamsoft.DotNet.CaptureVision.Bundle"
-    }
-  ]
+  }
 }

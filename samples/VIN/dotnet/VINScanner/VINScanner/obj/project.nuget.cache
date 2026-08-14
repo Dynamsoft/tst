@@ -1,15 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "heUMXtkXsEpyqoVOP11RKUJ0iF3eyKaYsJIQ7bKxK5oD40KVSRVnzIusPk0s25Ke6EBkbkpGdkVwM1Rw00O0Eg==",
-  "success": false,
-  "projectFilePath": "C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
-  "expectedPackageFiles": [],
-  "logs": [
-    {
-      "code": "NU1301",
-      "level": "Error",
-      "message": "The local source 'C:\\Users\\kunta\\Downloads\\IIS\\customer-support\\tst\\samples\\VIN\\Packages' doesn't exist.",
-      "libraryId": "Dynamsoft.DotNet.CaptureVision.Bundle"
-    }
-  ]
+  "dgSpecHash": "Mb45raoAZS4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Justin\\Desktop\\git\\tst\\samples\\VIN\\dotnet\\VINScanner\\VINScanner\\VINScanner.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Justin\\.nuget\\packages\\dynamsoft.dotnet.capturevision.bundle\\3.4.2000\\dynamsoft.dotnet.capturevision.bundle.3.4.2000.nupkg.sha512",
+    "C:\\Users\\Justin\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.36\\microsoft.netcore.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\Justin\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.36\\microsoft.windowsdesktop.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\Justin\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.36\\microsoft.aspnetcore.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\Justin\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.36\\microsoft.netcore.app.host.win-x64.6.0.36.nupkg.sha512"
+  ],
+  "logs": []
 }

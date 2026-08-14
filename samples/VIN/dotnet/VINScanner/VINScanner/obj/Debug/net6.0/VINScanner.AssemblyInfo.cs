@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VINScanner")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2de0f0e22190405d8c716961f4da13afb2e2d8e7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+81c702a1f1dd00313baae3508caa487ae43acd9c")]
 [assembly: System.Reflection.AssemblyProductAttribute("VINScanner")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VINScanner")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
