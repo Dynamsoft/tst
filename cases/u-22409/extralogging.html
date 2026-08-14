@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+    <title>DBR Diagnostic Page</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11.4.3000/dist/dbr.bundle.js"></script>
+
+    <style>
+      body {
+        font-family:
+          Segoe UI,
+          Arial,
+          sans-serif;
+        margin: 20px;
+        max-width: 1200px;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      #decoding {
+        color: #0078d4;
+        font-weight: bold;
+      }
+
+      .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 10px 0;
+        background: #fafafa;
+      }
+
+      .success {
+        border-left: 6px solid #28a745;
+        background: #f0fff4;
+      }
+
+      .warning {
+        border-left: 6px solid #ffc107;
+        background: #fffbea;
+      }
+
+      .error {
+        border-left: 6px solid #dc3545;
+        background: #fff5f5;
+      }
+
+      .barcode {
+        background: #f5fff6;
+        border: 1px solid #c8e6c9;
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 8px;
+      }
+
+      pre {
+        background: #f5f5f5;
+        border-radius: 4px;
+        padding: 10px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td {
+        padding: 6px;
+        border-bottom: 1px solid #eee;
+      }
+
+      td:first-child {
+        font-weight: bold;
+        width: 220px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>DBR Read Image + Extra Logging</h1>
+
+    <input id="input-file" type="file" accept=".jpg,.jpeg,.icon,.gif,.svg,.webp,.png,.bmp" />
+
+    <span id="decoding" style="display: none"> Processing image... </span>
+
+    <div id="results"></div>
+
+    <script>
+      Dynamsoft.License.LicenseManager.initLicense(
+        "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
+      );
+
+      const resultsContainer = document.querySelector("#results");
+
+      const pInit = (async () => {
+        const cvRouter = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+
+        return { cvRouter };
+      })();
+
+      document.querySelector("#input-file").addEventListener("change", async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        this.value = "";
+
+        resultsContainer.innerHTML = "";
+
+        const startTime = new Date();
+
+        document.querySelector("#decoding").style.display = "inline";
+
+        resultsContainer.innerHTML = `
+    <div class="card">
+      <h2>Processing Image</h2>
+
+      <table>
+        <tr>
+          <td>File Name</td>
+          <td>${file.name}</td>
+        </tr>
+
+        <tr>
+          <td>File Size</td>
+          <td>${(file.size / 1024).toFixed(2)} KB</td>
+        </tr>
+
+        <tr>
+          <td>Started</td>
+          <td>${startTime.toLocaleString()}</td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+        try {
+          const { cvRouter } = await pInit;
+
+          await cvRouter.initSettings("./ReadOneDIndustrial.json");
+
+          const result = await cvRouter.capture(file, "ReadOneDIndustrial");
+
+          const endTime = new Date();
+
+          console.log("Capture Result", result);
+
+          const barcodeItems = result.decodedBarcodesResult?.barcodeResultItems || [];
+
+          let statusHtml = "";
+
+          if (result.errorCode === 0) {
+            if (barcodeItems.length > 0) {
+              statusHtml = `
+          <div class="card success">
+            <h2>✅ Barcode Found</h2>
+
+            <p>
+              Found ${barcodeItems.length}
+              barcode(s).
+            </p>
+          </div>
+        `;
+            } else {
+              statusHtml = `
+          <div class="card warning">
+            <h2>⚠ No Barcode Found</h2>
+
+            <div>
+              Capture completed successfully,
+              but no barcode was returned.
+            </div>
+
+            <br>
+
+            <div>
+              Error Code: ${result.errorCode}
+            </div>
+
+            <div>
+              Error String: ${result.errorString}
+            </div>
+          </div>
+        `;
+            }
+          } else {
+            statusHtml = `
+        <div class="card error">
+          <h2>❌ SDK Error</h2>
+
+          <div>
+            Error Code:
+            ${result.errorCode}
+          </div>
+
+          <div>
+            Error String:
+            ${result.errorString}
+          </div>
+        </div>
+      `;
+          }
+
+          let barcodeHtml = "";
+
+          if (barcodeItems.length > 0) {
+            barcodeHtml += `
+        <div class="card success">
+          <h2>Decoded Barcodes</h2>
+      `;
+
+            barcodeItems.forEach((item, index) => {
+              barcodeHtml += `
+          <div class="barcode">
+
+            <div>
+              <strong>
+                Barcode ${index + 1}
+              </strong>
+            </div>
+
+            <div>
+              Text:
+              ${item.text}
+            </div>
+
+            <div>
+              Format:
+              ${item.formatString || item.format || "N/A"}
+            </div>
+
+          </div>
+        `;
+            });
+
+            barcodeHtml += `
+        </div>
+      `;
+          }
+
+          resultsContainer.innerHTML += `
+
+      ${statusHtml}
+
+      <div class="card">
+        <h2>Execution Details</h2>
+
+        <table>
+
+          <tr>
+            <td>Started</td>
+            <td>${startTime.toLocaleString()}</td>
+          </tr>
+
+          <tr>
+            <td>Finished</td>
+            <td>${endTime.toLocaleString()}</td>
+          </tr>
+
+          <tr>
+            <td>Total Duration</td>
+            <td>${endTime - startTime} ms</td>
+          </tr>
+
+          <tr>
+            <td>SDK Duration</td>
+            <td>${result._durationMs ?? "N/A"} ms</td>
+          </tr>
+
+          <tr>
+            <td>Error Code</td>
+            <td>${result.errorCode}</td>
+          </tr>
+
+          <tr>
+            <td>Error String</td>
+            <td>${result.errorString}</td>
+          </tr>
+
+        </table>
+      </div>
+
+      ${barcodeHtml}
+
+      <div class="card">
+        <h2>Raw SDK Result</h2>
+
+        <pre>${JSON.stringify(result, (key, value) => (typeof value === "bigint" ? value.toString() : value), 2)}</pre>
+      </div>
+    `;
+        } catch (ex) {
+          const endTime = new Date();
+
+          console.error(ex);
+
+          resultsContainer.innerHTML += `
+      <div class="card error">
+
+        <h2>❌ Exception</h2>
+
+        <table>
+
+          <tr>
+            <td>Started</td>
+            <td>${startTime.toLocaleString()}</td>
+          </tr>
+
+          <tr>
+            <td>Finished</td>
+            <td>${endTime.toLocaleString()}</td>
+          </tr>
+
+        </table>
+
+        <h3>Error</h3>
+
+        <pre>${ex?.message || ex}</pre>
+
+      </div>
+    `;
+        } finally {
+          document.querySelector("#decoding").style.display = "none";
+        }
+      });
+    </script>
+  </body>
+</html>
