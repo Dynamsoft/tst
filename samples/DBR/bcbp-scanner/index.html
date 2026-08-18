@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Airport Service — Boarding Pass Scanner</title>
+  <style>
+    :root {
+      --sky-top: #7ec9ff;
+      --sky-bottom: #dff0ff;
+      --ink: #0b2a4a;
+      --ink-soft: #33567a;
+      --muted: #6b88a3;
+      --card: #ffffff;
+      --accent: #0b62ff;
+      --accent-2: #00c2ff;
+      --success: #16a34a;
+      --gold: #f5b400;
+      --line: #d9e7f5;
+      --shadow: 0 12px 32px rgba(11, 42, 74, 0.12);
+      --shadow-lg: 0 24px 60px rgba(11, 42, 74, 0.22);
+      --radius: 20px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: transparent;
+      color: var(--ink);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Fixed full-screen sky gradient so content never outruns the background */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 62%, #ffffff 100%);
+    }
+
+    /* ---------- Decorative sky ---------- */
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 999px;
+      filter: blur(1px);
+      pointer-events: none;
+    }
+    .cloud::before, .cloud::after {
+      content: "";
+      position: absolute;
+      background: inherit;
+      border-radius: 50%;
+    }
+    .cloud-1 { width: 180px; height: 44px; top: 8%; left: -40px; animation: drift 42s linear infinite; }
+    .cloud-1::before { width: 70px; height: 70px; top: -30px; left: 30px; }
+    .cloud-1::after { width: 50px; height: 50px; top: -20px; right: 28px; }
+    .cloud-2 { width: 140px; height: 36px; top: 16%; right: -30px; animation: drift 56s linear infinite reverse; }
+    .cloud-2::before { width: 54px; height: 54px; top: -24px; left: 24px; }
+    .cloud-2::after { width: 40px; height: 40px; top: -16px; right: 22px; }
+    @keyframes drift {
+      from { transform: translateX(0); }
+      to { transform: translateX(calc(100vw + 160px)); }
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      visibility: visible;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, visibility 0s;
+    }
+    .screen.hidden {
+      transform: translateY(26px);
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, visibility 0s 0.4s;
+    }
+
+    /* ---------- Top brand bar ---------- */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 22px 8px;
+    }
+    .brand .plane {
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 10px;
+      box-shadow: 0 6px 16px rgba(11, 98, 255, 0.35);
+    }
+    .brand .plane svg { width: 18px; height: 18px; }
+    .brand .brand-text { font-size: 0.86rem; font-weight: 700; letter-spacing: 0.08em; color: var(--ink); text-transform: uppercase; }
+
+    /* ---------- Home / menu ---------- */
+    #home-screen { justify-content: flex-start; overflow-y: auto; padding-bottom: 30px; }
+    .hero {
+      padding: 10px 22px 20px;
+      text-align: center;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .hero p { color: var(--ink-soft); font-size: 0.98rem; max-width: 340px; margin: 0 auto; }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 4px 22px 20px;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .menu-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .menu-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .menu-card:active { transform: translateY(0) scale(0.99); }
+
+    .menu-icon {
+      width: 54px; height: 54px; flex-shrink: 0;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .menu-icon svg { width: 26px; height: 26px; }
+    .menu-icon.wifi { background: linear-gradient(135deg, #0b62ff, #3aa0ff); }
+    .menu-icon.lounge { background: linear-gradient(135deg, #f5b400, #ff8a00); }
+    .menu-icon.bag { background: linear-gradient(135deg, #16a34a, #37c98b); }
+
+    .menu-title { font-size: 1.05rem; font-weight: 700; }
+    .menu-sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+    .menu-chevron { margin-left: auto; color: #b7cbdf; }
+    .menu-chevron svg { width: 20px; height: 20px; }
+
+    /* ---------- Scanner ---------- */
+    #scanner-screen { background: #04121f; }
+
+    /* Service label — top-center, clear of DCE torch (top-left) & resolution (top-right) */
+    .scan-top {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      text-align: center;
+      pointer-events: none;
+      max-width: 62%;
+    }
+    .scan-top .svc-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #bfe0ff;
+      background: rgba(4, 18, 31, 0.6);
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .scan-top .svc-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #camera-view-container {
+      position: absolute;
+      inset: 0;
+      background: #000;
+    }
+    #camera-view-container video { object-fit: cover !important; }
+
+    /* Scan overlay hint — raised above the "powered by" watermark */
+    .scan-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 34px;
+      transform: translateX(-50%);
+      z-index: 5;
+      background: rgba(4, 18, 31, 0.72);
+      color: #eaf4ff;
+      font-size: 0.9rem;
+      padding: 12px 18px;
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      white-space: nowrap;
+    }
+    .scan-hint .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #34d399;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    /* Floating controls — bottom-left, clear of DCE camera-switch (bottom-right) */
+    .scan-actions {
+      position: absolute;
+      left: 14px;
+      bottom: 24px;
+      z-index: 5;
+      display: flex;
+      gap: 10px;
+    }
+    .back-btn, .scan-btn {
+      width: 46px; height: 46px;
+      border: none; border-radius: 14px;
+      background: rgba(4, 18, 31, 0.72);
+      color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .back-btn svg, .scan-btn svg { width: 22px; height: 22px; }
+
+    /* ---------- Result ---------- */
+    #result-screen { justify-content: center; overflow-y: auto; padding: 20px 22px 30px; }
+    .result-status {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .result-status .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #dff7e8;
+      color: #11703b;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 8px 16px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .result-status .badge svg { width: 16px; height: 16px; }
+    .result-status h2 { font-size: 1.5rem; font-weight: 800; }
+
+    .boarding-pass {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+    .bp-header {
+      background: linear-gradient(135deg, #0b62ff, #00a6ff);
+      color: #fff;
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .bp-header .route {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .bp-header .route .arrow { color: #bfe0ff; margin: 0 6px; }
+    .bp-header .flight {
+      font-size: 0.78rem;
+      background: rgba(255, 255, 255, 0.18);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .bp-body { padding: 16px 18px; }
+    .bp-passenger { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--line); }
+    .bp-passenger .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .bp-passenger .name { font-size: 1.2rem; font-weight: 700; margin-top: 2px; }
+
+    .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+    .bp-cell .label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .bp-cell .value { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+
+    /* Service-specific panel */
+    .svc-result {
+      margin-top: 16px;
+      border-radius: 16px;
+      padding: 16px 18px;
+      background: #f2f8ff;
+      border: 1px solid var(--line);
+      display: none;
+    }
+    .svc-result.show { display: block; }
+    .svc-result .svc-result-title { font-weight: 800; font-size: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .svc-result .svc-result-title svg { width: 18px; height: 18px; }
+
+    .kv-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e7f0fa; }
+    .kv-row:last-child { border-bottom: none; }
+    .kv-row .k { font-size: 0.84rem; color: var(--muted); }
+    .kv-row .v { font-weight: 700; font-size: 0.94rem; font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace; }
+
+    .result-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-ghost { background: #eaf2fb; color: var(--ink); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 8px 20px rgba(11, 98, 255, 0.35); }
+
+    /* ---------- Loading overlay ---------- */
+    #loading-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      transition: opacity 0.4s ease;
+    }
+    #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 46px; height: 46px;
+      border: 4px solid rgba(11, 98, 255, 0.18);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-text { color: var(--ink-soft); font-weight: 600; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Decorative clouds -->
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+
+  <!-- ============ HOME ============ -->
+  <div class="screen" id="home-screen">
+    <div class="brand">
+      <div class="plane">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+      </div>
+      <span class="brand-text">Skyport</span>
+    </div>
+
+    <div class="hero">
+      <h1>Airport Service</h1>
+      <p>Scan your boarding pass to access airport amenities.</p>
+    </div>
+
+    <div class="menu">
+      <div class="menu-card" data-service="wifi">
+        <div class="menu-icon wifi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        </div>
+        <div>
+          <div class="menu-title">Access Free Wifi</div>
+          <div class="menu-sub">Connect to complimentary airport internet</div>
+        </div>
+        <div class="menu-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div>
+
+      <div class="menu-card" data-service="lounge">
+        <div class="menu-icon lounge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18"/><path d="M5 18V9a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v9"/><path d="M13 12h4a2 2 0 0 1 2 2v4"/></svg>
+        </div>
+        <div>
+          <div class="menu-title">Access Lounge</div>
+          <div class="menu-sub">Relax in the premium departure lounge</div>
+        </div>
+        <div class="menu-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div>
+
+      <div class="menu-card" data-service="baggage">
+        <div class="menu-icon bag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M4 12h16"/></svg>
+        </div>
+        <div>
+          <div class="menu-title">Self Baggage Drop</div>
+          <div class="menu-sub">Print tags and drop your bags yourself</div>
+        </div>
+        <div class="menu-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCANNER ============ -->
+  <div class="screen hidden" id="scanner-screen">
+    <div class="scan-top">
+      <div class="svc-label">Scan boarding pass for</div>
+      <div class="svc-name" id="scan-service-name">Service</div>
+    </div>
+
+    <div id="camera-view-container"></div>
+
+    <div class="scan-hint">
+      <span class="dot"></span>
+      <span>Point at the barcode on your boarding pass</span>
+    </div>
+
+    <div class="scan-actions">
+      <button class="back-btn" id="scan-back-btn" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <button class="scan-btn" id="file-btn" title="Upload image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </button>
+      <input type="file" id="file-input" accept="image/*" style="display:none">
+    </div>
+  </div>
+
+  <!-- ============ RESULT ============ -->
+  <div class="screen hidden" id="result-screen">
+    <div class="result-status">
+      <div class="badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <span id="result-status-text">Verified</span>
+      </div>
+      <h2 id="result-service-title">Service</h2>
+    </div>
+
+    <div class="boarding-pass">
+      <div class="bp-header">
+        <div class="route"><span id="bp-from">---</span><span class="arrow">→</span><span id="bp-to">---</span></div>
+        <div class="flight" id="bp-flight">-- ----</div>
+      </div>
+      <div class="bp-body">
+        <div class="bp-passenger">
+          <div class="label">Passenger</div>
+          <div class="name" id="bp-name">---</div>
+        </div>
+        <div class="bp-grid">
+          <div class="bp-cell"><div class="label">Date</div><div class="value" id="bp-date">---</div></div>
+          <div class="bp-cell"><div class="label">Seat</div><div class="value" id="bp-seat">---</div></div>
+          <div class="bp-cell"><div class="label">Class</div><div class="value" id="bp-class">---</div></div>
+          <div class="bp-cell"><div class="label">Status</div><div class="value" id="bp-status">---</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Access Free Wifi -->
+    <div class="svc-result" id="svc-wifi">
+      <div class="svc-result-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0b62ff" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        Free Wifi Access
+      </div>
+      <div class="kv-row"><span class="k">Network (SSID)</span><span class="v" id="wifi-ssid">SKYPORT-FREE</span></div>
+      <div class="kv-row"><span class="k">Password</span><span class="v" id="wifi-pass">---</span></div>
+      <div class="kv-row"><span class="k">Session</span><span class="v" id="wifi-session">2 hours</span></div>
+    </div>
+
+    <!-- Access Lounge -->
+    <div class="svc-result" id="svc-lounge">
+      <div class="svc-result-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f5a800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18"/><path d="M5 18V9a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v9"/><path d="M13 12h4a2 2 0 0 1 2 2v4"/></svg>
+        Lounge Access
+      </div>
+      <div class="kv-row"><span class="k">Lounge</span><span class="v" id="lounge-name">Skyport Business Lounge</span></div>
+      <div class="kv-row"><span class="k">Access</span><span class="v" id="lounge-access">Granted</span></div>
+      <div class="kv-row"><span class="k">Valid until</span><span class="v" id="lounge-until">Boarding time</span></div>
+    </div>
+
+    <!-- Self Baggage Drop -->
+    <div class="svc-result" id="svc-baggage">
+      <div class="svc-result-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M4 12h16"/></svg>
+        Self Baggage Drop
+      </div>
+      <div class="kv-row"><span class="k">Counter</span><span class="v" id="bag-counter">B12</span></div>
+      <div class="kv-row"><span class="k">Bags allowed</span><span class="v" id="bag-count">2</span></div>
+      <div class="kv-row"><span class="k">Tag reference</span><span class="v" id="bag-tag">---</span></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn btn-ghost" id="result-home-btn">Home</button>
+      <button class="btn btn-primary" id="result-again-btn">Scan Again</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading-overlay" class="hidden">
+    <div class="spinner"></div>
+    <div id="loading-text">Initializing boarding pass scanner...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11.6.2100/dist/dbr.bundle.js"></script>
+  <script>
+    // ---------------------------------------------------------------------
+    //  License & WASM preload
+    // ---------------------------------------------------------------------
+    Dynamsoft.License.LicenseManager.initLicense(
+      "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0="
+    );
+    Dynamsoft.Core.CoreModule.loadWasm();
+
+    // ---------------------------------------------------------------------
+    //  DOM references
+    // ---------------------------------------------------------------------
+    const $ = (id) => document.getElementById(id);
+    const homeScreen = $("home-screen");
+    const scannerScreen = $("scanner-screen");
+    const resultScreen = $("result-screen");
+    const loadingOverlay = $("loading-overlay");
+    const loadingText = $("loading-text");
+
+    // ---------------------------------------------------------------------
+    //  State
+    // ---------------------------------------------------------------------
+    let cameraView, cameraEnhancer, cvRouter;
+    let initPromise = null;
+    let currentService = null;
+    let lastBarcode = "";
+
+    const SERVICE_LABELS = {
+      wifi: "Access Free Wifi",
+      lounge: "Access Lounge",
+      baggage: "Self Baggage Drop",
+    };
+
+    // ---------------------------------------------------------------------
+    //  BCBP (IATA Bar Coded Boarding Pass) parser
+    //  Reference: IATA Resolution 792 — mandatory fields (58 chars)
+    // ---------------------------------------------------------------------
+    function parseBCBP(raw) {
+      if (!raw || raw.length < 58) return null;
+      const s = raw;
+      let i = 0;
+
+      const formatCode = s[i++];            // "M"
+      const numLegs = s[i++];               // number of legs
+      const passengerName = s.substr(i, 20).trim(); i += 20;
+      const eTicket = s[i++];               // "E" or " "
+      const pnr = s.substr(i, 7).trim(); i += 7;
+      const fromCity = s.substr(i, 3).trim(); i += 3;
+      const toCity = s.substr(i, 3).trim(); i += 3;
+      const carrier = s.substr(i, 3).trim(); i += 3;
+      const flightNumber = s.substr(i, 5).trim(); i += 5;
+      const julianDate = s.substr(i, 3); i += 3;
+      const compartment = s[i++];           // F/J/C/W/Y...
+      const seat = s.substr(i, 4).trim(); i += 4;
+      const seq = s.substr(i, 5).trim(); i += 5;
+      const passengerStatus = s[i++];       // 0-8
+
+      // Passenger name is SURNAME/FIRSTNAME (spaces as padding)
+      const nameParts = passengerName.split("/");
+      const surname = (nameParts[0] || "").replace(/\s+/g, " ").trim();
+      const givenName = (nameParts[1] || "").replace(/\s+/g, " ").trim();
+      const fullName = [surname, givenName].filter(Boolean).join(" ");
+
+      return {
+        formatCode,
+        numLegs,
+        passengerName: fullName || passengerName,
+        surname, givenName,
+        eTicket,
+        pnr,
+        fromCity,
+        toCity,
+        carrier,
+        flightNumber,
+        flightCode: carrier + " " + flightNumber,
+        julianDate,
+        date: julianToDate(julianDate),
+        compartment,
+        cabin: cabinName(compartment),
+        seat,
+        seq,
+        passengerStatus,
+        status: passengerStatusName(passengerStatus),
+      };
+    }
+
+    function julianToDate(jd) {
+      const day = parseInt(jd, 10);
+      if (isNaN(day) || day < 1 || day > 366) return jd || "---";
+      const now = new Date();
+      const year = now.getFullYear();
+      const base = new Date(year, 0, 1); // Jan 1
+      const date = new Date(base.getTime() + (day - 1) * 86400000);
+      return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    }
+
+    function cabinName(code) {
+      switch ((code || "").toUpperCase()) {
+        case "F": case "P": return "First Class";
+        case "J": case "C": return "Business Class";
+        case "W": return "Premium Economy";
+        case "Y": case "M": case "B": case "H": case "K": case "L": return "Economy";
+        default: return code || "---";
+      }
+    }
+
+    function passengerStatusName(code) {
+      switch (code) {
+        case "0": return "Not checked in";
+        case "1": return "Checked in";
+        case "2": return "Baggage checked";
+        case "3": return "Security passed";
+        case "4": return "Passport cleared";
+        case "5": return "At gate";
+        case "6": return "Boarding";
+        case "7": return "Board complete";
+        default: return "Checked in";
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    //  Engine init
+    // ---------------------------------------------------------------------
+    function initEngine() {
+      if (!initPromise) {
+        initPromise = (async () => {
+          loadingText.textContent = "Setting up camera...";
+          cameraView = await Dynamsoft.DCE.CameraView.createInstance("@engineResourcePath/ui/dce.ui.v5.xml");
+          cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
+          $("camera-view-container").appendChild(cameraView.getUIElement());
+
+          loadingText.textContent = "Loading recognition engine...";
+          cvRouter = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+          cameraView.setVideoFit("cover");
+          cameraView.setScanLaserVisible(false);
+
+          cvRouter.setInput(cameraEnhancer);
+
+          loadingText.textContent = "Loading boarding pass template...";
+          await cvRouter.initSettings("./read_bcbp.json");
+
+          // Cross-frame filtering for barcode results
+          const filter = new Dynamsoft.Utility.MultiFrameResultCrossFilter();
+          filter.enableResultCrossVerification("barcode", true);
+          filter.enableResultDeduplication("barcode", true);
+          await cvRouter.addResultFilter(filter);
+
+          const receiver = new Dynamsoft.CVR.CapturedResultReceiver();
+          receiver.onDecodedBarcodesReceived = onBarcodesReceived;
+          await cvRouter.addResultReceiver(receiver);
+
+          return true;
+        })();
+      }
+      return initPromise;
+    }
+
+    function onBarcodesReceived(result) {
+      const items = result.barcodeResultItems;
+      if (!items || !items.length) return;
+      const text = (items[0].text || "").replace(/\n/g, "");
+      if (!text || text === lastBarcode) return;
+      lastBarcode = text;
+      showResult(text);
+    }
+
+    // ---------------------------------------------------------------------
+    //  Screen navigation
+    // ---------------------------------------------------------------------
+    function showScreen(screen) {
+      [homeScreen, scannerScreen, resultScreen].forEach((s) => s.classList.add("hidden"));
+      screen.classList.remove("hidden");
+    }
+
+    async function startScanning(service) {
+      currentService = service;
+      $("scan-service-name").textContent = SERVICE_LABELS[service] || "";
+      lastBarcode = "";
+
+      try {
+        // If the engine isn't ready yet, show a blocking overlay only while we wait.
+        if (!cvRouter) {
+          loadingText.textContent = "Initializing boarding pass scanner...";
+          loadingOverlay.classList.remove("hidden");
+        }
+        await initEngine();
+        loadingOverlay.classList.add("hidden");
+
+        showScreen(scannerScreen);
+
+        if (cameraEnhancer.isOpen()) {
+          await cvRouter.stopCapturing();
+          await cameraEnhancer.close();
+          await cameraView.clearAllInnerDrawingItems();
+        }
+        await cameraEnhancer.open();
+        await cvRouter.startCapturing("ReadBCBP");
+        cameraEnhancer.setPixelFormat(Dynamsoft.Core.EnumImagePixelFormat.IPF_ABGR_8888);
+      } catch (ex) {
+        loadingOverlay.classList.add("hidden");
+        console.error(ex);
+        alert("Failed to start scanner: " + (ex.message || ex));
+      }
+    }
+
+    async function stopScanner() {
+      if (cvRouter && cameraEnhancer && cameraEnhancer.isOpen()) {
+        try {
+          await cvRouter.stopCapturing();
+          await cameraEnhancer.close();
+        } catch (e) { /* ignore */ }
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    //  Result rendering
+    // ---------------------------------------------------------------------
+    function showResult(rawText) {
+      const bp = parseBCBP(rawText);
+      stopScanner();
+
+      if (!bp) {
+        // Not a valid BCBP — still surface what we got
+        $("bp-from").textContent = "---";
+        $("bp-to").textContent = "---";
+        $("bp-flight").textContent = "Barcode";
+        $("bp-name").textContent = rawText || "Unknown";
+        $("bp-date").textContent = "---";
+        $("bp-seat").textContent = "---";
+        $("bp-class").textContent = "---";
+        $("bp-status").textContent = "---";
+      } else {
+        $("bp-from").textContent = bp.fromCity;
+        $("bp-to").textContent = bp.toCity;
+        $("bp-flight").textContent = bp.flightCode;
+        $("bp-name").textContent = bp.passengerName;
+        $("bp-date").textContent = bp.date;
+        $("bp-seat").textContent = bp.seat;
+        $("bp-class").textContent = bp.cabin;
+        $("bp-status").textContent = bp.status;
+      }
+
+      // Service-specific results
+      ["wifi", "lounge", "baggage"].forEach((s) => $("svc-" + s).classList.remove("show"));
+      if (currentService) $("svc-" + currentService).classList.add("show");
+
+      // Deterministic pseudo-creds derived from the boarding pass
+      const seed = (bp && bp.pnr + bp.flightCode) || rawText || "SKYPORT";
+      const wifiPass = "SKY-" + hashToCode(seed) + "-" + (bp ? bp.seat : "FREE");
+      const bagTag = "SK" + hashToCode(seed) + "-" + (bp ? (bp.seq || "00") : "00");
+
+      $("wifi-pass").textContent = wifiPass;
+      $("bag-tag").textContent = bagTag;
+      $("bag-count").textContent = (bp && bp.compartment && /[FJCP]/.test(bp.compartment.toUpperCase())) ? "3" : "2";
+      $("lounge-access").textContent = (bp && bp.compartment && /[FJCP]/.test(bp.compartment.toUpperCase())) ? "Premium" : "Standard";
+
+      $("result-service-title").textContent = SERVICE_LABELS[currentService] || "Service";
+      $("result-status-text").textContent = "Verified";
+
+      showScreen(resultScreen);
+    }
+
+    function hashToCode(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+      return h.toString(36).toUpperCase().padStart(5, "0").slice(0, 5);
+    }
+
+    // ---------------------------------------------------------------------
+    //  Image file input
+    // ---------------------------------------------------------------------
+    $("file-input").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        await initEngine();
+        await stopScanner();
+        const dataUrl = await new Promise((res) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.readAsDataURL(file);
+        });
+        const result = await cvRouter.capture(dataUrl, "ReadBCBP");
+        const items = result.decodedBarcodesResult?.barcodeResultItems;
+        if (items && items.length) {
+          lastBarcode = items[0].text.replace(/\n/g, "");
+          showResult(lastBarcode);
+        } else {
+          alert("No boarding pass barcode found in this image. Try another image.");
+        }
+      } catch (ex) {
+        console.error(ex);
+        alert("Error reading image: " + (ex.message || ex));
+      }
+      e.target.value = "";
+    });
+
+    // ---------------------------------------------------------------------
+    //  Event wiring
+    // ---------------------------------------------------------------------
+    document.querySelectorAll(".menu-card").forEach((card) => {
+      card.addEventListener("click", () => startScanning(card.dataset.service));
+    });
+
+    $("scan-back-btn").addEventListener("click", async () => {
+      await stopScanner();
+      showScreen(homeScreen);
+    });
+
+    $("file-btn").addEventListener("click", () => $("file-input").click());
+
+    $("result-home-btn").addEventListener("click", async () => {
+      await stopScanner();
+      showScreen(homeScreen);
+    });
+
+    $("result-again-btn").addEventListener("click", () => startScanning(currentService));
+
+    // ---------------------------------------------------------------------
+    //  Boot — pre-warm the engine in the background so the home page never blocks.
+    // ---------------------------------------------------------------------
+    initEngine().catch((ex) => {
+      console.error(ex);
+    });
+  </script>
+</body>
+</html>
