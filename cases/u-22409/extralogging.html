@@ -144,9 +144,9 @@
         try {
           const { cvRouter } = await pInit;
 
-          await cvRouter.initSettings("./ReadOneDIndustrial.json");
+          await cvRouter.initSettings("./ReadCommon1DAnd2D.json");
 
-          const result = await cvRouter.capture(file, "ReadOneDIndustrial");
+          const result = await cvRouter.capture(file, "ReadCommon1DAnd2D");
 
           const endTime = new Date();
 
