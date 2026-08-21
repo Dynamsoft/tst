@@ -194,9 +194,9 @@
       ObjString.push('<img style="margin: 0px ' + marginRight + ' 0px 0px" src="' + imagesInBase64.icn_download + '" alt="下载" />');
       ObjString.push('<img style="margin: 2px ' + marginRight + ' 2px 0px" src="' + imagesInBase64.icn_install + '" alt="安装" />');
       ObjString.push('<img src="' + imagesInBase64.icn_scan + '" alt="扫描" />');
-      ObjString.push('<div><span class="dynamsoft-dwt-installdlg-text" style="right: 160px">下载</span>');
-      ObjString.push('<span class="dynamsoft-dwt-installdlg-text" style="right: 18px">安装</span>');
-      ObjString.push('<span class="dynamsoft-dwt-installdlg-text" style="left: 140px">扫描</span>');
+      ObjString.push('<div><span class="dynamsoft-dwt-installdlg-text" style="right: 165px">下载</span>');
+      ObjString.push('<span class="dynamsoft-dwt-installdlg-text" style="right: -1px">安装</span>');
+      ObjString.push('<span class="dynamsoft-dwt-installdlg-text" style="left: 166px">扫描</span>');
       ObjString.push('</div>');
       ObjString.push('</div>');
 
