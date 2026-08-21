@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic Web TWAIN SDK v19.4.2 — Resources</title>
+<style>
+  :root {
+    --brand: #fe8e14;
+    --brand-dim: #fe8e1422;
+    --ink: #1a1a2e;
+    --ink-secondary: #555568;
+    --surface: #ffffff;
+    --surface-alt: #f8f8fb;
+    --border: #e2e2ea;
+    --radius: 6px;
+    --code-bg: #f0eff4;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8e8ee;
+      --ink-secondary: #9a9aae;
+      --surface: #16161e;
+      --surface-alt: #1c1c26;
+      --border: #2c2c3a;
+      --code-bg: #22222e;
+      --brand-dim: #fe8e1418;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink);
+    background: var(--surface);
+    padding: 3rem 1.5rem 5rem;
+    max-width: 1024px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- header ---- */
+  .header { margin-bottom: 2.8rem; }
+  .header .logo-line {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .35rem;
+  }
+  .header h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .header .subtitle {
+    color: var(--ink-secondary);
+    font-size: .92rem;
+    margin-top: .15rem;
+  }
+  .header .meta {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    font-size: .82rem;
+    color: var(--ink-secondary);
+  }
+  .header .meta span { display: inline-flex; align-items: center; gap: .3rem; }
+  .header .meta .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+    display: inline-block;
+  }
+
+  /* ---- quick start ---- */
+  .quickstart {
+    background: var(--brand-dim);
+    border-left: 3px solid var(--brand);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 2.6rem;
+    font-size: .9rem;
+  }
+  .quickstart strong { color: var(--brand); font-weight: 600; }
+  .quickstart ol {
+    margin: .5rem 0 0 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+  }
+  code {
+    background: var(--code-bg);
+    padding: .1em .35em;
+    border-radius: 3px;
+    font-size: .88em;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  }
+
+  /* ---- section ---- */
+  section { margin-bottom: 2.4rem; }
+  section h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-secondary);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .4rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ---- tables ---- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+  }
+  thead th {
+    text-align: left;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-secondary);
+    padding: .45rem .75rem;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: .6rem .75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-alt); }
+
+  .fname {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: .85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .fdesc {
+    color: var(--ink-secondary);
+    font-size: .85rem;
+  }
+
+  /* ---- tags ---- */
+  .tag {
+    display: inline-block;
+    font-size: .68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: .15em .5em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .tag-config { background: #fff3cd; color: #856404; }
+  .tag-core   { background: #dbeafe; color: #1e40af; }
+  .tag-addon  { background: #ede9fe; color: #5b21b6; }
+  .tag-ui     { background: #d1fae5; color: #065f46; }
+  @media (prefers-color-scheme: dark) {
+    .tag-config { background: #473a1a; color: #fcd34d; }
+    .tag-core   { background: #1e3a5f; color: #93c5fd; }
+    .tag-addon  { background: #2e1065; color: #c4b5fd; }
+    .tag-ui     { background: #064e3b; color: #6ee7b7; }
+  }
+
+  /* ---- installer table ---- */
+  .installer-table .os {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .installer-table .pkg {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: .82rem;
+    word-break: break-all;
+  }
+
+  /* ---- links ---- */
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: .3rem;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .85rem;
+    color: var(--brand);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: .4rem .8rem;
+    border-radius: var(--radius);
+    transition: background .15s, border-color .15s;
+  }
+  .links a:hover {
+    background: var(--brand-dim);
+    border-color: var(--brand);
+  }
+
+  /* ---- footer ---- */
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    font-size: .8rem;
+    color: var(--ink-secondary);
+  }
+
+  /* ---- responsive ---- */
+  @media (max-width: 600px) {
+    body { padding: 1.5rem 1rem 3rem; }
+    .fname { white-space: normal; word-break: break-all; }
+    thead th:nth-child(3), tbody td:nth-child(3) { display: none; }
+  }
+  
+  #resources {
+    text-decoration: none;
+    color: inherit;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="logo-line">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDY3IDc5LjE1Nzc0NywgMjAxNS8wMy8zMC0yMzo0MDo0MiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTUgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6N0EwRDVDRTYzRTAyMTFFNzk4NERGOUM4QzM1OTRBNDciIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6N0EwRDVDRTczRTAyMTFFNzk4NERGOUM4QzM1OTRBNDciPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo3QTBENUNFNDNFMDIxMUU3OTg0REY5QzhDMzU5NEE0NyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo3QTBENUNFNTNFMDIxMUU3OTg0REY5QzhDMzU5NEE0NyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PgbiAUUAAAdgSURBVHja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" alt="Dynamsoft Logo" width="28" height="28">
+    <h1>Dynamic Web TWAIN SDK</h1>
+  </div>
+  <p class="subtitle">Resources folder reference &amp; quick-start guide</p>
+  <div class="meta">
+    <span><span class="dot"></span> Version 19.4.2</span>
+    <span>Updated 2026-07-28</span>
+    <span>Product: Dynamic Web TWAIN</span>
+  </div>
+</header>
+
+<!-- ============ QUICK START ============ -->
+<div class="quickstart">
+  <strong>⚡ Quick Start</strong>
+  <ol>
+    <li>Copy <a id="resources"><code>Resources</code></a> to your project directory.</li>
+    <li>Open <code>dynamsoft.webtwain.config.js</code> and enter your license key.</li>
+    <li>Include <code>dynamsoft.webtwain.initiate.js</code> and <code>dynamsoft.webtwain.config.js</code> in your HTML page.</li>
+    <li>Modify the HTML page to use the SDK for document scanning.</li>
+    <li>Open your page in a browser — the SDK will prompt to install the service if needed.</li>
+  </ol>
+</div>
+
+<!-- ============ JAVASCRIPT LIBRARIES ============ -->
+<section>
+  <h2>JavaScript Libraries</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Description</th>
+        <th style="width:70px;">Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="fname">dynamsoft.webtwain.config.js</td>
+        <td class="fdesc">Basic configuration — license key, initial viewer size, startup settings. <em>Edit this file.</em></td>
+        <td><span class="tag tag-config">Config</span></td>
+      </tr>
+      <tr>
+        <td class="fname">dynamsoft.webtwain.initiate.js</td>
+        <td class="fdesc">Core library entry point. Do not modify.</td>
+        <td><span class="tag tag-core">Core</span></td>
+      </tr>
+      <tr>
+        <td class="fname">dynamsoft.webtwain.install.js</td>
+        <td class="fdesc">Service-installation &amp; upgrade dialogs. Auto-referenced by <code>initiate.js</code>.</td>
+        <td><span class="tag tag-core">Core</span></td>
+      </tr>
+      <tr>
+        <td class="fname">src/dynamsoft.lts.js</td>
+        <td class="fdesc">Dynamsoft License Server communication module.</td>
+        <td><span class="tag tag-core">Core</span></td>
+      </tr>
+      <tr>
+        <td class="fname">src/dynamsoft.webtwain.viewer.js<br>src/dynamsoft.webtwain.viewer.css</td>
+        <td class="fdesc">Viewer component — scanning interface and image display.</td>
+        <td><span class="tag tag-ui">UI</span></td>
+      </tr>
+      <tr>
+        <td class="fname">src/dynamsoft.webtwain.css</td>
+        <td class="fdesc">General style definitions for HTML elements created by the SDK.</td>
+        <td><span class="tag tag-ui">UI</span></td>
+      </tr>
+      <tr>
+        <td class="fname">addon/dynamsoft.webtwain.addon.barcodereader.js</td>
+        <td class="fdesc">Barcode Reader — detect and decode barcodes in scanned images.</td>
+        <td><span class="tag tag-addon">Add-on</span></td>
+      </tr>
+      <tr>
+        <td class="fname">addon/dynamsoft.webtwain.addon.pdf.js</td>
+        <td class="fdesc">PDF Rasterizer — render and convert PDF pages.</td>
+        <td><span class="tag tag-addon">Add-on</span></td>
+      </tr>
+      <tr>
+        <td class="fname">addon/dynamsoft.webtwain.addon.webcam.js</td>
+        <td class="fdesc">Webcam Capture — acquire images from webcams.</td>
+        <td><span class="tag tag-addon">Add-on</span></td>
+      </tr>
+      <tr>
+        <td class="fname">addon/dynamsoft.upload.js</td>
+        <td class="fdesc">Upload Module — handles HTTP file uploads to your server.</td>
+        <td><span class="tag tag-addon">Add-on</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ SERVICE INSTALLERS ============ -->
+<section>
+  <h2>Service Installers <span style="font-size:.78rem; font-weight:400; text-transform:none; letter-spacing:0;">(dist/)</span></h2>
+  <p style="color:var(--ink-secondary); font-size:.88rem; margin-bottom:.75rem;">
+    End-user installers for the <strong>Dynamic Web TWAIN Service</strong> — required on each client machine.
+  </p>
+  <table class="installer-table">
+    <thead>
+      <tr>
+        <th style="width:160px;">Platform</th>
+        <th>Installer</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="os">Windows</td>
+        <td class="pkg">DynamicWebTWAINServiceSetup.msi</td>
+      </tr>
+      <tr>
+        <td class="os">macOS</td>
+        <td class="pkg">DynamicWebTWAINServiceSetup.pkg</td>
+      </tr>
+      <tr>
+        <td class="os">Linux (RPM)</td>
+        <td class="pkg">DynamicWebTWAINServiceSetup.rpm</td>
+      </tr>
+      <tr>
+        <td class="os">Linux (Debian x64)</td>
+        <td class="pkg">DynamicWebTWAINServiceSetup.deb</td>
+      </tr>
+      <tr>
+        <td class="os">Linux (Debian ARM64)</td>
+        <td class="pkg">DynamicWebTWAINServiceSetup-arm64.deb</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="color:var(--ink-secondary); font-size:.82rem; margin-top:.6rem;">
+    A <code>LICENSE</code> file is also included in <code>dist/</code>.
+  </p>
+   <p style="color:var(--ink-secondary); font-size:.85rem; margin-top:.5rem;">
+    If your users lack administrative privileges for installation, or if they are running on a special CPU architecture (e.g., MIPS), visit <a href="https://github.com/Dynamsoft/Dynamic-Web-TWAIN/releases" target="_blank" rel="noopener" style="color:var(--brand);">this page</a> to obtain a suitable installer. <a href="https://www.dynamsoft.com/company/contact/" target="_blank" rel="noopener" style="color:var(--brand);">Contact us</a> if it still cannot meet your environment's requirements.
+  </p>
+</section>
+
+<!-- ============ USEFUL LINKS ============ -->
+<section>
+  <h2>Useful Links</h2>
+  <div class="links">
+    <a href="https://www.dynamsoft.com/web-twain/docs/introduction/index.html" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1H3zm2 3h6v1H5V5zm0 3h6v1H5V8zm0 3h4v1H5v-1z"/></svg>
+      Documentation
+    </a>
+    <a href="https://www.dynamsoft.com/web-twain/docs/faq/" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.9 4.3a.9.9 0 111.8 0c0 .7-.9 1-1 1.7H8.5c.1-.9 1.2-1.1 1.2-2a1.5 1.5 0 00-3 0h.8zM8 11.5a.6.6 0 110-1.2.6.6 0 010 1.2z"/></svg>
+      FAQ
+    </a>    
+    <a href="https://www.dynamsoft.com/company/contact/" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v5a2 2 0 01-2 2H5l-3 3V4z"/></svg>
+      Contact Support
+    </a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  &copy; Dynamsoft Corporation. All rights reserved.
+</footer>
+<script>
+function getParentPath(path, levels = 1) {
+    let result = path;
+    for (let i = 0; i < levels; i++) {
+        const lastSlash = result.lastIndexOf('/', result.length - 2);
+        if (lastSlash <= 8) break;
+        result = result.substring(0, lastSlash + 1);
+    }
+    return result;
+}
+window.onload = function(){    
+    document.getElementById("resources").href = getParentPath(window.location.href, 2);
+}
+</script>
+</body>
+</html>
