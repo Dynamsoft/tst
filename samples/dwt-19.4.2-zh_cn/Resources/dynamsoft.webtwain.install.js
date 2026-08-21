@@ -210,8 +210,8 @@
           harmonyOS = Dynamsoft.navInfoSync.bHarmonyOS;
 
         if (arm64 || mips64 || chromeOS || harmonyOS) { } else {
-          ObjString.push('<div><input id="dwt-install-url-deb" name="dwt-install-url" type="radio" onclick="Dynamsoft._dwt_change_install_url(\'' + objInstallerUrl.deb + '\')" checked="checked" /><label for="dwt-install-url-deb">64 位 .deb（适用于 Ubuntu/Debian）</label></div>');
-          ObjString.push('<div><input id="dwt-install-url-rpm" name="dwt-install-url" type="radio" onclick="Dynamsoft._dwt_change_install_url(\'' + objInstallerUrl.rpm + '\')" /><label for="dwt-install-url-rpm">64 位 .rpm（适用于 Fedora）</label></div>');
+          ObjString.push('<div><input id="dwt-install-url-deb" name="dwt-install-url" type="radio" onclick="Dynamsoft._dwt_change_install_url(\'' + objInstallerUrl.deb + '\')" checked="checked" /><label for="dwt-install-url-deb">64 位 .deb（适用于Debian、统信桌面版和银河麒麟等）</label></div>');
+          ObjString.push('<div><input id="dwt-install-url-rpm" name="dwt-install-url" type="radio" onclick="Dynamsoft._dwt_change_install_url(\'' + objInstallerUrl.rpm + '\')" /><label for="dwt-install-url-rpm">64 位 .rpm（适用于 Fedora 和 CentOS 等）</label></div>');
         }
         ObjString.push('</div></div>');
       }
@@ -245,7 +245,7 @@
 
           if (bUnix) {
             ObjString.push('<div class="dynamsoft-dwt-dlg-red">');
-            ObjString.push('安装完成后，请<strong>' + browserActionNeeded + '</strong>您的浏览器。 ');
+            ObjString.push('如果仍然无法连接，请<strong>' + browserActionNeeded + '</strong>您的浏览器。 ');
             ObjString.push('</div>');
           }
 
@@ -309,7 +309,7 @@
         newDiv.setAttribute("html5", "1");
         pel.removeChild(el);
         pel.appendChild(newDiv);
-        newButton.textContent = "验证";
+        newButton.textContent = "我已安装";
         newButton.onclick = function(){
           Dynamsoft._dcp_dwt_onclickInstallButton();
         }
