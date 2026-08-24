@@ -160,7 +160,7 @@
         title = '更新您的附件影像扫描助手';
     }
     else
-      title = '下载附件影像扫描助手';
+      title = '附件影像扫描助手';
     // subTitle = '请按照以下步骤在浏览器中启用扫描功能';
     subTitle = '';
     ObjString = [
