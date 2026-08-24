@@ -155,12 +155,12 @@
     // npm file mode
     if (bNeedUpgrade) {
       if(parseFloat(serviceVer) < parseFloat(expectedVer))
-        title = '升级您的文档扫描服务'; //'Please follow the steps below to upgrade your local document scanning service.';
+        title = '升级您的附件影像扫描助手'; //'Please follow the steps below to upgrade your local document scanning service.';
       else
-        title = '更新您的 Dynamic Web TWAIN 服务';
+        title = '更新您的附件影像扫描助手';
     }
     else
-      title = '下载 Dynamic Web TWAIN 服务';
+      title = '下载附件影像扫描助手';
     subTitle = '请按照以下步骤在浏览器中启用扫描功能';
     ObjString = [
       '<div class="dynamsoft-dwt-dlg-title">',
@@ -229,7 +229,7 @@
       if (bHTML5) {
         if (bIE) {
           ObjString.push('<div class="dynamsoft-dwt-dlg-tail" style="text-align:left; padding-left: 80px">');
-          ObjString.push('如果安装 Dynamic Web TWAIN 服务后仍然看到此对话框，请<br />');
+          ObjString.push('如果安装附件影像扫描助手后仍然看到此对话框，请<br />');
           ObjString.push('1. 将网站添加到受信任站点区域。<br />');
           ObjString.push('IE | 工具 | Internet 选项 | 安全 | 受信任的站点。<br />');
           ObjString.push('2. 刷新您的浏览器。');
@@ -293,7 +293,7 @@
 
     var divTitle = Dynamsoft.Lib.one('.dynamsoft-dwt-dlg-title');
     if (divTitle) {
-      divTitle.html('安装 Dynamic Web TWAIN 服务');
+      divTitle.html('安装附件影像扫描助手');
     }
 
     var el = document.getElementById('dwt-btn-install');
