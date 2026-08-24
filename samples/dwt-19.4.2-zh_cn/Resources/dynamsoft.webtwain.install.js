@@ -183,21 +183,14 @@
       }
       ObjString.push('<div class="dynamsoft-dwt-installdlg-iconholder"> ');
 
-      var left = "134px";
-      if(bFirefox) left = "135px";
-      ObjString.push('<div class="dynamsoft-dwt-installdlg-splitline" style="left:'+left+'"></div>');
-      left = "328px";
-      if(bFirefox) left = "329px";
-      ObjString.push('<div class="dynamsoft-dwt-installdlg-splitline" style="left:'+left+'"></div>');
-
-      var marginRight = '133px';
-
-      ObjString.push('<img style="margin: 0px ' + marginRight + ' 0px 0px" src="' + imagesInBase64.icn_download + '" alt="下载" />');
-      ObjString.push('<img style="margin: 2px ' + marginRight + ' 2px 0px" src="' + imagesInBase64.icn_install + '" alt="安装" />');
-      ObjString.push('<img src="' + imagesInBase64.icn_scan + '" alt="扫描" />');
-      ObjString.push('<div><span class="dynamsoft-dwt-installdlg-text" style="right: 165px">下载</span>');
-      ObjString.push('<span class="dynamsoft-dwt-installdlg-text" style="right: -1px">安装</span>');
-      ObjString.push('<span class="dynamsoft-dwt-installdlg-text" style="left: 166px">扫描</span>');
+      ObjString.push('<div style="display:inline-block; vertical-align:top; text-align:center;">');
+      ObjString.push('<img src="' + imagesInBase64.icn_download + '" alt="下载" />');
+      ObjString.push('<div class="dynamsoft-dwt-installdlg-text">下载</div>');
+      ObjString.push('</div>');
+      ObjString.push('<div class="dynamsoft-dwt-installdlg-splitline" style="display:inline-block; vertical-align:top;"></div>');
+      ObjString.push('<div style="display:inline-block; vertical-align:top; text-align:center;">');
+      ObjString.push('<img style="margin: 2px 0" src="' + imagesInBase64.icn_install + '" alt="安装" />');
+      ObjString.push('<div class="dynamsoft-dwt-installdlg-text">安装</div>');
       ObjString.push('</div>');
       ObjString.push('</div>');
 
