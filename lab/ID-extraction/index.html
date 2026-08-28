@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta name="description" content="Instantly Read PDF417 barcodes on Driver Licenses with Dynamsoft Barcode Reader." />
+  <meta name="keywords" content="read driver license barcode" />
+  <title>Dynamsoft Capture Vision Sample - Read a Driver's License Passport and ID</title>
+  <link rel="stylesheet" href="./index.css" />
+</head>
+
+<body>
+  <div class="home-page">
+    <h1 class="home-page-title">Read a Driver's License Passport and ID</h1>
+    <div class="start-btn">
+      <div class="start-icon"></div>
+      <div class="loading"></div>
+
+    </div>
+    <img class="logo-dynamsoft" src="./logo-dynamsoft.png" alt="logo-dynamsoft">
+  </div>
+  <div class="barcode-scanner-view"></div>
+  <div class="parsed-result-view">
+    <div class="barcode-text"></div>
+    <ul class="parsed-result-list"></ul>
+    <div class="back-to-scan" style="cursor: pointer;">Back to Scan</div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-bundle@3.6.3000/dist/dcv.bundle.js"></script>
+  <!-- If the network is unstable or you prefer to self-host the SDK, uncomment the line below to load it locally -->
+  <!-- <script src="../../../dist/dbr.bundle.js"></script> -->
+  <script>
+    const parsedResultView = document.querySelector(".parsed-result-view");
+    const homePage = document.querySelector(".home-page");
+    const startIcon = document.querySelector(".start-icon");
+    const startBtn = document.querySelector(".start-btn");
+    const loading = document.querySelector(".loading");
+    const barcodeText = document.querySelector(".barcode-text");
+    const parsedResultList = document.querySelector(".parsed-result-list");
+    const backToScan = document.querySelector(".back-to-scan");
+    const barcodeScannerView = document.querySelector(".barcode-scanner-view");
+
+    Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9");
+    Dynamsoft.DCP.CodeParserModule.loadSpec(["AAMVA_DL_ID", "SOUTH_AFRICA_DL","MRTD"]);
+
+    let cameraView, cameraEnhancer, cvRouter, parser;
+    let pInit = (async function () {
+      try {
+        cameraView = await Dynamsoft.DCE.CameraView.createInstance();
+        cameraEnhancer = await Dynamsoft.DCE.CameraEnhancer.createInstance(cameraView);
+        cvRouter = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+
+        let region = {
+          "left": 0.2,
+          "right": 99.8,
+          "top": 25,
+          "bottom": 75,
+          "isMeasuredInPercentage": true
+        };
+        cameraEnhancer.setScanRegion(region);
+        // cameraView.setVideoFit("cover");
+        // cameraView.setScanRegionMaskVisible(false);
+        cvRouter.setInput(cameraEnhancer);
+
+        const resultReceiver = new Dynamsoft.CVR.CapturedResultReceiver();
+        resultReceiver.onCapturedResultReceived = async (result) => {
+          const itemList = Array.isArray(result.items) ? result.items : [];
+          const barcodeItems = result.decodedBarcodesResult?.barcodeResultItems
+            || result.barcodeResultItems
+            || itemList.filter((item) => item.type === 2);
+          const textLineItems = result.recognizedTextLinesResult?.textLineResultItems
+            || result.textLineResultItems
+            || itemList.filter((item) => item.type === 4);
+          if (barcodeItems.length === 0 && textLineItems.length === 0) {
+            return;
+          }
+
+          let processedResult = [];
+          let originalText = "";
+          try {
+            if (barcodeItems.length > 0) {
+              parser = parser || await Dynamsoft.DCP.CodeParser.createInstance();
+              const parsedResult = await parser.parse(barcodeItems[0].bytes);
+              processedResult = handleDLResult(parsedResult);
+              originalText = barcodeItems[0].text || "";
+            } else {
+              // NOTE: the LabelRecognizer settings use ConcatResults=1, so a single
+              // TextLineResultItem's `text` already contains all physical MRZ lines
+              // joined with "\n" (its `rawText` has no such separator). Rebuild the
+              // MRZ source from `text` first, then re-split on "\n" to recover the
+              // individual lines instead of relying on `textLineItems.length`.
+              originalText = textLineItems
+                .map((item) => (item.text || item.rawText || "").trim())
+                .filter(Boolean)
+                .join("\n");
+
+              const mrzLines = originalText
+                .split("\n")
+                .map((line) => line.replace(/\s/g, ""))
+                .filter(Boolean);
+
+              // If text lines look like MRZ, parse them via CodeParser for structured fields.
+              if (mrzLines.length >= 2) {
+                parser = parser || await Dynamsoft.DCP.CodeParser.createInstance();
+                const parseCandidates = [
+                  mrzLines.join("\n"),
+                  mrzLines.join(""),
+                ];
+                let parsedResultFromText = null;
+                for (const source of parseCandidates) {
+                  try {
+                    parsedResultFromText = await parser.parse(source);
+                    if (parsedResultFromText) break;
+                  } catch (_ignore) {
+                  }
+                }
+                if (parsedResultFromText) {
+                  processedResult = handleDLResult(parsedResultFromText, textLineItems);
+                } else {
+                  processedResult = handleDLResult(null, textLineItems);
+                }
+              } else {
+                processedResult = handleDLResult(null, textLineItems);
+              }
+            }
+          } catch (ex) {
+            originalText = barcodeItems[0]?.text || textLineItems
+              .map((item) => item.text)
+              .filter(Boolean)
+              .join("\n");
+            processedResult = [
+              { description: "Error", value: ex.message || "parse failed." },
+              {
+                description: "Original text",
+                value: originalText,
+              },
+            ];
+          } finally {
+            generateResultList(processedResult);
+            barcodeText.innerText = originalText.replace(/\n/g, "");
+          }
+
+          parsedResultView.style.display = "block";
+          barcodeScannerView.style.display = "none";
+          cameraView.clearAllInnerDrawingItems();
+          cvRouter.stopCapturing();
+        };
+        await cvRouter.addResultReceiver(resultReceiver);
+        await cvRouter.initSettings("./read_id.json");
+
+        barcodeScannerView.append(cameraView.getUIElement());
+      } catch (ex) {
+        console.log(ex.message || ex);
+        alert(ex.message || ex);
+      }
+    })();
+
+    async function start() {
+      await pInit;
+      await cameraEnhancer.open();
+      await cvRouter.startCapturing("ReadID");
+      homePage.style.display = "none";
+    }
+
+    function handleDLResult(parsedResult, textLineResultItems = []) {
+      const oriParseInfo = [];
+      if (!parsedResult) {
+        for (let item of textLineResultItems) {
+          if (item.text) {
+            oriParseInfo.push({
+              description: "Text Line",
+              value: item.text,
+            });
+          }
+        }
+        return oriParseInfo;
+      }
+
+      const resultInfo = JSON.parse(parsedResult.jsonString || "{}");
+      const resultInfoRaw = resultInfo.ResultInfo;
+      const resultInfoList = Array.isArray(resultInfoRaw)
+        ? resultInfoRaw
+        : (resultInfoRaw && typeof resultInfoRaw === "object" ? Object.values(resultInfoRaw) : []);
+
+      if (parsedResult.codeType === "AAMVA_DL_ID") {
+        for (let info of resultInfoList) {
+          if (info.FieldName !== "commonSubfile") continue;
+          if (info.ChildFields) {
+            wrapResultObject(info.ChildFields);
+          }
+        }
+      } else if (parsedResult.codeType === "AAMVA_DL_ID_WITH_MAG_STRIPE") {
+        for (let info of resultInfoList) {
+          if (info.FieldName.includes("track")) {
+            if (info.ChildFields) {
+              wrapResultObject(info.ChildFields);
+            }
+          }
+        }
+      } else if (parsedResult.codeType === "SOUTH_AFRICA_DL") {
+        for (let info of resultInfoList) {
+          if (info.ChildFields) {
+            wrapResultObject(info.ChildFields);
+          } else {
+            if (info.Value) {
+              oriParseInfo.push({
+                description: info.FieldName,
+                value: info.Value,
+              });
+            }
+          }
+        }
+      } else if (parsedResult.codeType && parsedResult.codeType.includes("MRTD")) {
+        const getField = (fieldName) => {
+          try {
+            const value = parsedResult.getFieldValue(fieldName);
+            return value ? value.trim() : "";
+          } catch (_ignore) {
+            return "";
+          }
+        };
+
+        const documentCode = getField("documentCode");
+        const isPassport = documentCode.startsWith("P");
+
+        const formatDate = (year, month, day, isExpiryDate) => {
+          if (!year || !month || !day) return "";
+          let fullYear = parseInt(year, 10);
+          if (Number.isNaN(fullYear)) return "";
+          if (isExpiryDate) {
+            fullYear = fullYear >= 60 ? 1900 + fullYear : 2000 + fullYear;
+          } else {
+            const currentTwoDigitYear = new Date().getFullYear() % 100;
+            fullYear = fullYear > currentTwoDigitYear ? 1900 + fullYear : 2000 + fullYear;
+          }
+          const mm = String(month).padStart(2, "0");
+          const dd = String(day).padStart(2, "0");
+          return `${fullYear}-${mm}-${dd}`;
+        };
+
+        const documentNumber = (isPassport && getField("passportNumber"))
+          || getField("documentNumber")
+          || getField("longDocumentNumber");
+        const dateOfBirth = formatDate(getField("birthYear"), getField("birthMonth"), getField("birthDay"), false);
+        const dateOfExpiry = formatDate(getField("expiryYear"), getField("expiryMonth"), getField("expiryDay"), true);
+        const personalNumber = getField("personalNumber") || getField("optionalData1") || getField("optionalData2") || getField("optionalData");
+
+        const mrtdOrderedFields = [
+          { description: "Document Type", value: documentCode },
+          { description: "Surname", value: getField("primaryIdentifier") },
+          { description: "Given Name", value: getField("secondaryIdentifier") },
+          { description: "Document Number", value: documentNumber },
+          { description: "Nationality", value: getField("nationality") },
+          { description: "Date of Birth", value: dateOfBirth },
+          { description: "Sex", value: getField("sex") },
+          { description: "Date of Expiry", value: dateOfExpiry },
+          { description: "Issuing State", value: getField("issuingState") },
+          { description: "Personal Number", value: personalNumber },
+        ];
+
+        for (let field of mrtdOrderedFields) {
+          if (field.value) {
+            oriParseInfo.push(field);
+          }
+        }
+      } else {
+        for (let info of resultInfoList) {
+          if (info.ChildFields) {
+            wrapResultObject(info.ChildFields);
+          }
+          if (info.Value) {
+            oriParseInfo.push({
+              description: info.FieldName,
+              value: info.Value,
+            });
+          }
+        }
+      }
+
+      function wrapResultObject(childFields) {
+        for (let childField of childFields) {
+          const fieldList = Array.isArray(childField) ? childField : [childField];
+          for (let field of fieldList) {
+            if (!["dataElementSeparator", "segmentTerminator", "subfile", "subfileType"].includes(field.FieldName)) {
+              if (field.Value) {
+                oriParseInfo.push({
+                  description: field.FieldName,
+                  value: field.Value,
+                });
+              }
+            }
+            if (field.ChildFields) {
+              wrapResultObject(field.ChildFields);
+            }
+          }
+        }
+      }
+      return oriParseInfo;
+    }
+
+    function generateResultList(processedResult) {
+      parsedResultList.innerHTML = "";
+      const resultList = [];
+      for (let item of processedResult) {
+        const resultItem = document.createElement("li");
+        resultItem.className = "parsed-result-item";
+        resultItem.innerHTML = `<strong>${item.description}: </strong><span>${item.value}</span>`;
+        resultList.push(resultItem);
+      }
+      parsedResultList.append(...resultList);
+    }
+
+    startBtn.addEventListener("click", () => {
+      loading.style.display = "block";
+      startIcon.style.display = "none";
+      start();
+    })
+
+    backToScan.addEventListener("click", () => {
+      parsedResultView.style.display = "none";
+      barcodeScannerView.style.display = "block";
+      start();
+    })
+  </script>
+</body>
+
+</html>
