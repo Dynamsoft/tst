@@ -40,10 +40,10 @@
     const backToScan = document.querySelector(".back-to-scan");
     const barcodeScannerView = document.querySelector(".barcode-scanner-view");
 
-    Dynamsoft.License.LicenseManager.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=");
+    //Dynamsoft.License.LicenseManager.initLicense("DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=");
     Dynamsoft.DCP.CodeParserModule.loadSpec(["AAMVA_DL_ID", "SOUTH_AFRICA_DL","MRTD"]);
 
-    let cameraView, cameraEnhancer, cvRouter, parser;
+    let cameraView, cameraEnhancer, cvRouter;
     let pInit = (async function () {
       try {
         cameraView = await Dynamsoft.DCE.CameraView.createInstance();
@@ -63,82 +63,33 @@
         cvRouter.setInput(cameraEnhancer);
 
         const resultReceiver = new Dynamsoft.CVR.CapturedResultReceiver();
-        resultReceiver.onCapturedResultReceived = async (result) => {
-          const itemList = Array.isArray(result.items) ? result.items : [];
-          const barcodeItems = result.decodedBarcodesResult?.barcodeResultItems
-            || result.barcodeResultItems
-            || itemList.filter((item) => item.type === 2);
-          const textLineItems = result.recognizedTextLinesResult?.textLineResultItems
-            || result.textLineResultItems
-            || itemList.filter((item) => item.type === 4);
-          if (barcodeItems.length === 0 && textLineItems.length === 0) {
+        resultReceiver.onCapturedResultReceived = (result) => {
+          // The "ReadID" template includes DCP semantic-processing tasks (sp_mrz / sp_dl),
+          // so both DL (PDF417) and MRZ results are parsed internally and returned
+          // uniformly as parsedResultItems. No need to branch on result type here.
+          const parsedItems = result.parsedResult?.parsedResultItems || [];
+          if (parsedItems.length === 0) {
             return;
           }
 
           let processedResult = [];
-          let originalText = "";
           try {
-            if (barcodeItems.length > 0) {
-              parser = parser || await Dynamsoft.DCP.CodeParser.createInstance();
-              const parsedResult = await parser.parse(barcodeItems[0].bytes);
-              processedResult = handleDLResult(parsedResult);
-              originalText = barcodeItems[0].text || "";
-            } else {
-              // NOTE: the LabelRecognizer settings use ConcatResults=1, so a single
-              // TextLineResultItem's `text` already contains all physical MRZ lines
-              // joined with "\n" (its `rawText` has no such separator). Rebuild the
-              // MRZ source from `text` first, then re-split on "\n" to recover the
-              // individual lines instead of relying on `textLineItems.length`.
-              originalText = textLineItems
-                .map((item) => (item.text || item.rawText || "").trim())
-                .filter(Boolean)
-                .join("\n");
-
-              const mrzLines = originalText
-                .split("\n")
-                .map((line) => line.replace(/\s/g, ""))
-                .filter(Boolean);
-
-              // If text lines look like MRZ, parse them via CodeParser for structured fields.
-              if (mrzLines.length >= 2) {
-                parser = parser || await Dynamsoft.DCP.CodeParser.createInstance();
-                const parseCandidates = [
-                  mrzLines.join("\n"),
-                  mrzLines.join(""),
-                ];
-                let parsedResultFromText = null;
-                for (const source of parseCandidates) {
-                  try {
-                    parsedResultFromText = await parser.parse(source);
-                    if (parsedResultFromText) break;
-                  } catch (_ignore) {
-                  }
-                }
-                if (parsedResultFromText) {
-                  processedResult = handleDLResult(parsedResultFromText, textLineItems);
-                } else {
-                  processedResult = handleDLResult(null, textLineItems);
-                }
-              } else {
-                processedResult = handleDLResult(null, textLineItems);
-              }
-            }
+            processedResult = handleParsedResult(parsedItems[0]);
           } catch (ex) {
-            originalText = barcodeItems[0]?.text || textLineItems
-              .map((item) => item.text)
-              .filter(Boolean)
-              .join("\n");
             processedResult = [
               { description: "Error", value: ex.message || "parse failed." },
-              {
-                description: "Original text",
-                value: originalText,
-              },
             ];
-          } finally {
-            generateResultList(processedResult);
-            barcodeText.innerText = originalText.replace(/\n/g, "");
           }
+
+          // Raw source text (barcode or MRZ lines) for display purposes only.
+          const barcodeItems = result.decodedBarcodesResult?.barcodeResultItems || [];
+          const textLineItems = result.recognizedTextLinesResult?.textLineResultItems || [];
+          const originalText = barcodeItems[0]?.text
+            || textLineItems.map((item) => item.text).filter(Boolean).join("\n")
+            || "";
+
+          generateResultList(processedResult);
+          barcodeText.innerText = originalText.replace(/\n/g, "");
 
           parsedResultView.style.display = "block";
           barcodeScannerView.style.display = "none";
@@ -162,19 +113,8 @@
       homePage.style.display = "none";
     }
 
-    function handleDLResult(parsedResult, textLineResultItems = []) {
+    function handleParsedResult(parsedResult) {
       const oriParseInfo = [];
-      if (!parsedResult) {
-        for (let item of textLineResultItems) {
-          if (item.text) {
-            oriParseInfo.push({
-              description: "Text Line",
-              value: item.text,
-            });
-          }
-        }
-        return oriParseInfo;
-      }
 
       const resultInfo = JSON.parse(parsedResult.jsonString || "{}");
       const resultInfoRaw = resultInfo.ResultInfo;

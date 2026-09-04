@@ -21,11 +21,11 @@ A focused demo that reads and parses identity document data from camera or image
 
 ## 🔧 How it works
 
-- The page initializes one Capture Vision workflow that includes:
+- The page initializes one Capture Vision workflow (`ReadID` template in `read_id.json`) that includes:
 	- A barcode task for PDF417 decoding (driver licenses)
 	- A text-line recognition task for MRZ detection and recognition (passport/ID)
-- If a barcode is found, the sample parses PDF417 bytes with Code Parser and renders structured fields.
-- If MRZ text lines are found, the sample reconstructs MRZ lines and parses them with Code Parser, then renders structured fields.
+	- Code Parser (DCP) semantic-processing tasks that parse both sources internally
+- Parsed results are returned uniformly as `parsedResultItems` — no result-type branching needed in the page code.
 - Raw text and parsed output are shown together for easier validation and troubleshooting.
 
 ## Quick start

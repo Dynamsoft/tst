@@ -266,6 +266,10 @@
       "Name": "ReadID",
       "ImageROIProcessingNameArray": [
         "roi_id"
+      ],
+	  "SemanticProcessingNameArray": [
+        "sp_mrz",
+		"sp_dl"
       ]
     }
   ],
@@ -402,6 +406,49 @@
       "TaskSettingNameArray": [
         "task_pdf417_barcode",
         "task-passport-and-id"
+      ]
+    }
+  ],
+  "SemanticProcessingOptions": [
+    {
+      "Name": "sp_mrz",
+      "ReferenceObjectFilter": {
+        "ReferenceTargetROIDefNameArray": [
+          "roi_id"
+        ]
+      },
+      "TaskSettingNameArray": [
+        "dcp_mrz"
+      ]
+    },
+	{
+	  "Name": "sp_dl",
+	  "ReferenceObjectFilter": {
+		"ReferenceTargetROIDefNameArray": [
+		  "roi_id"
+		]
+	  },
+	  "TaskSettingNameArray": [
+		"dcp_dl"
+	  ]
+	}
+  ],
+  "CodeParserTaskSettingOptions": [
+    {
+      "Name": "dcp_mrz",
+      "CodeSpecifications": [
+        "MRTD_TD3_PASSPORT",
+        "MRTD_TD1_ID",
+        "MRTD_TD2_ID",
+        "MRTD_TD2_VISA",
+        "MRTD_TD3_VISA"
+      ]
+    },
+    {
+      "Name": "dcp_dl",
+      "CodeSpecifications": [
+        "AAMVA_DL_ID", 
+		"SOUTH_AFRICA_DL"
       ]
     }
   ]
