@@ -1,15 +1,17 @@
 {
-  "BarcodeFormatSpecificationOptions" : [
+  "BarcodeFormatSpecificationOptions": [
     {
-      "Name":"MIN_DISTANCE_TO_IMAGE_BORDERS",
+      "Name": "MIN_DISTANCE_TO_IMAGE_BORDERS",
       "BarcodeZoneMinDistanceToImageBorders": 50,
-      "MinQuietZoneWidth" :  10
+      "MinQuietZoneWidth": 10
     }
   ],
   "BarcodeReaderTaskSettingOptions": [
     {
       "Name": "task_read_barcodes",
-      "BarcodeFormatSpecificationNameArray": ["MIN_DISTANCE_TO_IMAGE_BORDERS"],
+      "BarcodeFormatSpecificationNameArray": [
+        "MIN_DISTANCE_TO_IMAGE_BORDERS"
+      ],
       "SectionArray": [
         {
           "ImageParameterName": "ip_read_barcodes",
@@ -91,10 +93,12 @@
               "Mode": "TDM_GENERAL_WIDTH_CONCENTRATION",
               "Sensitivity": 5
             }
-          ],
-          "Name": "ip_read_barcodes"
+          ]
         }
       ],
+      "Name": "ip_read_barcodes"
+    }
+  ],
   "TargetROIDefOptions": [
     {
       "Name": "roi_read_barcodes",
