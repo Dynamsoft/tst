@@ -1,0 +1,324 @@
+<div class="ddls-root">
+	<style>
+		.ddls-root {
+			--ddls-color-primary: #fe8e14;
+			--ddls-color-text: #ffffff;
+			--ddls-color-overlay: rgba(0, 0, 0, 0.6);
+			--ddls-color-toolbar: rgba(0, 0, 0, 0.5);
+			/* One accent for all scanning feedback: guide border, spinner, flip card. */
+			--ddls-color-scanAccent: #ffffff;
+			--ddls-color-spinnerBackground: rgba(0, 0, 0, 0.2);
+			--ddls-color-success: #4caf50;
+			position: relative;
+			width: 100%;
+			height: 100%;
+			background: #000;
+			font-family: system-ui, -apple-system, sans-serif;
+			overflow: hidden;
+		}
+		.ddls-root .dm-camera-core-container {
+			width: 100%;
+			height: 100%;
+		}
+		.ddls-guide {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			width: min(78%, 62vh);
+			aspect-ratio: 1.588; /* ID-1 card */
+			pointer-events: none;
+		}
+		.ddls-guide::before {
+			content: "";
+			position: absolute;
+			inset: 0;
+			border-radius: 4.5% / 7%;
+			box-shadow: 0 0 0 200vmax var(--ddls-color-overlay);
+			border: 2px solid var(--ddls-color-scanAccent);
+		}
+		.ddls-guide.ddls-guide-success::before {
+			border-color: var(--ddls-color-success);
+		}
+		.ddls-hint {
+			position: absolute;
+			left: 50%;
+			bottom: 12%;
+			transform: translateX(-50%);
+			max-width: 90%;
+			width: max-content;
+			padding: 0.6em 1.2em;
+			border-radius: 2em;
+			background: var(--ddls-color-overlay);
+			color: var(--ddls-color-text);
+			font-size: 1rem;
+			line-height: 1.35;
+			text-align: center;
+		}
+		.ddls-hint:empty {
+			display: none;
+		}
+		.ddls-loading {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 1rem;
+			background: #323234;
+			z-index: 5;
+		}
+		.ddls-loading[hidden] {
+			display: none;
+		}
+		.ddls-loading svg {
+			width: 2rem;
+			height: 2rem;
+			color: var(--ddls-color-scanAccent);
+			animation: ddls-spin 1s linear infinite;
+		}
+		.ddls-loading-message {
+			color: var(--ddls-color-text);
+			font-size: 0.9rem;
+			opacity: 0.9;
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.ddls-loading svg {
+				animation: none;
+			}
+		}
+		.ddls-scan-spinner {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 56px;
+			height: 56px;
+			margin: -28px 0 0 -28px;
+			opacity: 0;
+			transition: opacity 0.15s ease;
+			pointer-events: none;
+			z-index: 1;
+		}
+		.ddls-scan-spinner.ddls-visible {
+			opacity: 1;
+		}
+		.ddls-scan-spinner .ddls-spinner-bg {
+			fill: var(--ddls-color-spinnerBackground);
+		}
+		.ddls-scan-spinner .ddls-spinner-inner {
+			animation: ddls-spin 1.2s linear infinite;
+			transform-origin: 28px 28px;
+		}
+		.ddls-scan-spinner .ddls-spinner-inner path {
+			fill: var(--ddls-color-scanAccent);
+		}
+		@keyframes ddls-spin {
+			from {
+				transform: rotate(0deg);
+			}
+			to {
+				transform: rotate(360deg);
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.ddls-scan-spinner .ddls-spinner-inner {
+				animation: none;
+			}
+		}
+		.ddls-flip {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: var(--ddls-color-overlay);
+			z-index: 2;
+		}
+		.ddls-flip[hidden] {
+			display: none;
+		}
+		.ddls-flip-animation {
+			width: 160px;
+			height: 100px;
+			perspective: 600px;
+		}
+		.ddls-flip-card {
+			position: relative;
+			width: 100%;
+			height: 100%;
+			transform-style: preserve-3d;
+			/* Un-hiding the overlay re-renders the card, restarting this one-shot flip. */
+			animation: ddls-card-flip 0.8s ease-in-out forwards;
+		}
+		.ddls-flip-card-front,
+		.ddls-flip-card-back {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			backface-visibility: hidden;
+			-webkit-backface-visibility: hidden;
+			color: var(--ddls-color-scanAccent);
+		}
+		.ddls-flip-card-back {
+			transform: rotateY(180deg);
+		}
+		@keyframes ddls-card-flip {
+			0% {
+				transform: rotateY(0deg);
+			}
+			100% {
+				transform: rotateY(180deg);
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.ddls-flip-card {
+				animation: none;
+				transform: rotateY(180deg);
+			}
+		}
+		.ddls-toolbar {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			display: flex;
+			justify-content: space-between;
+			padding: 0.75rem;
+			z-index: 3;
+		}
+		.ddls-toolbar-group {
+			display: flex;
+			gap: 0.5rem;
+		}
+		.ddls-toolbar button {
+			width: 2.75rem;
+			height: 2.75rem;
+			border: none;
+			border-radius: 50%;
+			background: var(--ddls-color-toolbar);
+			color: var(--ddls-color-text);
+			font-size: 1.15rem;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.ddls-toolbar button.ddls-torch-on {
+			background: var(--ddls-color-primary);
+		}
+		.ddls-toolbar button svg {
+			width: 1.35rem;
+			height: 1.35rem;
+			display: block;
+		}
+		.ddls-confirmation {
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: var(--ddls-color-overlay);
+			z-index: 4;
+		}
+		.ddls-confirmation[hidden] {
+			display: none;
+		}
+		.ddls-confirmation-card {
+			background: #fff;
+			border-radius: 0.75rem;
+			padding: 0.75rem;
+			max-width: min(85%, 26rem);
+			text-align: center;
+		}
+		.ddls-confirmation-thumb canvas {
+			max-width: 100%;
+			max-height: 40vh;
+			border-radius: 0.4rem;
+		}
+		.ddls-confirmation-actions {
+			display: flex;
+			gap: 0.5rem;
+			margin-top: 0.75rem;
+		}
+		.ddls-confirmation-actions button {
+			flex: 1;
+			padding: 0.6rem;
+			font-size: 0.95rem;
+			border: none;
+			border-radius: 0.5rem;
+			cursor: pointer;
+		}
+		.ddls-btn-retake {
+			background: #eee;
+			color: #333;
+		}
+		.ddls-btn-use {
+			background: var(--ddls-color-primary);
+			color: #fff;
+		}
+	</style>
+
+	<div class="dm-camera-core-container"></div>
+
+	<div class="ddls-guide"></div>
+
+	<svg class="ddls-scan-spinner" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<rect class="ddls-spinner-bg" width="56" height="56" rx="8" />
+		<g class="ddls-spinner-inner" clip-path="url(#ddls-spinner-clip)">
+			<path d="M25.0759 15.968V8.18762C16.2732 9.50351 9.32755 16.3824 8.00195 25.1036H15.8608C16.9879 20.6144 20.5493 17.0842 25.0759 15.968Z" />
+			<path d="M30.9277 15.968C35.4574 17.0842 39.0187 20.6144 40.1428 25.1036H48.0016C46.6761 16.3824 39.7304 9.50351 30.9277 8.18762V15.968Z" />
+			<path d="M25.0759 40.0321C20.5462 38.9158 16.9848 35.3856 15.8608 30.8965H8.00195C9.32755 39.6176 16.2732 46.4965 25.0759 47.8124V40.0321Z" />
+			<path d="M30.9277 40.0321V47.8124C39.7304 46.4965 46.6761 39.6176 48.0016 30.8965H40.1428C39.0157 35.3856 35.4543 38.9158 30.9277 40.0321Z" />
+		</g>
+		<defs>
+			<clipPath id="ddls-spinner-clip">
+				<rect width="40" height="40" fill="white" transform="translate(8 8)" />
+			</clipPath>
+		</defs>
+	</svg>
+
+	<div class="ddls-hint"></div>
+
+	<div class="ddls-loading">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 3a9 9 0 1 0 9 9"></path></svg>
+		<div class="ddls-loading-message"></div>
+	</div>
+
+	<div class="ddls-flip" hidden>
+		<div class="ddls-flip-animation">
+			<div class="ddls-flip-card">
+				<div class="ddls-flip-card-front"></div>
+				<div class="ddls-flip-card-back"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="ddls-confirmation" hidden>
+		<div class="ddls-confirmation-card">
+			<div class="ddls-confirmation-thumb"></div>
+			<div class="ddls-confirmation-actions">
+				<button class="ddls-btn-retake" type="button"></button>
+				<button class="ddls-btn-use" type="button"></button>
+			</div>
+		</div>
+	</div>
+
+	<div class="ddls-toolbar">
+		<div class="ddls-toolbar-group">
+			<button class="ddls-btn-close" type="button" aria-label="Close" title="Close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="18" y2="18"/><line x1="18" y1="2" x2="2" y2="18"/></svg></button>
+		</div>
+		<div class="ddls-toolbar-group">
+			<button class="ddls-btn-torch" type="button" aria-label="Torch" title="Torch"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.25 1.5H6.75C6.35218 1.5 5.97064 1.65804 5.68934 1.93934C5.40804 2.22064 5.25 2.60218 5.25 3V7.24969C5.2508 7.57411 5.35599 7.88967 5.55 8.14969L7.5 10.7503V21C7.5 21.3978 7.65804 21.7794 7.93934 22.0607C8.22064 22.342 8.60218 22.5 9 22.5H15C15.3978 22.5 15.7794 22.342 16.0607 22.0607C16.342 21.7794 16.5 21.3978 16.5 21V10.7503L18.45 8.14969C18.644 7.88967 18.7492 7.57411 18.75 7.24969V3C18.75 2.60218 18.592 2.22064 18.3107 1.93934C18.0294 1.65804 17.6478 1.5 17.25 1.5ZM12.75 14.25C12.75 14.4489 12.671 14.6397 12.5303 14.7803C12.3897 14.921 12.1989 15 12 15C11.8011 15 11.6103 14.921 11.4697 14.7803C11.329 14.6397 11.25 14.4489 11.25 14.25V11.25C11.25 11.0511 11.329 10.8603 11.4697 10.7197C11.6103 10.579 11.8011 10.5 12 10.5C12.1989 10.5 12.3897 10.579 12.5303 10.7197C12.671 10.8603 12.75 11.0511 12.75 11.25V14.25ZM6.75 5.25V3H17.25V5.25H6.75Z" fill="currentColor"/></svg></button>
+			<button class="ddls-btn-camera-switch" type="button" aria-label="Switch camera" title="Switch camera"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.5 5.25H16.9012L15.6234 3.33375C15.555 3.23114 15.4623 3.147 15.3535 3.08879C15.2448 3.03057 15.1233 3.00007 15 3H9C8.87665 3.00007 8.75522 3.03057 8.64648 3.08879C8.53773 3.147 8.44502 3.23114 8.37656 3.33375L7.09781 5.25H4.5C3.90326 5.25 3.33097 5.48705 2.90901 5.90901C2.48705 6.33097 2.25 6.90326 2.25 7.5V18C2.25 18.5967 2.48705 19.169 2.90901 19.591C3.33097 20.0129 3.90326 20.25 4.5 20.25H19.5C20.0967 20.25 20.669 20.0129 21.091 19.591C21.5129 19.169 21.75 18.5967 21.75 18V7.5C21.75 6.90326 21.5129 6.33097 21.091 5.90901C20.669 5.48705 20.0967 5.25 19.5 5.25ZM14.7009 15.6C13.8672 16.2207 12.8451 16.5351 11.8066 16.4901C10.7682 16.4452 9.77701 16.0438 9 15.3534V15.75C9 15.9489 8.92098 16.1397 8.78033 16.2803C8.63968 16.421 8.44891 16.5 8.25 16.5C8.05109 16.5 7.86032 16.421 7.71967 16.2803C7.57902 16.1397 7.5 15.9489 7.5 15.75V13.5C7.5 13.3011 7.57902 13.1103 7.71967 12.9697C7.86032 12.829 8.05109 12.75 8.25 12.75H10.5C10.6989 12.75 10.8897 12.829 11.0303 12.9697C11.171 13.1103 11.25 13.3011 11.25 13.5C11.25 13.6989 11.171 13.8897 11.0303 14.0303C10.8897 14.171 10.6989 14.25 10.5 14.25H10.0172C10.5352 14.7039 11.1932 14.9664 11.8814 14.9939C12.5697 15.0214 13.2465 14.8121 13.7991 14.4009C13.9581 14.2813 14.1581 14.2298 14.3551 14.2577C14.5521 14.2855 14.7299 14.3905 14.8495 14.5495C14.9691 14.7085 15.0207 14.9085 14.9928 15.1055C14.9649 15.3025 14.8599 15.4804 14.7009 15.6ZM16.5 11.25C16.5 11.4489 16.421 11.6397 16.2803 11.7803C16.1397 11.921 15.9489 12 15.75 12H13.5C13.3011 12 13.1103 11.921 12.9697 11.7803C12.829 11.6397 12.75 11.4489 12.75 11.25C12.75 11.0511 12.829 10.8603 12.9697 10.7197C13.1103 10.579 13.3011 10.5 13.5 10.5H13.9828C13.4648 10.0461 12.8068 9.78356 12.1186 9.7561C11.4303 9.72863 10.7535 9.93792 10.2009 10.3491C10.0419 10.4687 9.84193 10.5202 9.64493 10.4923C9.44793 10.4645 9.27007 10.3595 9.15047 10.2005C9.03087 10.0415 8.97934 9.84146 9.00721 9.64446C9.03507 9.44746 9.14006 9.2696 9.29906 9.15C10.1328 8.52931 11.1549 8.21494 12.1934 8.25985C13.2318 8.30476 14.223 8.70621 15 9.39656V9C15 8.80109 15.079 8.61032 15.2197 8.46967C15.3603 8.32902 15.5511 8.25 15.75 8.25C15.9489 8.25 16.1397 8.32902 16.2803 8.46967C16.421 8.61032 16.5 8.80109 16.5 9V11.25Z" fill="currentColor"/></svg></button>
+		</div>
+	</div>
+
+	<script>
+(function(){function e(e){var t,n,r,i,a;let{session:o,engine:s,cameraEnhancer:c,viewConfig:l,close:u,feedback:d}=e,f=l.messages,p=c.getUIElement(),m=e=>p.querySelector(e),h=p.classList.contains(`ddls-root`)||(t=m(`.ddls-root`))==null?p:t;for(let[e,t]of Object.entries((n=(r=l.themeConfig)==null?void 0:r.colors)==null?{}:n))h.style.setProperty(`--ddls-color-${e}`,t);try{c.setVideoFit(`cover`)}catch{}try{for(let e of[1,2,3])c.getDrawingLayer(e).setVisible(!1)}catch{}let g=m(`.ddls-guide`);if(l.enableScanRegion===!1)g&&(g.style.display=`none`);else{let e=null,t=()=>{if(!g)return!0;let t=p.getBoundingClientRect(),n=g.getBoundingClientRect();if(t.width===0||t.height===0||n.width===0)return!1;let r={left:Math.max(0,Math.round((n.left-t.left)/t.width*100)-8),top:Math.max(0,Math.round((n.top-t.top)/t.height*100)-8),right:Math.min(100,Math.round((n.right-t.left)/t.width*100)+8),bottom:Math.min(100,Math.round((n.bottom-t.top)/t.height*100)+8),isMeasuredInPercentage:!0};if(r.right-r.left<10||r.bottom-r.top<10)return console.warn(`[ddls-ui] computed scan region is degenerate, skipping:`,r),!0;if(e&&e.left===r.left&&e.top===r.top&&e.right===r.right&&e.bottom===r.bottom)return!0;try{c.setScanRegion(r),e=r,l.showScanRegionMask||c.setScanRegionMaskVisible(!1)}catch(e){console.warn(`[ddls-ui] failed to set the scan region:`,e)}return!0},n=t(),r;o.on(`stateChanged`,({current:e})=>{e===`scanning`&&!n&&(n=t())}),window.addEventListener(`resize`,()=>{n&&(window.clearTimeout(r),r=window.setTimeout(t,500))})}let _=m(`.ddls-hint`),v=e=>{_&&(_.textContent=e)},y=()=>o.currentSide===`backSide`?f.searchingBack:f.searchingFront,b=p.querySelector(`.ddls-scan-spinner`),x=e=>{b==null||b.classList.toggle(`ddls-visible`,e)},S=m(`.ddls-loading`),C=m(`.ddls-loading-message`);C&&(C.textContent=f.initializing);let w=()=>S==null?void 0:S.setAttribute(`hidden`,``);s.on(`error`,w),o.on(`stateChanged`,({current:e})=>{e===`scanning`&&v(y())});let T={searchingBarcode:`searchingBarcode`,barcodeNotFound:`barcodeNotFound`,rotateHorizontal:`rotateHorizontal`,blurry:`blurry`,lowLight:`lowLight`,holdSteady:`holdSteady`,processing:`processing`};s.on(`hint`,({hint:e})=>{S&&!S.hidden&&w(),x(e===`holdSteady`||e===`processing`);let t=e===`searching`?null:T[e];v(t?f[t]:y())});let E=`<svg width="160" height="100" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path opacity="0.9" d="M12 0C5.37257 0 0 5.37258 0 12V88C0 94.6274 5.37259 100 12 100H148C154.627 100 160 94.6274 160 88V12C160 5.37258 154.627 0 148 0H12ZM35.999 16C39.6377 16 43.1761 17.1901 46.0703 19.3877C48.9644 21.5853 51.0552 24.6691 52.0205 28.165C52.9857 31.661 52.7727 35.3766 51.4141 38.7402C50.0553 42.1039 47.6257 44.9304 44.499 46.7852C50.8201 48.8434 56.2371 53.1852 59.752 59.2402C59.9143 59.5197 59.9996 59.8372 60 60.1602C60.0004 60.483 59.9155 60.8003 59.7539 61.0801C59.5918 61.3598 59.3588 61.5924 59.0781 61.7539C58.7974 61.9154 58.4785 62.0001 58.1543 62H13.8447C13.5208 61.9997 13.2023 61.9145 12.9219 61.7529C12.6415 61.5913 12.4089 61.3587 12.2471 61.0791C12.0853 60.7996 12 60.4828 12 60.1602C12.0001 59.8374 12.0851 59.5198 12.2471 59.2402C15.7619 53.1852 21.1789 48.8434 27.5 46.7852C24.3733 44.9304 21.9437 42.1039 20.585 38.7402C19.2263 35.3766 19.0133 31.661 19.9785 28.165C20.9438 24.6692 23.0337 21.5853 25.9277 19.3877C28.8219 17.19 32.3604 16.0001 35.999 16Z" fill="currentColor"/>
+</svg>`,D=`<svg width="160" height="100" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path opacity="0.9" d="M148 0C154.627 0 160 5.37258 160 12V88C160 94.6274 154.627 100 148 100H12C5.37258 100 0 94.6274 0 88V12C2.57711e-07 5.37258 5.37258 2.57703e-07 12 0H148ZM11 86C9.34315 86 8 87.3431 8 89C8 90.6569 9.34315 92 11 92H149C150.657 92 152 90.6569 152 89C152 87.3431 150.657 86 149 86H11ZM11 76C9.34315 76 8 77.3431 8 79C8 80.6569 9.34315 82 11 82H149C150.657 82 152 80.6569 152 79C152 77.3431 150.657 76 149 76H11Z" fill="currentColor"/>
+</svg>`,O=m(`.ddls-flip`),k=m(`.ddls-flip-card-front`),A=m(`.ddls-flip-card-back`);o.on(`flipPrompt`,({nextSide:e})=>{var t;x(!1);let n=e!==`frontSide`;k&&(k.innerHTML=n?E:D),A&&(A.innerHTML=n?D:E),O==null||O.removeAttribute(`hidden`),v(n?f.flipToBack:f.flipToFront),window.setTimeout(()=>{O==null||O.setAttribute(`hidden`,``),o.confirmFlip(),v(y())},(t=l.flipPromptTimeout)==null?3e3:t)});let j=m(`.ddls-confirmation`),M=m(`.ddls-confirmation-thumb`),N=m(`.ddls-btn-retake`),P=m(`.ddls-btn-use`);N&&(N.textContent=f.retake),P&&(P.textContent=f.usePhoto);let F=null,I=()=>j==null?void 0:j.setAttribute(`hidden`,``);o.on(`confirmationPrompt`,({side:e})=>{if(F=e,M){var t;M.innerHTML=``;let n=e===`frontSide`?o.result.frontImage:o.result.backImage,r=n==null?void 0:n.deskewedImageResult,i=r==null||(t=r.toCanvas)==null?void 0:t.call(r);i&&M.append(i)}x(!1),v(f.confirmationPrompt),j==null||j.removeAttribute(`hidden`)}),o.on(`stateChanged`,({current:e})=>{e!==`awaitingConfirmation`&&I()}),N==null||N.addEventListener(`click`,()=>{I(),F&&o.retake(F),v(y())}),P==null||P.addEventListener(`click`,()=>{I(),o.confirm()});let L=(i=l.feedbackConfig)==null?{}:i,R;o.on(`sideCaptured`,()=>{g==null||g.classList.add(`ddls-guide-success`),window.clearTimeout(R),R=window.setTimeout(()=>{g==null||g.classList.remove(`ddls-guide-success`)},1e3);try{L.beepOnCapture!==!1&&(d==null||d.beep())}catch{}try{L.vibrateOnCapture!==!1&&(d==null||d.vibrate())}catch{}}),o.on(`stateChanged`,({current:e})=>{if(e===`completed`||e===`cancelled`||e===`rejected`){if(w(),x(!1),e===`completed`)v(f.done);else if(e===`cancelled`)v(f.cancelled);else{v(f.rejected);try{L.beepOnRejection&&(d==null||d.beep())}catch{}}}});let z=(a=l.toolbarButtonsConfig)==null?{}:a,B=(e,t,n)=>{let r=m(e);if(r){if(t!=null&&t.isHidden){r.style.display=`none`;return}t!=null&&t.icon&&(r.innerHTML=t.icon),t!=null&&t.label&&(r.title=t.label,r.setAttribute(`aria-label`,t.label)),r.addEventListener(`click`,n)}};B(`.ddls-btn-close`,z.close,()=>u());let V=0;B(`.ddls-btn-camera-switch`,z.cameraSwitch,()=>{(async()=>{var e,t;let n=c.constructor,r=(e=await((t=n.getDeviceInfos)==null?void 0:t.call(n)))==null?[]:e;r.length<2||(V=(V+1)%r.length,await c.requestCamera(r[V].deviceId))})()});let H=m(`.ddls-btn-torch`);B(`.ddls-btn-torch`,z.torch,()=>{var e;let t=!c.isTorchOn;t?c.turnOnTorch():c.turnOffTorch(),H==null||H.classList.toggle(`ddls-torch-on`,t),!((e=z.torch)!=null&&e.icon)&&H&&(H.innerHTML=t?`<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.25 6.5H6.75C6.35218 6.5 5.97064 6.65804 5.68934 6.93934C5.40804 7.22064 5.25 7.60218 5.25 8V10.2497C5.2508 10.5741 5.35599 10.8897 5.55 11.1497L7.5 13.7503V21C7.5 21.3978 7.65804 21.7794 7.93934 22.0607C8.22064 22.342 8.60218 22.5 9 22.5H15C15.3978 22.5 15.7794 22.342 16.0607 22.0607C16.342 21.7794 16.5 21.3978 16.5 21V13.7503L18.45 11.1497C18.644 10.8897 18.7492 10.5741 18.75 10.2497V8C18.75 7.60218 18.592 7.22064 18.3107 6.93934C18.0294 6.65804 17.6478 6.5 17.25 6.5ZM12.75 17.25C12.75 17.4489 12.671 17.6397 12.5303 17.7803C12.3897 17.921 12.1989 18 12 18C11.8011 18 11.6103 17.921 11.4697 17.7803C11.329 17.6397 11.25 17.4489 11.25 17.25V14.25C11.25 14.0511 11.329 13.8603 11.4697 13.7197C11.6103 13.579 11.8011 13.5 12 13.5C12.1989 13.5 12.3897 13.579 12.5303 13.7197C12.671 13.8603 12.75 14.0511 12.75 14.25V17.25Z" fill="currentColor"/><path d="M11.125 3.7V1.3C11.125 1.08783 11.2172 0.884344 11.3813 0.734315C11.5454 0.584285 11.7679 0.5 12 0.5C12.2321 0.5 12.4546 0.584285 12.6187 0.734315C12.7828 0.884344 12.875 1.08783 12.875 1.3V3.7C12.875 3.91217 12.7828 4.11566 12.6187 4.26569C12.4546 4.41571 12.2321 4.5 12 4.5C11.7679 4.5 11.5454 4.41571 11.3813 4.26569C11.2172 4.11566 11.125 3.91217 11.125 3.7Z" fill="currentColor"/><path d="M6.09231 4.97685L4.89231 2.89839C4.78622 2.71464 4.76432 2.49232 4.83141 2.28035C4.89851 2.06837 5.04911 1.8841 5.25008 1.76807C5.45106 1.65203 5.68594 1.61375 5.90307 1.66163C6.12019 1.70951 6.30177 1.83964 6.40785 2.02339L7.60785 4.10185C7.71394 4.2856 7.73585 4.50791 7.66875 4.71989C7.60166 4.93186 7.45106 5.11614 7.25008 5.23217C7.04911 5.3482 6.81422 5.38649 6.5971 5.3386C6.37997 5.29072 6.1984 5.1606 6.09231 4.97685Z" fill="currentColor"/><path d="M16.3922 4.10185L17.5922 2.02339C17.6983 1.83964 17.8799 1.70951 18.097 1.66163C18.3141 1.61375 18.549 1.65203 18.75 1.76807C18.9509 1.8841 19.1015 2.06837 19.1686 2.28035C19.2357 2.49232 19.2138 2.71464 19.1077 2.89839L17.9077 4.97685C17.8016 5.1606 17.6201 5.29072 17.4029 5.33861C17.1858 5.38649 16.9509 5.3482 16.75 5.23217C16.549 5.11614 16.3984 4.93186 16.3313 4.71989C16.2642 4.50791 16.2861 4.2856 16.3922 4.10185Z" fill="currentColor"/></svg>`:`<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.25 1.5H6.75C6.35218 1.5 5.97064 1.65804 5.68934 1.93934C5.40804 2.22064 5.25 2.60218 5.25 3V7.24969C5.2508 7.57411 5.35599 7.88967 5.55 8.14969L7.5 10.7503V21C7.5 21.3978 7.65804 21.7794 7.93934 22.0607C8.22064 22.342 8.60218 22.5 9 22.5H15C15.3978 22.5 15.7794 22.342 16.0607 22.0607C16.342 21.7794 16.5 21.3978 16.5 21V10.7503L18.45 8.14969C18.644 7.88967 18.7492 7.57411 18.75 7.24969V3C18.75 2.60218 18.592 2.22064 18.3107 1.93934C18.0294 1.65804 17.6478 1.5 17.25 1.5ZM12.75 14.25C12.75 14.4489 12.671 14.6397 12.5303 14.7803C12.3897 14.921 12.1989 15 12 15C11.8011 15 11.6103 14.921 11.4697 14.7803C11.329 14.6397 11.25 14.4489 11.25 14.25V11.25C11.25 11.0511 11.329 10.8603 11.4697 10.7197C11.6103 10.579 11.8011 10.5 12 10.5C12.1989 10.5 12.3897 10.579 12.5303 10.7197C12.671 10.8603 12.75 11.0511 12.75 11.25V14.25ZM6.75 5.25V3H17.25V5.25H6.75Z" fill="currentColor"/></svg>`)})}(()=>{let t=document.currentScript,n=t==null?void 0:t.currentDMCamera;if(!n){console.error(`[ddls-ui] No camera bound to the UI definition (currentDMCamera missing).`);return}let r=n.exportToUI;if(!r){console.error(`[ddls-ui] cameraEnhancer.exportToUI is not set; the scanner must assign it before binding the UI.`);return}e(r)})()})();
+</script>
+</div>

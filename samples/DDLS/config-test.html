@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>DDLS v3 — config test</title>
+		<style>
+			body {
+				font-family: system-ui, sans-serif;
+				margin: 1rem;
+				max-width: 60rem;
+			}
+			fieldset {
+				margin-bottom: 0.75rem;
+				border: 1px solid #ddd;
+				border-radius: 0.5rem;
+			}
+			legend {
+				font-weight: 600;
+			}
+			label {
+				display: inline-flex;
+				align-items: center;
+				flex-wrap: wrap;
+				max-width: 100%;
+				gap: 0.3rem;
+				margin: 0.15rem 0.9rem 0.15rem 0;
+				font-size: 0.9rem;
+			}
+			input[type="number"] {
+				width: 5.5rem;
+			}
+			input[type="text"] {
+				width: 16rem;
+			}
+			button {
+				padding: 0.5rem 1.5rem;
+				font-size: 1rem;
+			}
+			pre {
+				white-space: pre-wrap;
+				overflow-wrap: anywhere;
+				background: #f5f5f5;
+				padding: 0.5rem;
+				font-size: 0.8rem;
+			}
+			#images {
+				display: flex;
+				gap: 0.5rem;
+				flex-wrap: wrap;
+			}
+			#images canvas {
+				max-height: 9rem;
+				width: auto;
+				border: 1px solid #ccc;
+			}
+			textarea {
+				width: 100%;
+				height: 4.5rem;
+				font-family: monospace;
+				font-size: 0.75rem;
+			}
+			#debugLog {
+				max-height: 16rem;
+				overflow-y: auto;
+				word-break: break-all;
+			}
+			#debugLog .blurry {
+				color: #c00;
+			}
+			#debugLog .ok {
+				color: #070;
+			}
+			h2 button {
+				padding: 0.2rem 0.7rem;
+				font-size: 0.8rem;
+				margin-left: 0.5rem;
+			}
+		</style>
+		<script src="dist/ddls.bundle.js"></script>
+	</head>
+	<body>
+		<h1>Config test — every public option</h1>
+		<p>Hover a setting for what it does, its range and its default.</p>
+
+		<fieldset>
+			<legend>License</legend>
+			<label title="Your Dynamsoft license key. Empty = the public trial license (a console warning is logged). Default: public trial.">key <input type="text" id="license" placeholder="YOUR_LICENSE_KEY_HERE" /></label>
+			<label title="Keep the key in this browser's localStorage so it survives reloads."><input type="checkbox" id="rememberLicense" checked /> remember locally</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Workflow</legend>
+			<label title="Capture the front-side document image. Default: on."><input type="checkbox" id="captureFrontImage" checked /> captureFrontImage</label>
+			<label title="Capture the back-side document image. Default: on."><input type="checkbox" id="captureBackImage" checked /> captureBackImage</label>
+			<label title="Decode and parse the PDF417 barcode. Default: on."><input type="checkbox" id="readBarcode" checked /> readBarcode</label>
+			<label title="Which side is scanned first. Default: front → back.">scanOrder
+				<select id="scanOrder">
+					<option value="front">front → back</option>
+					<option value="back">back → front</option>
+				</select>
+			</label>
+			<label title="Which side carries the PDF417 barcode. Default: back.">barcodeScanSide
+				<select id="barcodeScanSide">
+					<option value="backSide">back</option>
+					<option value="frontSide">front</option>
+				</select>
+			</label>
+			<label title="Session watchdog in milliseconds: when it elapses the scan is rejected with Timeout and partial results are kept. Paused while a confirmation screen is shown; in launch() it starts before the camera opens. Range: any positive integer; empty = no timeout. Default in launch(): 60000.">scanTimeout (ms, empty = none) <input type="number" id="scanTimeout" value="60000" min="1000" step="1000" /></label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Business rules</legend>
+			<label title="Reject documents whose expiration date has passed (compared against the device clock). Default: off."><input type="checkbox" id="rejectExpired" /> rejectExpired</label>
+			<label title="Reject documents that expire within this many days. Range: 0 or more; empty = off.">rejectExpiringInDays <input type="number" id="rejectExpiringInDays" min="0" step="1" /></label>
+			<label title="Reject holders younger than this many years (needs a birth date in the barcode). Range: 0 or more; empty = off.">minimumHolderAge <input type="number" id="minimumHolderAge" min="0" max="150" step="1" /></label>
+			<label title="Reject AAMVA licenses that are not REAL ID compliant. Default: off."><input type="checkbox" id="rejectNotRealIdCompliant" /> rejectNotRealIdCompliant</label>
+			<label title="Simulates your async verification callback on the parsed data; 'always fail' rejects with VerificationFailed. Default: none.">barcodeVerificationCallback
+				<select id="verificationCallback">
+					<option value="none">none</option>
+					<option value="pass">always pass</option>
+					<option value="fail">always fail</option>
+				</select>
+			</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Result images</legend>
+			<label title="Include the full uncropped camera frame in each side's image result. Default: off."><input type="checkbox" id="returnOriginalImage" /> returnOriginalImage</label>
+			<label title="Crop the holder's portrait from the front side (best effort; absent on licenses without a portrait). Default: on."><input type="checkbox" id="returnPortraitImage" checked /> returnPortraitImage</label>
+			<label title="Include the raw PDF417 text as licenseData.barcodeText (also applies to parse() below). Default: off."><input type="checkbox" id="returnBarcodeText" /> returnBarcodeText</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Capture confirmation</legend>
+			<label title="Show each captured side with Retake / Use photo before continuing. The scan timeout pauses while it is shown. Default: off."><input type="checkbox" id="showCaptureConfirmation" /> showCaptureConfirmation</label>
+			<label title="Auto-continue the confirmation screen after this many milliseconds. Setting a value also turns the confirmation screen on, even with showCaptureConfirmation off. Range: positive integer; empty = wait for a click. Default: wait for a click.">captureConfirmationTimeout (ms, empty = wait for click)
+				<input type="number" id="captureConfirmationTimeout" min="500" step="500" />
+			</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>View: theme / messages / toolbar / feedback</legend>
+			<label title="Show the scan guide and restrict detection to it; off hides the guide and scans the full camera frame. Default: on."><input type="checkbox" id="enableScanRegion" checked /> enableScanRegion (guide + restricted detection)</label>
+			<label title="Debug: draw the camera's actual scan-region mask so you can see the region really in use. Default: off."><input type="checkbox" id="showScanRegionMask" /> showScanRegionMask (debug: DCE's real region)</label>
+			<label title="How long the flip overlay shows after a side completes, in milliseconds. Range: 0 or more; empty = default. Default: 3000.">flipPromptTimeout (ms) <input type="number" id="flipPromptTimeout" value="3000" min="0" step="500" /></label>
+			<br />
+			<label title="themeConfig.colors.primary → CSS variable --ddls-color-primary (buttons). Any CSS color. Default: #fe8e14.">primary color <input type="color" id="themePrimary" value="#fe8e14" /></label>
+			<label title="themeConfig.colors.scanAccent → guide border, scan spinner and flip card. Any CSS color. Default: white.">scanAccent color <input type="color" id="themeScanAccent" value="#ffffff" /></label>
+			<label title="messagesConfig.searchingFront: replaces the 'position the front…' hint. Empty = default text.">searchingFront text <input type="text" id="msgSearchingFront" placeholder="(default)" /></label>
+			<br />
+			<label title="toolbarButtonsConfig.torch.isHidden. Default: shown."><input type="checkbox" id="hideTorch" /> hide torch</label>
+			<label title="toolbarButtonsConfig.cameraSwitch.isHidden. Default: shown."><input type="checkbox" id="hideCameraSwitch" /> hide camera switch</label>
+			<label title="toolbarButtonsConfig.close.isHidden. Default: shown."><input type="checkbox" id="hideClose" /> hide close</label>
+			<br />
+			<label title="Beep when a side completes. Default: on."><input type="checkbox" id="beepOnCapture" checked /> beepOnCapture</label>
+			<label title="Vibrate when a side completes (no-op on devices without vibration, e.g. iOS). Default: on."><input type="checkbox" id="vibrateOnCapture" checked /> vibrateOnCapture</label>
+			<label title="Beep when the scan is rejected by a business rule. Default: off."><input type="checkbox" id="beepOnRejection" /> beepOnRejection</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Capture tuning</legend>
+			<label title="Minimum document-boundary confidence (from the engine) for a detected quad to count. Higher rejects weak or false rectangles but can stop capturing in poor light. Range: 0–100. Default: 60.">minBoundaryConfidence <input type="number" id="minBoundaryConfidence" value="60" min="0" max="100" step="5" /></label>
+			<label title="Consecutive valid frames required before a capture attempt. Higher = the card must be held steadier, but capture takes longer. Range: 1 or more. Default: 3.">stableFramesRequired <input type="number" id="stableFramesRequired" value="3" min="1" step="1" /></label>
+			<label title="Run the clarity gate on each accepted frame and reject blurry ones (minClarity / lowLightThreshold apply only while this is on). Default: on."><input type="checkbox" id="enableBlurCheck" checked /> enableBlurCheck</label>
+			<label title="Minimum clarity score (per 1000 measured pixels) an accepted frame must reach. Higher = stricter, more retries; lower it if sharp captures get rejected. Sharp captures typically score several hundred, blurry ones well below, but the scale varies by device — read the clarity rows in the Debug log. Range: 0 or more. Default: 300.">minClarity <input type="number" id="minClarity" value="300" min="0" step="10" /></label>
+			<label title="Card brightness (0–255) below which a blur rejection shows 'Too dark — turn on the flashlight' instead of 'Image is blurry'. Only picks the hint; never decides acceptance. Range: 0–255. Default: 100.">lowLightThreshold <input type="number" id="lowLightThreshold" value="100" min="0" max="255" step="5" /></label>
+			<label title="Allowed deviation from the ID-1 card aspect ratio 1.588 (0.2 = ±20 %). Lower = stricter framing, may reject tilted cards; higher accepts stretched quads. Range: 0–1. Default: 0.2.">cardAspectTolerance <input type="number" id="cardAspectTolerance" value="0.2" min="0" max="1" step="0.05" /></label>
+			<label title="Log per-frame gate decisions to the console and mirror the capture-tuning lines in the Debug log below. Default: off."><input type="checkbox" id="debug" /> debug logging</label>
+		</fieldset>
+
+		<fieldset>
+			<legend>UI definition</legend>
+			<label title="Which UI definition file to load; point at your own copy to replace the whole scanner UI. Default: dist/ddls.ui.xml.">uiPath
+				<select id="uiPath">
+					<option value="dist/ddls.ui.xml">default (dist/ddls.ui.xml)</option>
+					<option value="minimal.ui.xml">minimal custom UI (minimal.ui.xml)</option>
+				</select>
+			</label>
+		</fieldset>
+
+		<button id="scan">Launch scan</button>
+
+		<h2>Effective config</h2>
+		<pre id="configEcho">(launch to see)</pre>
+
+		<h2>Result</h2>
+		<pre id="out"></pre>
+		<div id="images"></div>
+
+		<h2>
+			Debug log
+			<button id="copyLog" type="button">Copy</button>
+			<button id="clearLog" type="button">Clear</button>
+		</h2>
+		<p>
+			With <em>debug logging</em> on, the engine's capture-tuning lines are mirrored here so phone
+			tests need no console: one <code>clarity</code> row per capture attempt (score per 1000
+			pixels vs <code>minClarity</code>, brightness vs <code>lowLightThreshold</code>, crop), the
+			<code>finalize</code> dimensions, and each <code>live start</code> with the camera resolution.
+		</p>
+		<pre id="debugLog">(enable debug logging and launch a scan)</pre>
+
+		<h2>Camera-less parse()</h2>
+		<p>Paste a raw PDF417 payload (the full text your barcode reader produced):</p>
+		<textarea id="rawData" placeholder="@&#10;ANSI 636014..."></textarea>
+		<br />
+		<button id="parse">Parse</button>
+		<pre id="parseOut"></pre>
+
+		<script type="module">
+			const { DriverLicenseScanner, DriverLicenseDataLabel, EnumResultStatus } = Dynamsoft;
+			const $ = (id) => document.getElementById(id);
+			const bool = (id) => $(id).checked;
+			const num = (id) => ($(id).value.trim() === "" ? null : Number($(id).value));
+			const str = (id) => $(id).value.trim();
+
+			// License convenience: survive reloads.
+			$("license").value =
+				localStorage.getItem("ddls-config-test-license") ||
+				"DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=";
+
+			const FRONT = "frontSide";
+			const BACK = "backSide";
+
+			function buildConfig() {
+				const verification = $("verificationCallback").value;
+				const config = {
+					license: str("license") || undefined,
+					templateFilePath: "dist/ddls.template.json",
+					uiPath: $("uiPath").value,
+					showCaptureConfirmation: bool("showCaptureConfirmation"),
+					workflowConfig: {
+						captureFrontImage: bool("captureFrontImage"),
+						captureBackImage: bool("captureBackImage"),
+						readBarcode: bool("readBarcode"),
+						scanOrder: $("scanOrder").value === "front" ? [FRONT, BACK] : [BACK, FRONT],
+						barcodeScanSide: $("barcodeScanSide").value,
+						scanTimeout: num("scanTimeout"),
+						rejectExpired: bool("rejectExpired"),
+						rejectExpiringInDays: num("rejectExpiringInDays"),
+						minimumHolderAge: num("minimumHolderAge"),
+						rejectNotRealIdCompliant: bool("rejectNotRealIdCompliant"),
+						returnOriginalImage: bool("returnOriginalImage"),
+						returnPortraitImage: bool("returnPortraitImage"),
+						returnBarcodeText: bool("returnBarcodeText"),
+						captureConfirmationTimeout: num("captureConfirmationTimeout"),
+						barcodeVerificationCallback:
+							verification === "none" ? undefined : async () => verification === "pass",
+					},
+					scannerViewConfig: {
+						enableScanRegion: bool("enableScanRegion"),
+						showScanRegionMask: bool("showScanRegionMask"),
+						flipPromptTimeout: num("flipPromptTimeout") ?? undefined,
+						themeConfig: {
+						colors: {
+							primary: $("themePrimary").value,
+							scanAccent: $("themeScanAccent").value,
+						},
+					},
+						messagesConfig: str("msgSearchingFront")
+							? { searchingFront: str("msgSearchingFront") }
+							: undefined,
+						toolbarButtonsConfig: {
+							torch: { isHidden: bool("hideTorch") },
+							cameraSwitch: { isHidden: bool("hideCameraSwitch") },
+							close: { isHidden: bool("hideClose") },
+						},
+						feedbackConfig: {
+							beepOnCapture: bool("beepOnCapture"),
+							vibrateOnCapture: bool("vibrateOnCapture"),
+							beepOnRejection: bool("beepOnRejection"),
+						},
+					},
+					captureOptions: {
+						minBoundaryConfidence: num("minBoundaryConfidence") ?? undefined,
+						stableFramesRequired: num("stableFramesRequired") ?? undefined,
+						enableBlurCheck: bool("enableBlurCheck"),
+						minClarity: num("minClarity") ?? undefined,
+						lowLightThreshold: num("lowLightThreshold") ?? undefined,
+						cardAspectTolerance: num("cardAspectTolerance") ?? undefined,
+						debug: bool("debug"),
+					},
+				};
+				return config;
+			}
+
+			function echoConfig(config) {
+				$("configEcho").textContent = JSON.stringify(
+					config,
+					(key, value) => {
+						if (key === "license") return "(hidden)";
+						if (typeof value === "function") {
+							return `(callback: always ${$("verificationCallback").value})`;
+						}
+						return value;
+					},
+					2,
+				);
+			}
+
+			// Mirror the engine's debug lines that matter for capture tuning.
+			const debugLog = $("debugLog");
+			let debugLogEmpty = true;
+			const logLine = (text, cls) => {
+				if (debugLogEmpty) {
+					debugLog.textContent = "";
+					debugLogEmpty = false;
+				}
+				const line = document.createElement("div");
+				if (cls) line.className = cls;
+				line.textContent = `${new Date().toTimeString().slice(0, 8)} ${text}`;
+				debugLog.append(line);
+				debugLog.scrollTop = debugLog.scrollHeight;
+			};
+			const origDebug = console.debug.bind(console);
+			console.debug = (...args) => {
+				origDebug(...args);
+				const [tag, data] = args;
+				if (typeof tag !== "string" || !tag.startsWith("[ddls-engine] ") || !data) return;
+				const kind = tag.slice("[ddls-engine] ".length);
+				if (kind === "clarity") {
+					if (data.skipped) {
+						logLine(`clarity SKIPPED (${data.skipped})`);
+						return;
+					}
+					logLine(
+						`clarity ${data.clarityPerKpx}/kpx vs minClarity ${data.minClarity} → ` +
+							`${data.blurry ? "BLURRY, retry" : "pass"}${data.lowLight ? " (low light)" : ""} · ` +
+							`brightness ${data.luma} vs lowLightThreshold ${data.lowLightThreshold} · ` +
+							`crop ${data.crop} · ${data.elapsedMs} ms`,
+						data.blurry ? "blurry" : "ok",
+					);
+				} else if (kind === "finalize") {
+					logLine(`finalize frame ${data.frame} → deskewed ${data.deskewed}, barcode ${data.barcode}`);
+				} else if (kind === "live start") {
+					const r = data.resolution;
+					logLine(`live start ${data.template}, camera ${r ? `${r.width}x${r.height}` : "?"}`);
+				}
+			};
+			$("copyLog").addEventListener("click", async () => {
+				try {
+					await navigator.clipboard.writeText(debugLog.textContent);
+				} catch {
+					/* clipboard blocked (non-secure context or denied) — select the text manually */
+				}
+			});
+			$("clearLog").addEventListener("click", () => {
+				debugLog.textContent = "";
+			});
+
+			function renderData(target, data) {
+				for (const [field, value] of Object.entries(data ?? {})) {
+					if (value === undefined || value === "" || field === "status" || field.startsWith("_")) continue;
+					target.textContent += `${DriverLicenseDataLabel[field] ?? field}: ${JSON.stringify(value)}\n`;
+				}
+			}
+
+			$("scan").addEventListener("click", async () => {
+				const out = $("out");
+				const images = $("images");
+				out.textContent = "";
+				images.innerHTML = "";
+				if (bool("rememberLicense")) {
+					localStorage.setItem("ddls-config-test-license", str("license"));
+				}
+
+				const config = buildConfig();
+				echoConfig(config);
+				if (config.captureOptions.debug) {
+					const { stableFramesRequired, minClarity, lowLightThreshold } = config.captureOptions;
+					logLine(
+						`--- scan started: stableFramesRequired ${stableFramesRequired ?? "default"}, ` +
+							`minClarity ${minClarity ?? "default"}, lowLightThreshold ${lowLightThreshold ?? "default"} ---`,
+					);
+				}
+
+				try {
+					const scanner = new DriverLicenseScanner(config);
+					const result = await scanner.launch();
+					out.textContent = `status: ${EnumResultStatus[result.status.code]}${result.rejectionReason ? ` (${result.rejectionReason})` : ""}\n`;
+					const addCanvas = (label, item) => {
+						if (item?.toCanvas) {
+							const canvas = item.toCanvas();
+							canvas.title = label;
+							images.append(canvas);
+						}
+					};
+					addCanvas("front", result.frontImage?.deskewedImageResult);
+					addCanvas("back", result.backImage?.deskewedImageResult);
+					addCanvas("portrait", result.portraitImage);
+					out.textContent += `originalImage returned: front=${!!result.frontImage?.originalImageResult} back=${!!result.backImage?.originalImageResult}\n`;
+					renderData(out, result.licenseData);
+				} catch (error) {
+					out.textContent = `Error: ${error?.message ?? error}`;
+					console.error(error);
+				}
+			});
+
+			$("parse").addEventListener("click", async () => {
+				const parseOut = $("parseOut");
+				parseOut.textContent = "parsing…";
+				try {
+					const data = await DriverLicenseScanner.parse($("rawData").value, {
+						license: str("license") || undefined,
+						returnBarcodeText: bool("returnBarcodeText"),
+					});
+					parseOut.textContent = data ? "" : "No result (unrecognized payload).\n";
+					renderData(parseOut, data);
+				} catch (error) {
+					parseOut.textContent = `Error: ${error?.message ?? error}`;
+					console.error(error);
+				}
+			});
+		</script>
+	</body>
+</html>
