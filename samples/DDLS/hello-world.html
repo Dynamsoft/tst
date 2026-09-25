@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>DDLS v3 — Hello World (default UI)</title>
+		<title>Dynamsoft Driver License Scanner - Hello World</title>
 		<style>
 			body {
 				font-family: system-ui, sans-serif;
@@ -37,9 +37,6 @@
 			const { DriverLicenseScanner, DriverLicenseDataLabel, EnumResultStatus } = Dynamsoft;
 			const out = document.getElementById("out");
 			const images = document.getElementById("images");
-			const log = (text) => {
-				out.textContent += `${text}\n`;
-			};
 
 			document.getElementById("scan").addEventListener("click", async () => {
 				out.textContent = "";
@@ -49,14 +46,12 @@
 					license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=",
 					templateFilePath: "dist/ddls.template.json",
 					uiPath: "dist/ddls.ui.xml",
-					// Inline verify: each side waits for "Use photo" / "Retake".
-					showCaptureConfirmation: true,
 				});
 
 				const result = await scanner.launch();
-				log(
-					`status: ${EnumResultStatus[result.status.code]}${result.rejectionReason ? ` (${result.rejectionReason})` : ""}`,
-				);
+				out.textContent = `status: ${EnumResultStatus[result.status.code]}${
+					result.rejectionReason ? ` (${result.rejectionReason})` : ""
+				}\n`;
 
 				const addCanvas = (label, item) => {
 					if (item?.toCanvas) {
@@ -69,8 +64,8 @@
 				addCanvas("back", result.backImage?.deskewedImageResult);
 				addCanvas("portrait", result.portraitImage);
 				for (const [field, value] of Object.entries(result.licenseData ?? {})) {
-					if (value === undefined || value === "" || field.startsWith("_")) continue;
-					log(`${DriverLicenseDataLabel[field] ?? field}: ${JSON.stringify(value)}`);
+					if (value === undefined || value === "" || field === "status" || field.startsWith("_")) continue;
+					out.textContent += `${DriverLicenseDataLabel[field] ?? field}: ${JSON.stringify(value)}\n`;
 				}
 			});
 		</script>

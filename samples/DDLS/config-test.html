@@ -134,7 +134,7 @@
 
 		<fieldset>
 			<legend>Capture confirmation</legend>
-			<label title="Show each captured side with Retake / Use photo before continuing. The scan timeout pauses while it is shown. Default: off."><input type="checkbox" id="showCaptureConfirmation" /> showCaptureConfirmation</label>
+			<label title="Show each captured side with Retake / Use photo before continuing (a barcode-only side has no photo and skips it). The scan timeout pauses while it is shown. Default: on."><input type="checkbox" id="showCaptureConfirmation" checked /> showCaptureConfirmation</label>
 			<label title="Auto-continue the confirmation screen after this many milliseconds. Setting a value also turns the confirmation screen on, even with showCaptureConfirmation off. Range: positive integer; empty = wait for a click. Default: wait for a click.">captureConfirmationTimeout (ms, empty = wait for click)
 				<input type="number" id="captureConfirmationTimeout" min="500" step="500" />
 			</label>
@@ -154,9 +154,11 @@
 			<label title="toolbarButtonsConfig.torch.isHidden. Default: shown."><input type="checkbox" id="hideTorch" /> hide torch</label>
 			<label title="toolbarButtonsConfig.cameraSwitch.isHidden. Default: shown."><input type="checkbox" id="hideCameraSwitch" /> hide camera switch</label>
 			<label title="toolbarButtonsConfig.close.isHidden. Default: shown."><input type="checkbox" id="hideClose" /> hide close</label>
+			<label title="toolbarButtonsConfig.sound.isHidden: the toolbar toggle for the capture beep. Default: shown."><input type="checkbox" id="hideSound" /> hide sound</label>
+			<label title="toolbarButtonsConfig.vibrate.isHidden: the toolbar toggle for the capture vibration (only shown on phones and Android tablets anyway). Default: shown."><input type="checkbox" id="hideVibrate" /> hide vibrate</label>
 			<br />
-			<label title="Beep when a side completes. Default: on."><input type="checkbox" id="beepOnCapture" checked /> beepOnCapture</label>
-			<label title="Vibrate when a side completes (no-op on devices without vibration, e.g. iOS). Default: on."><input type="checkbox" id="vibrateOnCapture" checked /> vibrateOnCapture</label>
+			<label title="Start with the toolbar sound toggle on: beep when a side completes. Default: off."><input type="checkbox" id="beepOnCapture" /> beepOnCapture</label>
+			<label title="Start with the toolbar vibration toggle on: vibrate when a side completes. Default: off."><input type="checkbox" id="vibrateOnCapture" /> vibrateOnCapture</label>
 			<label title="Beep when the scan is rejected by a business rule. Default: off."><input type="checkbox" id="beepOnRejection" /> beepOnRejection</label>
 		</fieldset>
 
@@ -271,6 +273,8 @@
 							torch: { isHidden: bool("hideTorch") },
 							cameraSwitch: { isHidden: bool("hideCameraSwitch") },
 							close: { isHidden: bool("hideClose") },
+							sound: { isHidden: bool("hideSound") },
+							vibrate: { isHidden: bool("hideVibrate") },
 						},
 						feedbackConfig: {
 							beepOnCapture: bool("beepOnCapture"),
@@ -325,8 +329,29 @@
 			console.debug = (...args) => {
 				origDebug(...args);
 				const [tag, data] = args;
-				if (typeof tag !== "string" || !tag.startsWith("[ddls-engine] ") || !data) return;
-				const kind = tag.slice("[ddls-engine] ".length);
+				const prefix = ["[ddls-engine] ", "[ddls-camera] "].find((p) => typeof tag === "string" && tag.startsWith(p));
+				if (!prefix || !data) return;
+				const kind = tag.slice(prefix.length);
+				const size = (s) => (s && s.width ? `${s.width}x${s.height}` : "?");
+				if (prefix === "[ddls-camera] ") {
+					if (kind === "getUserMedia") {
+						const outcome = data.error
+							? `ERROR ${data.error}`
+							: `${size(data.settings)}${data.settings?.facingMode ? ` ${data.settings.facingMode}` : ""}`;
+						logLine(`getUserMedia #${data.n} ${JSON.stringify(data.constraints?.video)} → ${outcome} · ${data.ms} ms`);
+					} else if (kind === "open") {
+						const s = data.settings ?? {};
+						const caps = data.capabilities;
+						logLine(`camera open ${size(s)} "${data.label ?? "?"}" facing ${s.facingMode ?? "?"} resizeMode ${s.resizeMode ?? "?"} fps ${s.frameRate ?? "?"} · ${data.ms} ms`);
+						logLine(`  requested ${JSON.stringify(data.requested?.video)} · max capability ${caps?.width ? `${caps.width.max}x${caps.height?.max}` : "n/a"} · resizeMode supported ${!!data.resizeModeSupported}`);
+						logLine(`  browser ${(data.browser?.match(/(Firefox|FxiOS|CriOS|Chrome|Safari)\/[\d.]+/) ?? [data.browser])[0]}`);
+					} else if (kind === "native mode") {
+						logLine(`native mode ${size(data.from)} → ${size(data.to)} (resizeMode ${data.to?.resizeMode ?? "?"})`);
+					} else if (kind === "native mode refused") {
+						logLine(`native mode ≥ ${size(data.floor)} refused: ${data.error}`);
+					}
+					return;
+				}
 				if (kind === "clarity") {
 					if (data.skipped) {
 						logLine(`clarity SKIPPED (${data.skipped})`);

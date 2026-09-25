@@ -39,6 +39,9 @@
 				set("[custom] FLIP THE CARD");
 				setTimeout(() => context.session.confirmFlip(), 1500);
 			});
+			// Capture confirmation is on by default; without a confirmation
+			// screen of its own, this UI accepts every capture.
+			context.session.on("confirmationPrompt", () => context.session.confirm());
 			context.session.on("stateChanged", ({ current }) => {
 				if (["completed", "rejected", "cancelled"].includes(current)) {
 					set(`[custom] ${current}`);
