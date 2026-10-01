@@ -160,8 +160,8 @@ Timeouts are in milliseconds. Expiry and age comparisons use the device clock; t
 
 | Property | Type | Default | Description |
 | --- | --- | --- | --- |
-| `themeConfig` | `{ colors?: Record<string, string> }` | none | Each color key `x` becomes the CSS custom property `--ddls-color-x` on the UI root. The default UI uses `primary` (buttons and the torch/sound/vibrate on-states), `scanAccent` (guide border, spinner, flip card), `success` (guide flash on capture), `overlay`, `text`, `toolbar` and `spinnerBackground`. |
-| `messagesConfig` | `Partial<DriverLicenseScannerMessages>` | English | Overrides for the UI strings, for wording or localization. Keys: `initializing`, `searchingFront`, `searchingBack`, `searchingBarcode`, `barcodeNotFound`, `rotateHorizontal`, `blurry`, `lowLight`, `portraitNotFound`, `holdSteady`, `processing`, `flipToBack`, `flipToFront`, `confirmationPrompt`, `retake`, `usePhoto`, `done`, `cancelled`, `rejected`. The defaults are exported as `DEFAULT_SCANNER_MESSAGES`. |
+| `themeConfig` | `{ colors?: Record<string, string> }` | none | Each color key `x` becomes the CSS custom property `--ddls-color-x` on the UI root. The default UI uses `primary` (controls: buttons and the torch/sound/vibrate on-states), `scanAccent` (the resting guide border, spinners, flip card), `attention` (guide border and hint text while a hint asks the user to change something; defaults to the `primary` orange), `success` (guide flash on capture), and the surfaces `overlay`, `text`, `toolbar` and `spinnerBackground`. |
+| `messagesConfig` | `Partial<DriverLicenseScannerMessages>` | English | Overrides for the UI strings, for wording or localization. Keys: `initializing`, `searchingFront`, `searchingBack`, `searchingBarcode`, `barcodeNotFound`, `barcodeFound`, `rotateHorizontal`, `moveCloser`, `blurry`, `lowLight`, `portraitNotFound`, `holdSteady`, `processing`, `flipToBack`, `flipToFront`, `confirmationPrompt`, `retake`, `usePhoto`, `done`, `cancelled`, `rejected`. The defaults are exported as `DEFAULT_SCANNER_MESSAGES`. |
 | `toolbarButtonsConfig` | `{ close?, cameraSwitch?, torch?, sound?, vibrate? }` | all shown | Per button a `DriverLicenseToolbarButtonConfig`: `icon` (inner HTML, e.g. an inline SVG), `label` (accessible label / tooltip), `isHidden`. The vibrate toggle only appears on touch devices with the Vibration API. |
 | `feedbackConfig` | `DriverLicenseFeedbackConfig` | all `false` | `beepOnCapture` and `vibrateOnCapture` set the starting state of the sound and vibrate toggles; `beepOnRejection` beeps when the scan is rejected. |
 | `enableScanRegion` | `boolean` | `true` | Show the card-shaped guide and restrict detection to it; `false` hides the guide and scans the full frame, where a small, distant card may not be detected. |
@@ -183,6 +183,7 @@ The gates that decide when a frame is captured. On the side that carries the bar
 | `minClarity` | `number` | `300` | Minimum clarity score (per 1000 measured pixels) a frame must reach; higher is stricter. Device-relative; tune it from the `debug` log. |
 | `lowLightThreshold` | `number` | `100` | Card brightness (0–255) below which a blur rejection is reported as low light instead of motion blur. |
 | `cardAspectTolerance` | `number` | `0.1` | Allowed deviation from the ID-1 card aspect ratio (1.588). |
+| `minCardFill` | `number` | `0.8` | Fraction of the frame the card's long edge must span before it is captured; a smaller card gets the "Move closer" hint. `0` disables. Measured against the scan region, which is the default guide plus a small margin. Applies only while a scan region crops the frame; a UI without one scans the full frame ungated. |
 | `debug` | `boolean` | `false` | Log per-frame gate decisions, the clarity measurement and the camera negotiation to the browser console. |
 
 ### `DriverLicenseResult`
@@ -228,7 +229,7 @@ The whole default experience (markup, styles, behavior) lives in `dist/ddls.ui.x
 | Property | What it is |
 | --- | --- |
 | `session` | The scan session: events `stateChanged`, `sideCaptured`, `confirmationPrompt`, `flipPrompt`, `barcodeParsed`, `resultReady`, `rejected`, `cancelled`; commands `confirmFlip()`, `confirm()`, `retake(side)`, `cancel()`. |
-| `engine` | The capture engine; emits `hint` events (`searching`, `searchingBarcode`, `barcodeNotFound`, `rotateHorizontal`, `blurry`, `lowLight`, `portraitNotFound`, `holdSteady`, `processing`). |
+| `engine` | The capture engine; emits `hint` events (`searching`, `searchingBarcode`, `barcodeNotFound`, `barcodeFound`, `rotateHorizontal`, `moveCloser`, `blurry`, `lowLight`, `portraitNotFound`, `holdSteady`, `processing`). |
 | `cameraEnhancer` | The Dynamsoft Camera Enhancer, for camera controls (switch camera, torch, scan region, …). |
 | `viewConfig` | The resolved `scannerViewConfig` with all messages merged against the defaults. |
 | `close()` | Cancel the scan; the scanner tears the camera and UI down. |

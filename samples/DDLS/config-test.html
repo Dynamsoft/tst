@@ -27,6 +27,9 @@
 				margin: 0.15rem 0.9rem 0.15rem 0;
 				font-size: 0.9rem;
 			}
+			label:has(:disabled) {
+				opacity: 0.5;
+			}
 			input[type="number"] {
 				width: 5.5rem;
 			}
@@ -147,8 +150,10 @@
 			<label title="How long the flip overlay shows after a side completes, in milliseconds. Range: 0 or more; empty = default. Default: 3000.">flipPromptTimeout (ms) <input type="number" id="flipPromptTimeout" value="3000" min="0" step="500" /></label>
 			<label title="Minimum time a guidance hint (searching, hold steady, blurry, …) stays on screen before the next one replaces it, in milliseconds; a hint arriving earlier waits and the latest wins. Range: 0 or more; 0 shows every change immediately; empty = default. Default: 1500.">minHintDuration (ms) <input type="number" id="minHintDuration" value="1500" min="0" step="250" /></label>
 			<br />
-			<label title="themeConfig.colors.primary → CSS variable --ddls-color-primary (buttons). Any CSS color. Default: #fe8e14.">primary color <input type="color" id="themePrimary" value="#fe8e14" /></label>
-			<label title="themeConfig.colors.scanAccent → guide border, scan spinner and flip card. Any CSS color. Default: white.">scanAccent color <input type="color" id="themeScanAccent" value="#ffffff" /></label>
+			<label title="themeConfig.colors.primary → controls: buttons and the on-state of the toolbar toggles. Any CSS color. Default: #fe8e14.">primary color <input type="color" id="themePrimary" value="#fe8e14" /></label>
+			<label title="themeConfig.colors.scanAccent → resting scan chrome: guide border, spinners and flip card. Any CSS color. Default: white.">scanAccent color <input type="color" id="themeScanAccent" value="#ffffff" /></label>
+			<label title="themeConfig.colors.attention → guide border and hint text while a problem hint shows (move closer, barcode found, blurry, …). Any CSS color. Default: #fe8e14 (same as primary).">attention color <input type="color" id="themeAttention" value="#fe8e14" /></label>
+			<label title="themeConfig.colors.success → guide border flash for one second when a side is captured. Any CSS color. Default: #4caf50.">success color <input type="color" id="themeSuccess" value="#4caf50" /></label>
 			<label title="messagesConfig.searchingFront: replaces the 'position the front…' hint. Empty = default text.">searchingFront text <input type="text" id="msgSearchingFront" placeholder="(default)" /></label>
 			<br />
 			<label title="toolbarButtonsConfig.torch.isHidden. Default: shown."><input type="checkbox" id="hideTorch" /> hide torch</label>
@@ -172,6 +177,7 @@
 			<label title="Minimum clarity score (per 1000 measured pixels) an accepted frame must reach. Higher = stricter, more retries; lower it if sharp captures get rejected. Sharp captures typically score several hundred, blurry ones well below, but the scale varies by device — read the clarity rows in the Debug log. Range: 0 or more. Default: 300.">minClarity <input type="number" id="minClarity" value="300" min="0" step="10" /></label>
 			<label title="Card brightness (0–255) below which a blur rejection shows 'Too dark — turn on the flashlight' instead of 'Image is blurry'. Only picks the hint; never decides acceptance. Range: 0–255. Default: 100.">lowLightThreshold <input type="number" id="lowLightThreshold" value="100" min="0" max="255" step="5" /></label>
 			<label title="Allowed deviation from the ID-1 card aspect ratio 1.588 (0.1 = ±10 %). Lower = stricter framing, may reject tilted cards; higher accepts stretched quads. Range: 0–1. Default: 0.1.">cardAspectTolerance <input type="number" id="cardAspectTolerance" value="0.1" min="0" max="1" step="0.05" /></label>
+			<label title="Fraction of the scan frame the card's long edge must span before a frame counts; the frame is the guide plus a small margin, so the fraction is slightly higher relative to the guide itself. Higher = the card must come closer (bigger captures, 'Move closer' shown until it does); lower accepts farther, smaller cards; 0 = off. Applies only while enableScanRegion is on. Range: 0–1. Default: 0.8.">minCardFill <input type="number" id="minCardFill" value="0.8" min="0" max="1" step="0.05" /></label>
 			<label title="Log per-frame gate decisions to the console and mirror the capture-tuning lines in the Debug log below. Default: off."><input type="checkbox" id="debug" /> debug logging</label>
 		</fieldset>
 
@@ -188,7 +194,8 @@
 		<button id="scan">Launch scan</button>
 
 		<h2>Effective config</h2>
-		<pre id="configEcho">(launch to see)</pre>
+		<p>Updates as you change any setting above; this is the object the Launch button passes to the scanner.</p>
+		<pre id="configEcho"></pre>
 
 		<h2>Result</h2>
 		<pre id="out"></pre>
@@ -229,6 +236,26 @@
 			const FRONT = "frontSide";
 			const BACK = "backSide";
 
+			function syncControls() {
+				const readBarcode = bool("readBarcode");
+				const barcodeSide = $("barcodeScanSide").value;
+				const frontActive = bool("captureFrontImage") || (readBarcode && barcodeSide === FRONT);
+				const backActive = bool("captureBackImage") || (readBarcode && barcodeSide === BACK);
+				const anyImage = bool("captureFrontImage") || bool("captureBackImage");
+				const disable = (ids, off) => ids.forEach((id) => ($(id).disabled = off));
+				disable(["barcodeScanSide", "returnBarcodeText"], !readBarcode);
+				disable(["scanOrder"], !(frontActive && backActive));
+				disable(["returnPortraitImage", "requirePortraitImage"], !bool("captureFrontImage"));
+				disable(["returnOriginalImage", "showCaptureConfirmation", "captureConfirmationTimeout"], !anyImage);
+			}
+			const refresh = () => {
+				syncControls();
+				echoConfig(buildConfig());
+			};
+			document.body.addEventListener("change", refresh);
+			document.body.addEventListener("input", refresh);
+			refresh();
+
 			function buildConfig() {
 				const verification = $("verificationCallback").value;
 				const config = {
@@ -264,6 +291,8 @@
 						colors: {
 							primary: $("themePrimary").value,
 							scanAccent: $("themeScanAccent").value,
+							attention: $("themeAttention").value,
+							success: $("themeSuccess").value,
 						},
 					},
 						messagesConfig: str("msgSearchingFront")
@@ -291,6 +320,7 @@
 						minClarity: num("minClarity") ?? undefined,
 						lowLightThreshold: num("lowLightThreshold") ?? undefined,
 						cardAspectTolerance: num("cardAspectTolerance") ?? undefined,
+						minCardFill: num("minCardFill") ?? undefined,
 						debug: bool("debug"),
 					},
 				};
