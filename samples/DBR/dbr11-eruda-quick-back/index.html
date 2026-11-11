@@ -34,9 +34,10 @@
         },
       });
 
-      // requestCamera only selects the 'quick-back' preset ({ facingMode: "environment" }); on a closed camera
-      // it does not call getUserMedia. Tested in 11.6.5000: without open() no camera starts and nothing decodes.
+      // requestCamera only selects the 'quick-back' preset ({ facingMode: "environment" }, no camera enumeration);
+      // open() then starts the camera with that preset.
       await cameraEnhancer.requestCamera("quick-back");
+      await cameraEnhancer.open();
       await router.startCapturing("ReadSingleBarcode");
     };
   </script>
