@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DBR 11 + eruda</title>
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init();</script>
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-barcode-reader-bundle@11/dist/dbr.bundle.js"></script>
+</head>
+<body>
+  <button id="scan">Scan</button>
+  <pre id="result"></pre>
+  <script>
+    const scanner = new Dynamsoft.BarcodeScanner({
+      license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMTA0NzA1MDIxLU1UQTBOekExTURJeExYZGxZaTFVY21saGJGQnliMm8iLCJtYWluU2VydmVyVVJMIjoiaHR0cHM6Ly9tZGxzLmR5bmFtc29mdG9ubGluZS5jb20vIiwib3JnYW5pemF0aW9uSUQiOiIxMDQ3MDUwMjEiLCJzdGFuZGJ5U2VydmVyVVJMIjoiaHR0cHM6Ly9zZGxzLmR5bmFtc29mdG9ubGluZS5jb20vIiwiY2hlY2tDb2RlIjotMTQ4OTkxODU4OH0=",
+    });
+    document.getElementById("scan").onclick = async () => {
+      const result = await scanner.launch();
+      console.log(result);
+      document.getElementById("result").textContent =
+        (result.barcodeResults || []).map((r) => `${r.formatString}: ${r.text}`).join("\n") || "No barcode";
+    };
+  </script>
+</body>
+</html>
