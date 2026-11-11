@@ -86,10 +86,18 @@
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
       if (native) {
+        // Stalled/slow/failing native detectors are dropped so ZXing always runs.
+        const started = performance.now();
+        let slow;
         try {
-          const codes = await native.detect(canvas);
-          if (codes[0]) return { text: codes[0].rawValue, engine: "native" };
-        } catch {}
+          const codes = await Promise.race([
+            native.detect(canvas),
+            new Promise((resolve) => { slow = setTimeout(() => { native = undefined; console.warn("BarcodeDetector stalled; disabled"); resolve(); }, 80); }),
+          ]);
+          if (codes?.[0]) return { text: codes[0].rawValue, engine: "native" };
+          if (performance.now() - started > 120) native = undefined;
+        } catch { native = undefined; }
+        finally { clearTimeout(slow); }
       }
       if (!workerFailed) {
         try {
