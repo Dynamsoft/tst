@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>Dynamic Web TWAIN 19.4.2 · min.js + 简体中文</title>
+  <style>
+    body { margin: 0; font: 14px/1.6 "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif; color: #323234; background: #f5f5f5; }
+    header { padding: 12px 20px; background: #fff; border-bottom: 1px solid #ddd; }
+    header h1 { margin: 0; font-size: 18px; }
+    main { display: flex; flex-wrap: wrap; gap: 16px; padding: 16px 20px; }
+    #dwtcontrolContainer { width: 640px; max-width: 100%; height: 600px; background: #fff; border: 1px solid #ccc; }
+    #controls { flex: 1; min-width: 280px; max-width: 420px; background: #fff; border: 1px solid #ccc; padding: 12px 16px; }
+    #controls label { display: block; margin: 8px 0 4px; }
+    #controls select { width: 100%; padding: 4px; }
+    #controls .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    #controls button { padding: 6px 14px; cursor: pointer; }
+    #controls button:disabled { cursor: not-allowed; }
+    #status { margin-top: 14px; padding: 8px; min-height: 60px; max-height: 200px; overflow: auto; background: #fafafa; border: 1px solid #eee; font-size: 13px; white-space: pre-wrap; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Dynamic Web TWAIN 19.4.2 · dynamsoft.webtwain.min.js + 简体中文汉化</h1>
+  </header>
+  <main>
+    <div id="dwtcontrolContainer"></div>
+    <section id="controls">
+      <label for="source">扫描仪：</label>
+      <select id="source" disabled>
+        <option value="">（正在连接扫描服务…）</option>
+      </select>
+      <div class="row">
+        <button type="button" id="btnRefresh" disabled>刷新列表</button>
+        <button type="button" id="btnSelectSource" disabled>选择数据源…</button>
+      </div>
+      <label><input type="checkbox" id="showUI" /> 显示扫描仪界面</label>
+      <div class="row">
+        <button type="button" id="btnScan" disabled>扫描</button>
+        <button type="button" id="btnLoad" disabled>导入本地图像</button>
+        <button type="button" id="btnEditor" disabled>图像编辑器</button>
+        <button type="button" id="btnClear" disabled>清除全部图像</button>
+      </div>
+      <div id="status"></div>
+    </section>
+  </main>
+
+  <!-- 1. Dynamic Web TWAIN 19.4.2 一体化包（npm: dwt@19.4.2） -->
+  <script src="https://cdn.jsdelivr.net/npm/dwt@19.4.2/dist/dynamsoft.webtwain.min.js"
+    integrity="sha384-ZgPlB3ZtL7BgoVaHnxCStBOrK2P6y3VJ/+fvuFz8QdrC7PRwHiut8/96PyDy7xRJ"
+    crossorigin="anonymous"></script>
+  <!-- 2. 简体中文界面（仅替换文字与对话框，不含任何应用配置） -->
+  <script src="dynamsoft.webtwain.zh-cn.js"></script>
+  <!-- 3. 应用配置（许可证与资源路径），与汉化文件分开 -->
+  <script>
+    // Shared test license from the repository README (bound to dynamsoft.github.io).
+    // Replace with your own key: https://www.dynamsoft.com/customer/license/trialLicense?product=dwt
+    Dynamsoft.DWT.ProductKey = 'DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAwLTEwMzk4OTAwMyIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbS8iLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMCIsInN0YW5kYnlTZXJ2ZXJVUkwiOiJodHRwczovL3NsdHMuZHluYW1zb2Z0LmNvbS8iLCJjaGVja0NvZGUiOjk0NTQ3NzkxMX0=';
+    // CSS / viewer / license-tracking resources (dist/src/*) from the same pinned package.
+    Dynamsoft.DWT.ResourcesPath = 'https://cdn.jsdelivr.net/npm/dwt@19.4.2/dist';
+    // Service installers. jsDelivr refuses files this large (HTTP 403), so use Dynamsoft's pinned 19.4.2 copy.
+    Dynamsoft.DWT.ServiceInstallerLocation = 'https://demo.dynamsoft.com/DWT/Resources/dist/19.4.2/';
+    Dynamsoft.DWT.AutoLoad = false;
+    Dynamsoft.DWT.Containers = [{ ContainerId: 'dwtcontrolContainer', Width: '100%', Height: '100%' }];
+  </script>
+  <!-- 4. 初始化与页面逻辑 -->
+  <script>
+    (function () {
+      'use strict';
+
+      var CONTAINER_ID = 'dwtcontrolContainer';
+      var DWObject = null;
+      var devices = [];
+      var loadRequested = false;
+      var $ = function (id) { return document.getElementById(id); };
+
+      function log(msg) {
+        var el = $('status');
+        el.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+        el.scrollTop = el.scrollHeight;
+      }
+
+      function errText(e) {
+        return (e && (e.message || e.errorString)) || String(e);
+      }
+
+      function setEnabled(enabled) {
+        ['source', 'btnRefresh', 'btnSelectSource', 'btnScan', 'btnLoad', 'btnEditor', 'btnClear'].forEach(function (id) {
+          $(id).disabled = !enabled;
+        });
+      }
+
+      function refreshDevices() {
+        return DWObject.GetDevicesAsync().then(function (list) {
+          devices = list || [];
+          var sel = $('source');
+          sel.innerHTML = '';
+          if (!devices.length) {
+            sel.add(new Option('（未检测到扫描仪）', ''));
+          }
+          devices.forEach(function (d, i) {
+            sel.add(new Option(d.displayName || d.name, String(i)));
+          });
+          log('检测到 ' + devices.length + ' 台扫描仪。');
+        }, function (e) {
+          log('获取扫描仪列表失败：' + errText(e));
+        });
+      }
+
+      // OnWebTwainReady fires after Load() and again after the install dialog's
+      // "我已安装" button reconnects (ConnectToTheService). Bind handlers only once.
+      function onReady() {
+        var obj = Dynamsoft.DWT.GetWebTwain(CONTAINER_ID);
+        if (!obj) return;
+        if (obj !== DWObject) {
+          DWObject = obj;
+          DWObject.RegisterEvent('OnBitmapChanged', function () {
+            log('当前共 ' + DWObject.HowManyImagesInBuffer + ' 张图像。');
+          });
+          log('Dynamic Web TWAIN ' + Dynamsoft.DWT.JSVersion.split(',').slice(0, 3).join('.') + ' 已就绪。');
+        }
+        setEnabled(true);
+        refreshDevices();
+      }
+
+      function init() {
+        if (loadRequested) return;
+        loadRequested = true;
+        Dynamsoft.DWT.RegisterEvent('OnWebTwainReady', onReady);
+        log('正在初始化…');
+        Dynamsoft.DWT.Load();
+      }
+
+      $('btnRefresh').onclick = refreshDevices;
+
+      // Built-in source dialog; its text comes from CustomizableDisplayInfo.dialogText.selectSource.
+      $('btnSelectSource').onclick = function () {
+        DWObject.SelectSourceAsync().then(function () {
+          var name = DWObject.CurrentSourceName;
+          log('已选择：' + name);
+          devices.forEach(function (d, i) {
+            if ((d.displayName || d.name) === name) $('source').value = String(i);
+          });
+        }, function (e) {
+          log('未选择数据源：' + errText(e));
+        });
+      };
+
+      $('btnScan').onclick = function () {
+        var device = devices[parseInt($('source').value, 10)];
+        if (!device) {
+          log('请先选择扫描仪。');
+          return;
+        }
+        $('btnScan').disabled = true;
+        DWObject.SelectDeviceAsync(device).then(function () {
+          return DWObject.AcquireImageAsync({
+            IfShowUI: $('showUI').checked,
+            IfCloseSourceAfterAcquire: true
+          });
+        }).then(function () {
+          log('扫描完成。');
+        }, function (e) {
+          log('扫描失败：' + errText(e));
+        }).then(function () {
+          $('btnScan').disabled = false;
+        });
+      };
+
+      $('btnLoad').onclick = function () {
+        DWObject.IfShowFileDialog = true;
+        DWObject.LoadImageEx('', Dynamsoft.DWT.EnumDWT_ImageType.IT_ALL, function () {
+          log('已导入本地图像。');
+        }, function (code, msg) {
+          log('导入失败：' + msg);
+        });
+      };
+
+      // Image editor button tooltips come from CustomizableDisplayInfo.buttons.titles.
+      $('btnEditor').onclick = function () {
+        if (DWObject.HowManyImagesInBuffer === 0) {
+          log('缓冲区中没有图像。');
+          return;
+        }
+        DWObject.Viewer.createImageEditor().show();
+      };
+
+      $('btnClear').onclick = function () {
+        DWObject.RemoveAllImages();
+      };
+
+      init();
+
+      // Development-only dialog simulations: open the page with ?dev=1.
+      if (/[?&]dev=1\b/.test(location.search)) {
+        var s = document.createElement('script');
+        s.src = 'dev-dialogs.js';
+        document.body.appendChild(s);
+      }
+    })();
+  </script>
+</body>
+
+</html>
