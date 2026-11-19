@@ -90,8 +90,10 @@ Both bugs are also in the original Chinese sample and in the English `install.js
 
 1. **Upgrade title was always 「更新…」.** `OnWebTwainNeedUpgradeCallback` passed `..., strIEVersion, true, true, serviceVer, expectedVer`.
    The extra `true` shifted the arguments, so `_show_install_dialog` compared `parseFloat(true)` (`NaN`) and never showed
-   「升级您的附件影像扫描助手」. One `true` is removed. The title is now 「升级…」 when the installed service version is lower
-   than the expected one, and 「更新…」 otherwise (including when `min.js` passes no versions).
+   「升级您的附件影像扫描助手」. One `true` is removed. The original `parseFloat` comparison also could not tell patch versions
+   apart (`parseFloat('19.4.1') === parseFloat('19.4.2')`). It is replaced by `isVersionLower`, which compares numeric
+   components separated by `.` or `,` (for example `19,4,2,0728`). The title is now 「升级…」 when the installed service
+   version is lower than the expected one. It stays 「更新…」 otherwise, including when versions are missing or not numeric.
 2. **English 「Error」 header on some dialogs.** `ShowMessage` falls back to the caption `"Error"`, which is hard-coded in
    `min.js`, and `CustomizableDisplayInfo` has no setting for it. `caption: '错误'` is now passed by `OnLicenseError`,
    `OnLTSLicenseError`, `OnHTTPCorsError`, `OnCorsConfigError`, standalone `OnBrowserLNADeniedV2_FF`, and the expired branch
@@ -137,8 +139,9 @@ Simulated with `?dev=1` (callbacks called directly; no real missing service, per
 - **Other dialogs:** upgrade, local-network-access prompt and denied (standalone and inside the install dialog, where
   closing returns to the install dialog), the screenshot version, LTS error, cached-license warning, trial expiring and
   expired, license error, HTTP/CORS errors and the mobile notice.
-- **After the fixes:** the upgrade dialog with service `19.0` / expected `19.4` shows 「升级您的附件影像扫描助手」. With
-  equal versions or no versions it shows 「更新…」. The license, LTS, HTTP/CORS, CORS-config, expired-trial and
+- **After the fixes:** the upgrade callback shows 「升级…」 for 19.4.1→19.4.2, 19.3.9→19.4.0, `19,4,1,0728`→`19,4,2,0728`,
+  19.4→19.4.1 and 18.5→19.4.2. It shows 「更新…」 for equal or newer versions (including 19.10.0 vs 19.9.0), missing versions
+  and non-numeric input. The license, LTS, HTTP/CORS, CORS-config, expired-trial and
   screenshot-permission dialogs show the header 「错误」. The trial-expiring warning keeps 「警告」.
 
 Not tested: a genuinely missing or outdated service, a real browser local-network-access prompt or denial (the page was

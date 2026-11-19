@@ -13,7 +13,7 @@
  * 内容取自 samples/dwt-19.4.2-zh_cn/Resources/：
  *   第一部分：dynamsoft.webtwain.config.js 中的 Dynamsoft.DWT.CustomizableDisplayInfo（未改动）
  *   第二部分：dynamsoft.webtwain.install.js 全文（含 Base64 图标及权限示意截图），仅修正两处：
- *     - OnWebTwainNeedUpgradeCallback 多传了一个 true，导致升级标题始终显示“更新”；
+ *     - OnWebTwainNeedUpgradeCallback 多传了一个 true，且 parseFloat 无法区分补丁版本，导致升级标题始终显示“更新”；
  *     - 未指定 caption 的错误对话框标题显示英文 “Error”，现统一为“错误”。
  */
 
@@ -147,6 +147,18 @@ Dynamsoft.DWT.CustomizableDisplayInfo = {
       promptDlgWidth = screen.width - 10;
     }
   }
+  // Returns true when version a ("19.4.1" or "19,4,1,0728") is lower than b. Missing or non-numeric input returns false.
+  function isVersionLower(a, b) {
+    if (a === undefined || a === null || b === undefined || b === null) return false;
+    var pa = String(a).split(/[.,]/), pb = String(b).split(/[.,]/);
+    for (var i = 0; i < Math.max(pa.length, pb.length); i++) {
+      var x = parseInt(pa[i] || '0', 10), y = parseInt(pb[i] || '0', 10);
+      if (isNaN(x) || isNaN(y)) return false;
+      if (x !== y) return x < y;
+    }
+    return false;
+  }
+
   function isChrome145plus() {
     if (Dynamsoft.navInfoSync.bChrome || Dynamsoft.navInfoSync.bEdge) {
       var ver = parseInt(Dynamsoft.navInfoSync.strBrowserVersion);
@@ -281,7 +293,7 @@ Dynamsoft.DWT.CustomizableDisplayInfo = {
 
     // npm file mode
     if (bNeedUpgrade) {
-      if(parseFloat(serviceVer) < parseFloat(expectedVer))
+      if(isVersionLower(serviceVer, expectedVer))
         title = '升级您的附件影像扫描助手'; //'Please follow the steps below to upgrade your local document scanning service.';
       else
         title = '更新您的附件影像扫描助手';
